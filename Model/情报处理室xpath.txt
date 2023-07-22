@@ -1,0 +1,8 @@
+//table[@class="wikitable"]//big[text()="照我以火"]
+：找到关卡
+//big[text()="照我以火"]/ancestor::tr/following-sibling::tr/td/div/table/tbody/tr/td/span[2]/span/text()
+：关卡编号
+//big[text()="照我以火"]/ancestor::tr/following-sibling::tr/td//td[3]/span[1]/b/text()
+：行动前后
+//big[text()="照我以火"]/ancestor::tr/following-sibling::tr/td/div/table/tbody/tr/td/span[2]/text()
+：关卡名
