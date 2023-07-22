@@ -1,25 +1,22 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
-
+using ArkPlotWpf.Model;
 using Markdig;
 
-using ArkPlotWpf.Model;
-using AkGetter = ArkPlotWpf.Utilities.AkGetter;
-
-namespace ArkPlotWpf.ViewModel
+namespace ArkPlotWpf.Utilities
 {
     internal abstract class AkProcessor
     {
-        public static string ExportPlots(List<KeyValuePair<string,string>> plotList, string jsPah)
+        public static string ExportPlots(List<Plot> plotList, string jsonPath)
         {
             var md = string.Empty;
-            foreach (var chp in plotList)
+            foreach (var chapter in plotList)
             {
-                var chpName = "## " + chp.Key;
-                var chpMd = new AkParser(chp.Value, jsPah);
-                md += chpName + chpMd.markDown;
+                var chpName = "## " + chapter.Title;
+                var chpMd = new AkParser(chapter.Content, jsonPath);
+                md += chpName + chpMd.MarkDown;
             }
             return md;
         }

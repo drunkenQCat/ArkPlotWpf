@@ -1,12 +1,12 @@
 using System;
-using System.Text.RegularExpressions;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
+using ArkPlotWpf.Model;
 using HtmlAgilityPack;
 
-namespace ArkPlotWpf.Model;
+namespace ArkPlotWpf.Utilities;
 
 internal class AkLinker
 {
@@ -38,22 +38,18 @@ internal class AkLinker
         GetStages();
     }
 
-    public List<KeyValuePair<string,string>> LinkStages(Hashtable plots)
+    public List<Plot> LinkStages(Dictionary<string, string> plots)
     {
         /*没啥好说的，抄python版，三步走
         *想想办法修改相应的键值
         */
         var fileList = plots.Keys;
-        List<string> fileNames = new List<string>();
-        foreach(var k in fileList)
+        var fileNames = fileList.Select(k => k.ToString()).ToList();
+        foreach(var title in fileNames)
         {
-            fileNames.Add(k.ToString()!);
-        }
-        foreach(var oldKey in fileNames)
-        {
-            if (oldKey.Contains("beg")) SubKey(oldKey, plots, this.begList);
-            if (oldKey.Contains("end")) SubKey(oldKey, plots, this.endList);
-            if (oldKey.Contains("st")) SubKey(oldKey, plots, this.stList);
+            if (title.Contains("beg")) AttachStageType(title, plots, begList);
+            if (title.Contains("end")) AttachStageType(title, plots, endList);
+            if (title.Contains("st")) AttachStageType(title, plots, stList);
         }
         var sortedStages = SortStages(plots);
         return sortedStages;
@@ -104,52 +100,43 @@ internal class AkLinker
 
     }
         
-    private string GetKey(string oldKey, List<string> newList)
+    private string GetStageType(string title, List<string> theStageList)
     {
-        var oldNum = GetDigit(oldKey);
-        foreach(var n in newList)
-        {
-            if (GetDigit(n) == oldNum)
-            {
-                return n;
-            }
-        }
+        var titleNum = GetDigit(title);
+        foreach (var n in theStageList.Where(n => GetDigit(n) == titleNum)) return n;
         return "";
     }
 
-    private int GetDigit(string name)
+    private static int GetDigit(string name)
     {
         // 这一坨用来把文件名里的数字提取出来
-        Regex digitMatch =new Regex(@"\d+",RegexOptions.Compiled) ;
+        var digitMatch =new Regex(@"\d+",RegexOptions.Compiled) ;
         var oldMatches = digitMatch.Matches(name);
         // 把匹配到的数字写进数组
-        string[] oldNumbers = new string[oldMatches.Count];
-        for (int i = 0; i < oldMatches.Count; i++)
+        var oldNumbers = new string[oldMatches.Count];
+        for (var i = 0; i < oldMatches.Count; i++)
         {
             oldNumbers[i] = oldMatches[i].Value;
         }
         // 把数组里最后一个成员转换成整型
-        int oldNum = int.Parse(oldNumbers[oldNumbers.Length - 1]);
+        var oldNum = int.Parse(oldNumbers[^1]);
         return oldNum;
     }
 
-    private void SubKey(string oldKey, Hashtable plots, List<string> newList)
+    private void AttachStageType(string title, Dictionary<string, string> plots, List<string> theStageList)
     {
-        var newKey = GetKey(oldKey, newList);
-        plots[newKey] = plots[oldKey];
-        plots.Remove(oldKey);
+        var newKey = GetStageType(title, theStageList);
+        plots[newKey] = plots[title];
+        plots.Remove(title);
 
     }
 
-    private List<KeyValuePair<string,string>> SortStages(Hashtable plots)
+    private List<Plot> SortStages(Dictionary<string, string> plots)
     {
-        List<KeyValuePair<string,string>> dict = new List<KeyValuePair<string,string>>();
-        foreach (var name in this.stageList)
-        {
-            var text = plots[name]!.ToString();
-            var pair = new KeyValuePair<string,string>(name, text!);
-            dict.Add(pair);
-        }
-        return dict;
+        var sortedStages = 
+            from name in this.stageList
+            let text = plots[name]
+            select new Plot(name, text);
+        return sortedStages.ToList();
     }
 }

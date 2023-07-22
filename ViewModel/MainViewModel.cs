@@ -1,10 +1,13 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 
 using ArkPlotWpf.Model;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using ArkPlotWpf.Utilities;
 using AkGetter = ArkPlotWpf.Utilities.AkGetter;
 
 namespace ArkPlotWpf.ViewModel;
@@ -34,21 +37,30 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     async Task LoadMd()
     {
-        // ConsoleOutput = ""; //先清空这片区域
+        ConsoleOutput = ""; //先清空这片区域
         var linker = new AkLinker(actName);
         var content = new AkGetter(linker.ActiveCode,isGitee);
+        SubscribeChapterLoadedNotification(content);
         var activeTitle = linker.ActiveName;
 
         //大工程，把所有的章节都下载下来
         await content.GetAllChapters();
-        var allContent = content.ContentTable;
-        var linkedContent = linker.LinkStages(allContent);
+        var linkedContent = linker.LinkStages(content.ContentTable);
         // 处理每一章，最后导出
         var exportMd = AkProcessor.ExportPlots(linkedContent, jsonPath);
         var finalMd = "# "+ activeTitle + "\r\n\r\n" + exportMd;
         AkProcessor.WriteMd(outputPath, activeTitle, finalMd);
         AkProcessor.WriteHtml(outputPath, activeTitle, finalMd);
         MessageBox.Show("生成完成！");
+    }
+
+    private void SubscribeChapterLoadedNotification(AkGetter content)
+    {
+        content.ChapterLoaded += (o, args) =>
+        {
+            var s = args.Title.ToString() + "已加载";
+            ConsoleOutput += s;
+        };
     }
 
     public void SelectFile()

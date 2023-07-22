@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -13,12 +12,14 @@ internal partial class AkGetter
 {
     // 从GitHub拿到章节的文件名以及相应的所有内容
     private readonly string totalPlotsUrl = "https://github.com/Kengxxiao/ArknightsGameData/tree/master/zh_CN/gamedata/story/activities/";
-    public Hashtable ContentTable { get; } = new ();
+    public Dictionary<string, string> ContentTable { get; } = new ();
 
     private readonly List<Task> tasks = new ();
     private readonly string blobSub = ""; //对于blob，github和gitee不太一样
     private readonly string rawUrl = "https://raw.githubusercontent.com";
     private readonly Regex urlsReg = GithubPlotsRegex();
+
+    public event EventHandler<ChapterLoadedEventArgs>? ChapterLoaded;
 
     public AkGetter(string? active, bool isGitee = false)
     {
@@ -40,7 +41,8 @@ internal partial class AkGetter
             async Task GetSingleChapter()
             {
                 var content = await GetAsync(chapter.Value);
-                Console.WriteLine($"{chapter.Key} 已加载");
+                // Console.WriteLine($"{chapter.Key} 已加载");
+                ChapterLoaded!.Invoke(this, new ChapterLoadedEventArgs(chapter.Key));
                 ContentTable.Add(chapter.Key, content);
             }
 
@@ -49,13 +51,13 @@ internal partial class AkGetter
         await Task.WhenAll(tasks);
     }
 
-    private static async Task<string?> GetAsync(string url)
+    private static async Task<string> GetAsync(string url)
     {
         // 发送一个request请求
+        // Todo: 请求失败发送event
 
         using var client = new HttpClient();
         using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-        var totalBytes = response.Content.Headers.ContentLength;
         await using var stream = await response.Content.ReadAsStreamAsync();
         var buffer = new byte[4096];
         var isMoreToRead = true;
@@ -108,4 +110,14 @@ internal partial class AkGetter
     private static partial Regex GithubPlotsRegex();
     [GeneratedRegex("href=[\"'](.*?/blob/master.*?)[\"']", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
     private static partial Regex GiteePlotsRegex();
+}
+
+class  ChapterLoadedEventArgs : EventArgs
+{
+    public ChapterLoadedEventArgs(string title)
+    {
+        Title = title;
+    }
+
+    public string Title { get; }
 }
