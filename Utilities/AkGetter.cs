@@ -14,11 +14,10 @@ internal class AkGetter
     // 从GitHub拿到章节的文件名以及相应的所有内容
     private readonly string plotsJsonRequestUrl = "https://github.com/Kengxxiao/ArknightsGameData/tree-commit-info/master/zh_CN/gamedata/story/activities/";
     public Dictionary<string, string> ContentTable { get; } = new ();
+    readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
 
     private readonly List<Task> tasks = new ();
     private readonly string rawUrl = "https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/story/activities/";
-
-    public event EventHandler<ChapterLoadedEventArgs>? ChapterLoaded;
 
     public AkGetter(string? active)
     {
@@ -35,7 +34,7 @@ internal class AkGetter
             {
                 var content = await GetAsync(chapter.Value);
                 // Console.WriteLine($"{chapter.Key} 已加载");
-                ChapterLoaded!.Invoke(this, new ChapterLoadedEventArgs(chapter.Key));
+                notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
                 ContentTable.Add(chapter.Key, content);
             }
 
@@ -49,8 +48,8 @@ internal class AkGetter
         var jsonContent = await GetJsonContent();
         var fileNames = GetFileNames(jsonContent);
         var urls = fileNames.ToDictionary(
-                                    name => name, 
-                                    name => rawUrl + name);
+            name => name, 
+            name => rawUrl + name);
         return urls;
     }
 
@@ -73,18 +72,31 @@ internal class AkGetter
         request.RequestUri = new Uri(plotsJsonRequestUrl);
         request.Method = HttpMethod.Get;
         request.Headers.Add("Accept", "application/json");
-
-        var response = await client.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
-        return content;
+        try
+        {
+            var response = await client.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
+        }
+        catch (HttpRequestException e)
+        {
+            NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(e.Message));
+            return  "";
+        }
     }
     private static async Task<string> GetAsync(string url)
     {
         // 发送一个request请求
-        // Todo: 请求失败发送event
 
         using var client = new HttpClient();
         using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        if (!response.IsSuccessStatusCode)
+        {
+            if (response.ReasonPhrase != null)
+                NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response.ReasonPhrase));
+            return "";
+        }
+
         await using var stream = await response.Content.ReadAsStreamAsync();
         var buffer = new byte[4096];
         var isMoreToRead = true;
@@ -104,14 +116,4 @@ internal class AkGetter
         var fileContent = Encoding.UTF8.GetString(memoryStream.ToArray());
         return fileContent;
     }
-}
-
-class  ChapterLoadedEventArgs : EventArgs
-{
-    public ChapterLoadedEventArgs(string title)
-    {
-        Title = title;
-    }
-
-    public string Title { get; }
 }

@@ -7,6 +7,8 @@
     xmlns:local="clr-namespace:ArkPlotWpf"
     xmlns:vm="clr-namespace:ArkPlotWpf.ViewModel"
     xmlns:model="clr-namespace:ArkPlotWpf.Model"
+    xmlns:properties="clr-namespace:ArkPlotWpf.Styles.Properties"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
     mc:Ignorable="d"
     WindowStartupLocation="CenterScreen"
     Title="ArkPlot" Height="500" Width="300">
@@ -25,7 +27,7 @@
             </Image>
         </Canvas>
         <Grid
-            Margin="10 20 10 0" > 
+            Margin="10 20 10 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="55" />
@@ -39,27 +41,27 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0"
-                        Content="活动名" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                           Content="活动名" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     <Label Grid.Row="1" Grid.Column="0"
-                                                Content="Json文件" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                    <Label Grid.Row="2" Grid.Column="0"  
-                        Content="生成位置" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                           Content="Json文件" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                    <Label Grid.Row="2" Grid.Column="0"
+                           Content="生成位置" VerticalAlignment="Center" HorizontalAlignment="Right" />
 
-                    <TextBox Grid.Row="0" Grid.Column="1" 
-                        Text="{Binding ActName}" VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"  />
-                    <TextBox Grid.Row="1" Grid.Column="1" 
-                        Text="{Binding JsonPath}" VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"  />
-                    <TextBox Grid.Row="2" Grid.Column="1" 
-                        Text="{Binding OutputPath}" VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"  />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding ActName}" VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             Text="{Binding JsonPath}" VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch" />
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             Text="{Binding OutputPath}" VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch" />
                 </Grid>
             </Grid>
 
@@ -71,10 +73,20 @@
             <Border
                 Grid.Row="2" Margin="7" BorderThickness="2" BorderBrush="#7001"
                 VerticalAlignment="Stretch" Height="225">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TextBlock  Margin="10 12 10 0"  TextWrapping="Wrap" Text="{Binding ConsoleOutput}" />
-                </ScrollViewer>
+                <hc:ScrollViewer
+                    Margin="10"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    properties:AutoScroll.AutoScroll="True"
+                    HorizontalScrollBarVisibility="Disabled"
+                    IsInertiaEnabled="True">
+                    <TextBlock
+                        Margin="10 12 10 0"
+                        TextWrapping="Wrap"
+                        Text="{Binding ConsoleOutput}" />
+                </hc:ScrollViewer>
             </Border>
+
             <!-- <Border -->
             <!--     Grid.Row="2" Margin="7" BorderThickness="2" BorderBrush="#7001" -->
             <!--     VerticalAlignment="Stretch" Height="225"> -->

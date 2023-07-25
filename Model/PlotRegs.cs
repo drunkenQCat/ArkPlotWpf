@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using ArkPlotWpf.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Model;
@@ -70,7 +71,7 @@ public partial class PlotRegs
         tag = tag.ToLower();
         if (tagList[tag] == null)
         {
-            // Broadcast 
+            NotificationBlock.Instance.OnLineNoMatch(new LineNoMatchEventArgs(line, tag));
             return line;
         }
         var newTag = (string)tagList[tag]!;

@@ -74,5 +74,9 @@
     "video":"`视频:`",
     "video_reg":"(?<=res=\").*?(?=\")",
     "bgeffect":"`背景效果`",
-    "bgeffect_reg":"(?<=name=\").*?(?=\")|(?<=layer=).*|(?<=layer = ).*"
+    "bgeffect_reg":"(?<=name=\").*?(?=\")|(?<=layer=).*|(?<=layer = ).*",
+    "gridbg":"`拼图：`",
+    "gridbg_reg":"((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)",
+    "verticalbg":"`拼图(竖立)：`",
+    "verticalbg_reg":"((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)"
 }

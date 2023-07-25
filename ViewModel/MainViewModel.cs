@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using ArkPlotWpf.Utilities;
 using AkGetter = ArkPlotWpf.Utilities.AkGetter;
+using System;
 
 namespace ArkPlotWpf.ViewModel;
 
@@ -23,6 +24,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] 
     string outputPath = System.Environment.CurrentDirectory;
 
+    NotificationBlock notiBlock = NotificationBlock.Instance;
     // [ObservableProperty] 
     // ObservableCollection<ConsoleOut> consoleOuts;
 
@@ -32,13 +34,15 @@ public partial class MainWindowViewModel : ObservableObject
         ConsoleOutput = ""; //先清空这片区域
         var linker = new AkLinker(actName);
         var content = new AkGetter(linker.ActiveCode);
-        SubscribeChapterLoadedNotification(content);
+        SubscribeChapterLoadedNotification();
         var activeTitle = linker.ActiveName;
 
         //大工程，把所有的章节都下载下来
+        SubscribeNetErrorNotification();
         await content.GetAllChapters();
         var linkedContent = linker.LinkStages(content.ContentTable);
         // 处理每一章，最后导出
+        SubscribeLineNoMatchNotification();
         var exportMd = AkProcessor.ExportPlots(linkedContent, jsonPath);
         var finalMd = "# "+ activeTitle + "\r\n\r\n" + exportMd;
         AkProcessor.WriteMd(outputPath, activeTitle, finalMd);
@@ -46,9 +50,28 @@ public partial class MainWindowViewModel : ObservableObject
         MessageBox.Show("生成完成！");
     }
 
-    private void SubscribeChapterLoadedNotification(AkGetter content)
+    private void SubscribeNetErrorNotification()
     {
-        content.ChapterLoaded += (_, args) =>
+        notiBlock.NetErrorHappen += (_, args) =>
+        {
+            var s = $"网络错误：{args.Message}，请确认是否连接代理？";
+            ConsoleOutput += s;
+            MessageBox.Show(s);
+        };
+    }
+
+    private void SubscribeLineNoMatchNotification()
+    {
+        notiBlock.LineNoMatch += (_, args) =>
+        {
+            var s = $"警告：请检查tags.json中{args.Tag}是否存在？\r\n出错的句子：" + args.Line;
+            ConsoleOutput += s;
+        };
+    }
+
+    private void SubscribeChapterLoadedNotification()
+    {
+        notiBlock.ChapterLoaded += (_, args) =>
         {
             var s = args.Title.ToString() + "已加载";
             ConsoleOutput += s;
