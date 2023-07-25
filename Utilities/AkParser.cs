@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Model;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -22,12 +20,14 @@ internal class AkParser
 
     private string MatchType(string line)
     {
-        var processedResults =  plotRegs.Processors
-            .Select(proc => new { proc, matched = proc.Regex.Match(line) })
-            .Where(@t => @t.matched.Value != "")
-            .Select(@t => @t.proc.Method(line));
-        var results = processedResults.ToList();
-        return !results.Any() ? line : results[0];
+        var sentenceProcessor = plotRegs.RegexAndMethods
+            .FirstOrDefault(proc => proc.Regex.Match(line).Success);
+        if (sentenceProcessor == null)
+        {
+            return line;
+        }
+        var result = sentenceProcessor.Method(line);
+        return result;
     }
 
     private static IEnumerable<string> PlotSplitter(string plot)
@@ -58,8 +58,8 @@ internal class AkParser
 
         bool IsLineDup(string newLine)
         {
-            if (newLine != prevLine) return false;
             if (newLine == "") return true;
+            if (newLine != prevLine) return false;
             duplicateLineCount++;
             return true;
 

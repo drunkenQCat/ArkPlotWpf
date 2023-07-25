@@ -134,7 +134,7 @@ internal class AkLinker
     private List<Plot> SortStages(Dictionary<string, string> plots)
     {
         var sortedStages = 
-            from name in this.stageList
+            from name in stageList
             let text = plots[name]
             select new Plot(name, text);
         return sortedStages.ToList();

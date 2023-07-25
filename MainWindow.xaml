@@ -50,8 +50,6 @@
                                                 Content="Json文件" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     <Label Grid.Row="2" Grid.Column="0"  
                         Content="生成位置" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                    <Label Grid.Row="3" Grid.Column="0"  
-                        Content="Gitee下载" VerticalAlignment="Center" HorizontalAlignment="Right" />
 
                     <TextBox Grid.Row="0" Grid.Column="1" 
                         Text="{Binding ActName}" VerticalAlignment="Center"
@@ -60,10 +58,7 @@
                         Text="{Binding JsonPath}" VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"  />
                     <TextBox Grid.Row="2" Grid.Column="1" 
-                        Text="{Binding OutPutPath}" VerticalAlignment="Center"
-                        HorizontalAlignment="Stretch"  />
-                    <CheckBox Grid.Row="3" Grid.Column="1" 
-                        IsChecked="{Binding  IsGitee}" VerticalAlignment="Center"
+                        Text="{Binding OutputPath}" VerticalAlignment="Center"
                         HorizontalAlignment="Stretch"  />
                 </Grid>
             </Grid>
@@ -76,7 +71,9 @@
             <Border
                 Grid.Row="2" Margin="7" BorderThickness="2" BorderBrush="#7001"
                 VerticalAlignment="Stretch" Height="225">
-                <TextBlock  Margin="10 12 10 0"  TextWrapping="Wrap" Text="{Binding ConsoleOutput}" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock  Margin="10 12 10 0"  TextWrapping="Wrap" Text="{Binding ConsoleOutput}" />
+                </ScrollViewer>
             </Border>
             <!-- <Border -->
             <!--     Grid.Row="2" Margin="7" BorderThickness="2" BorderBrush="#7001" -->

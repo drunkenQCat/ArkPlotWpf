@@ -37,10 +37,10 @@ namespace ArkPlotWpf.Utilities
             var info = new UTF8Encoding(true).GetBytes(plots);
             file.Write(info, 0, info.Length);
         }
-        public static async Task MainProc(string chpName, string jsPah, string outPath, bool gitee)
+        public static async Task MainProc(string chpName, string jsPah, string outPath)
         {
             var linker = new AkLinker(chpName);
-            var content = new AkGetter(linker.ActiveCode,gitee);
+            var content = new AkGetter(linker.ActiveCode);
             var activeTitle = linker.ActiveName;
 
             //大工程，把所有的章节都下载下来

@@ -1,7 +1,22 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace ArkPlotWpf.Model;
+namespace ArkPlotWpf.Utilities;
+public class MyEventClass
+{
+    private static readonly Lazy<MyEventClass> _instance = new Lazy<MyEventClass>(() => new MyEventClass());
+
+    public static MyEventClass Instance => _instance.Value;
+
+    public event EventHandler<string> MyEvent;
+
+    public void RaiseMyEvent(string message)
+    {
+        MyEvent?.Invoke(this, message);
+    }
+}
+
 
 public class ConsoleOut : INotifyPropertyChanged
 {

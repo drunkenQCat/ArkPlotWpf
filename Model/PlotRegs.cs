@@ -11,72 +11,82 @@ public partial class PlotRegs
     public List<Regex> RegList = new()
     {
         NameRegex(),
-        TagSentenceRegex(),// 标签不是name的另外处理
-        LineSentenceRegex(),// [Charater]、[Dialog]等无参标签就变成线
-        ChineseSentenceRegex(),// 以“[”起头的，就一律当做引用。另，不一定是汉字
+        /*
+         (?<=(\\[name=\")|(\\[multiline\\(name=\"))【以“name”或者“multiline”开头】
+         .*【取其中的所有文字】
+         (?=\")【以双引号结尾】
+         - 用来提取角色名字，以及辨认句子类型
+        */
+        
+        SpecialTagRegex(),
+        /*
+         (?<=(\[(?!name)))【以“[”开头，但不以“[name”开头】
+         .*【取所有文字】
+         (?=\()【以“(”结尾】
+         - 标签不是name的,另外通过tags.json中的内容处理
+        */
+        SegmentRegex(),// [Character]、[Dialog]等无参标签就变成线
+        CommentRegex(),// 不以“[”起头的，就一律当做引用。
     };
 
-    public List<SentenceMethod> Processors = new();
-    public List<Func<string, string>> MethodList = new();
+    public readonly List<SentenceMethod> RegexAndMethods = new();
     private readonly JObject tagList;
 
     public PlotRegs(string jsonPath)
     {
-        Processors.Add(new SentenceMethod(NameRegex(), Namlize));
-        Processors.Add(new SentenceMethod(TagSentenceRegex(), Taglize));
-        Processors.Add(new SentenceMethod(LineSentenceRegex(), Linize));
-        Processors.Add(new SentenceMethod(ChineseSentenceRegex(), Chinize));
-        MethodList.Add(Namlize);
-        MethodList.Add(Taglize);
-        MethodList.Add(Linize);
-        MethodList.Add(Chinize);
+        RegexAndMethods.Add(new SentenceMethod(NameRegex(), ProcessName));
+        RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
+        RegexAndMethods.Add(new SentenceMethod(SegmentRegex(), MakeLine));
+        RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
         tagList = JObject.Parse(System.IO.File.ReadAllText(jsonPath));
     }
 
     [GeneratedRegex("(?<=(\\[name=\")|(\\[multiline\\(name=\")).*(?=\")", RegexOptions.Compiled)]
     private static partial Regex NameRegex();
-    [GeneratedRegex("\\[name=\".*\"\\]", RegexOptions.Compiled)]
-    private static partial Regex NameSentenceRegex();
-    [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-    private static partial Regex LineSentenceRegex();
-    [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
-    private static partial Regex ChineseSentenceRegex();
-    [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
-    private static partial Regex TagSentenceRegex();
     
-    private string Namlize(string line)
+    [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
+    private static partial Regex RegexToSubName();
+    
+    [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
+    
+    private static partial Regex SegmentRegex();
+    
+    [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
+    private static partial Regex CommentRegex();
+    
+    [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
+    private static partial Regex SpecialTagRegex();
+    
+    private string ProcessName(string line)
     {
         var name = NameRegex().Match(line).Value;
-        var nameLine = NameSentenceRegex().Replace(line, $"**{name}**`讲道：`");
+        var nameLine = RegexToSubName().Replace(line, $"**{name}**`讲道：`");
         return nameLine + Environment.NewLine;
     }
 
-    private string Taglize(string line)
+    private string ProcessTag(string line)
     {
-        var tag = TagSentenceRegex().Match(line).Value;
+        var tag = SpecialTagRegex().Match(line).Value;
         tag = tag.ToLower();
-        var tagNew = (string)tagList[tag]!;
+        if (tagList[tag] == null)
+        {
+            // Broadcast 
+            return line;
+        }
+        var newTag = (string)tagList[tag]!;
+        if (newTag == "") return newTag;
         line = line.Replace("_", " ");
-        if (tagNew == "") return tagNew;
-        try
-        {
-            var tagReg = (string)tagList[tag+"_reg"]!;
-            var newLine = tagNew + Regex.Match(line, tagReg).Value;
-            return newLine + Environment.NewLine;
-        }
-        catch (System.Exception)
-        {
-            Console.WriteLine($"出错的句子\n{line}");
-            throw ;
-        }
+        var tagReg = (string)tagList[tag+"_reg"]!;
+        line = newTag + Regex.Match(line, tagReg).Value;
+        return line + Environment.NewLine;
     }
 
-    private string Linize(string line)
+    private string MakeLine(string line)
     {
         return "\r\n\r\n---";
     }
 
-    private string Chinize(string line)
+    private string MakeComment(string line)
     {
         return $"> {line}\r\n";
     }

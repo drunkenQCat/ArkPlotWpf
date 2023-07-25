@@ -57,7 +57,7 @@
     "musicvolume_reg":"",
     "stopsound":"`音效停止`",
     "stopsound_reg":"",
-    "theater":"\n---\n",
+    "theater":"---\n",
     "theater_reg":"",
     "decision":"`选项`",
     "decision_reg":"(?<=options=\").*?(?=\")",

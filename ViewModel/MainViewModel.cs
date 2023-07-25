@@ -1,11 +1,6 @@
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
-
-using ArkPlotWpf.Model;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using ArkPlotWpf.Utilities;
 using AkGetter = ArkPlotWpf.Utilities.AkGetter;
@@ -19,12 +14,9 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string jsonPath = System.Environment.CurrentDirectory + @"\tags.json";
     [ObservableProperty]
-    bool isGitee = false;
-    [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown文件的生成器，使用时有以下注意事项\n\n" +
                                          "* 活动名那里一定要写中文名；\n" +
                                          "* 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；\n" +
-                                         "* 国内源（Gitee）因为Gitee的审查制度，很多章节会被直接和谐，不建议勾选；\n" +
                                          "* 如果遇到报错\"出错的句子:****\"，请手动在tags.json里添加相应的tag的正则表达式；\n" +
                                          "* 如果有任何改进意见，欢迎Pr。\n");
 
@@ -39,7 +31,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         ConsoleOutput = ""; //先清空这片区域
         var linker = new AkLinker(actName);
-        var content = new AkGetter(linker.ActiveCode,isGitee);
+        var content = new AkGetter(linker.ActiveCode);
         SubscribeChapterLoadedNotification(content);
         var activeTitle = linker.ActiveName;
 
@@ -56,13 +48,14 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void SubscribeChapterLoadedNotification(AkGetter content)
     {
-        content.ChapterLoaded += (o, args) =>
+        content.ChapterLoaded += (_, args) =>
         {
             var s = args.Title.ToString() + "已加载";
             ConsoleOutput += s;
         };
     }
 
+    [RelayCommand]
     public void SelectFile()
     {
         var dialog = new Microsoft.Win32.OpenFileDialog()

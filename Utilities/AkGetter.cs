@@ -1,41 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Utilities;
 
-internal partial class AkGetter
+internal class AkGetter
 {
     // 从GitHub拿到章节的文件名以及相应的所有内容
-    private readonly string totalPlotsUrl = "https://github.com/Kengxxiao/ArknightsGameData/tree/master/zh_CN/gamedata/story/activities/";
+    private readonly string plotsJsonRequestUrl = "https://github.com/Kengxxiao/ArknightsGameData/tree-commit-info/master/zh_CN/gamedata/story/activities/";
     public Dictionary<string, string> ContentTable { get; } = new ();
 
     private readonly List<Task> tasks = new ();
-    private readonly string blobSub = ""; //对于blob，github和gitee不太一样
-    private readonly string rawUrl = "https://raw.githubusercontent.com";
-    private readonly Regex urlsReg = GithubPlotsRegex();
+    private readonly string rawUrl = "https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/story/activities/";
 
     public event EventHandler<ChapterLoadedEventArgs>? ChapterLoaded;
 
-    public AkGetter(string? active, bool isGitee = false)
+    public AkGetter(string? active)
     {
-        if (isGitee)
-        {
-            totalPlotsUrl = "https://gitee.com/dr_cat/ArknightsGameData/tree/master/zh_CN/gamedata/story/activities/";
-            rawUrl = "https://gitee.com";
-            urlsReg = GiteePlotsRegex();
-            blobSub = "raw";
-        }
-        totalPlotsUrl += active;
+        plotsJsonRequestUrl += active;
+        rawUrl += $"{active}/";
     }
         
     public async Task GetAllChapters()
     {
-        var chapterUrlTable =  await GetChapterList();
+        var chapterUrlTable =  await GetChapterUrls();
         foreach (var chapter in chapterUrlTable!)
         {
             async Task GetSingleChapter()
@@ -51,6 +44,40 @@ internal partial class AkGetter
         await Task.WhenAll(tasks);
     }
 
+    private async Task<Dictionary<string, string>?> GetChapterUrls()
+    {
+        var jsonContent = await GetJsonContent();
+        var fileNames = GetFileNames(jsonContent);
+        var urls = fileNames.ToDictionary(
+                                    name => name, 
+                                    name => rawUrl + name);
+        return urls;
+    }
+
+    private static List<string> GetFileNames(string jsonContent)
+    {
+        var result = JObject.Parse(jsonContent);
+        var fileNames =
+            from tag in result.Properties()
+            let name = tag.Name
+            where name.EndsWith(".txt")
+            select name;
+        return fileNames.ToList(); 
+    }
+
+    // 获取查询的json
+    private async Task<string> GetJsonContent()
+    {
+        var client = new HttpClient();
+        var request = new HttpRequestMessage();
+        request.RequestUri = new Uri(plotsJsonRequestUrl);
+        request.Method = HttpMethod.Get;
+        request.Headers.Add("Accept", "application/json");
+
+        var response = await client.SendAsync(request);
+        var content = await response.Content.ReadAsStringAsync();
+        return content;
+    }
     private static async Task<string> GetAsync(string url)
     {
         // 发送一个request请求
@@ -77,39 +104,6 @@ internal partial class AkGetter
         var fileContent = Encoding.UTF8.GetString(memoryStream.ToArray());
         return fileContent;
     }
-    // 获取某一个章节的内容
-    private async Task<Dictionary<string, string>?> GetChapterList()
-    {
-        var content = await GetAsync(totalPlotsUrl);
-        if (content is null)
-        {
-            return null;
-        }
-        Dictionary<string, string> urls = new ();
-        //遍历我们查找的的结果
-        foreach (Match match in urlsReg.Matches(content))
-        {
-            var chapterUrl = rawUrl + match.Groups[1].Value;
-            chapterUrl = chapterUrl.Replace(@"/blob", blobSub);
-            var title = Regex.Match(chapterUrl , @"(level.*)\.txt").Groups[1].Value;
-            if (title  == "") continue;
-            urls.Add(title,chapterUrl);
-        }
-        return urls;
-    }
-
-    private async Task DownloadChapters(string title, Dictionary<string, string> links)
-    {
-        var cptLink = links[title];
-        var content = await GetAsync(cptLink);
-        Console.WriteLine($"{title} 已加载");
-        ContentTable.Add(title, content);
-    }
-
-    [GeneratedRegex("<a class=\"js-navigation-open.*\"[^>]+href=[\"'](.*?)[\"']", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
-    private static partial Regex GithubPlotsRegex();
-    [GeneratedRegex("href=[\"'](.*?/blob/master.*?)[\"']", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
-    private static partial Regex GiteePlotsRegex();
 }
 
 class  ChapterLoadedEventArgs : EventArgs
