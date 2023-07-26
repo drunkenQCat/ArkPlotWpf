@@ -48,7 +48,7 @@ internal class AkParser
         var prevLine = "\r\n\r\n---";
         void DescendDupLines(ref string? newLine)
         {
-            if (prevLine == "\r\n\r\n---")
+            if (prevLine == "\r\n\r\n---" && newLine == prevLine )
                 newLine = prevLine;
             else if (duplicateLineCount == 1)
                 newLine = prevLine;

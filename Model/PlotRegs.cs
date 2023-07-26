@@ -69,6 +69,7 @@ public partial class PlotRegs
     {
         var tag = SpecialTagRegex().Match(line).Value;
         tag = tag.ToLower();
+        //Todo: tag为图片、音频时，提取关键词
         if (tagList[tag] == null)
         {
             NotificationBlock.Instance.OnLineNoMatch(new LineNoMatchEventArgs(line, tag));

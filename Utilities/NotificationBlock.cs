@@ -11,14 +11,14 @@ public class NotificationBlock
 
     public static NotificationBlock Instance => _instance.Value;
 
-    public event EventHandler<string> StringEventHandler;
+    public event EventHandler<string>? CommonEventHandler;
     public event EventHandler<ChapterLoadedEventArgs>? ChapterLoaded;
     public event EventHandler<LineNoMatchEventArgs>? LineNoMatch;
     public event EventHandler<NetworkErrorEventArgs>? NetErrorHappen;
 
-    public void RaiseStringEvent(string message)
+    public void RaiseCommonEvent(string message)
     {
-        StringEventHandler?.Invoke(this, message);
+        CommonEventHandler?.Invoke(this, message);
     }
 
     internal void OnChapterLoaded(ChapterLoadedEventArgs chapterLoadedEventArgs)

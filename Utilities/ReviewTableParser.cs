@@ -1,0 +1,60 @@
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+
+namespace ArkPlotWpf.Utilities;
+
+public class ReviewTableParser
+{
+    private string lang;
+    public string Lang { 
+        get=>lang;
+        set
+        {
+            lang = value;
+            LoadJson(lang);
+        }
+    }
+    private string TableUrl => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
+    private JObject? reviewTable;
+
+    public List<JToken> TitleList => GetSideStory();
+    public List<JToken> MiniStory => GetMiniStory();
+    public List<JToken> MainStory => GetMainStory();
+
+    public ReviewTableParser(string language)
+    {
+        lang = language;
+        LoadJson(lang);
+    }
+
+    private void LoadJson(string s)
+    {
+        var jsonContent = NetworkUtility.GetAsync(TableUrl).GetAwaiter().GetResult();
+        reviewTable = JObject.Parse(jsonContent);
+    }
+    
+    private List<JToken> GetStories(string  type)
+    {
+        var stories =
+            from item in reviewTable?.Children().ToList()
+            let obj = item.ToObject<JProperty>().Value
+            let actType = obj["actType"].ToString()
+            where actType == type
+            select obj;
+        return stories.ToList();
+    }
+    private List<JToken> GetMiniStory()
+    {
+        return  GetStories("MINI_STORY");
+    }
+    private List<JToken> GetSideStory()
+    {
+        return  GetStories("ACTIVITY_STORY");
+    }
+    private List<JToken> GetMainStory()
+    {
+        return  GetStories("MAIN_STORY");
+    }
+    
+}

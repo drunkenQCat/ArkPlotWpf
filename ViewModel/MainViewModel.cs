@@ -13,7 +13,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string actName = "照我以火";
     [ObservableProperty]
-    string jsonPath = System.Environment.CurrentDirectory + @"\tags.json";
+    string jsonPath = Environment.CurrentDirectory + @"\tags.json";
     [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown文件的生成器，使用时有以下注意事项\n\n" +
                                          "* 活动名那里一定要写中文名；\n" +
@@ -22,8 +22,8 @@ public partial class MainWindowViewModel : ObservableObject
                                          "* 如果有任何改进意见，欢迎Pr。\n");
 
     [ObservableProperty] 
-    string outputPath = System.Environment.CurrentDirectory;
-
+    string outputPath = Environment.CurrentDirectory;
+    
     NotificationBlock notiBlock = NotificationBlock.Instance;
     // [ObservableProperty] 
     // ObservableCollection<ConsoleOut> consoleOuts;
@@ -32,6 +32,7 @@ public partial class MainWindowViewModel : ObservableObject
     async Task LoadMd()
     {
         ConsoleOutput = ""; //先清空这片区域
+        SubscribeCommonNotification();
         var linker = new AkLinker(actName);
         var content = new AkGetter(linker.ActiveCode);
         SubscribeChapterLoadedNotification();
@@ -48,6 +49,25 @@ public partial class MainWindowViewModel : ObservableObject
         AkProcessor.WriteMd(outputPath, activeTitle, finalMd);
         AkProcessor.WriteHtml(outputPath, activeTitle, finalMd);
         MessageBox.Show("生成完成！");
+    }
+
+    [RelayCommand]
+    void LoadActs(string type)
+    {
+        var a = "TYPE_ACT";
+        var b = "MINISTORY";
+    }
+    
+    [RelayCommand]
+    void LoadLangs(string lang)
+    {
+        var a = "TYPE_ACT";
+        var b = "MINISTORY";
+    }
+
+    private void SubscribeCommonNotification()
+    {
+        notiBlock.CommonEventHandler += (_, args) => ConsoleOutput += args;
     }
 
     private void SubscribeNetErrorNotification()

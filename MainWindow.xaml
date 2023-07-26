@@ -11,7 +11,7 @@
     xmlns:hc="https://handyorg.github.io/handycontrol"
     mc:Ignorable="d"
     WindowStartupLocation="CenterScreen"
-    Title="ArkPlot" Height="500" Width="300">
+    Title="ArkPlot" Height="550" Width="300">
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
@@ -27,13 +27,66 @@
             </Image>
         </Canvas>
         <Grid
-            Margin="10 20 10 0">
+            Margin="10 42 10 0">
             <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="55" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0"
+            <StackPanel
+                Margin="0,0,10,0"
+                Grid.Row="0">
+                <hc:ButtonGroup
+                Width="220"
+                Height="35"
+                Orientation="Horizontal">
+                    <RadioButton
+                    Content="插曲"
+                    IsChecked="True"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="ACTIVITY_STORY"
+                    />
+                    <RadioButton
+                    Content="故事集"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="MINI_STORY"
+                    />
+                    <RadioButton
+                    Content="主题曲"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="MAIN_STORY"
+                    />
+                </hc:ButtonGroup>
+                <hc:ButtonGroup
+                Width="230"
+                Height="30"
+                Orientation="Horizontal">
+                    <RadioButton
+                    Content="简中"
+                    IsChecked="True"
+                    Command="{Binding LoadLangsCommand}"
+                    CommandParameter="zh_CN"
+                    />
+                    <RadioButton
+                    Content="日语"
+                    Command="{Binding LoadLangsCommand}"
+                    CommandParameter="ja_JP"
+                    />
+                    <RadioButton
+                    Content="英语"
+                    Command="{Binding LoadLangsCommand}"
+                    CommandParameter="en_US"
+                    />
+                    <RadioButton
+                    Content="韩语"
+                    Command="{Binding LoadLangsCommand}"
+                    CommandParameter="ko_KR"
+                    />
+                </hc:ButtonGroup>
+            </StackPanel>
+
+            <Grid Grid.Row="1"
                   Margin="0 20 0 10">
                 <Grid Margin="0 4 0 0">
                     <Grid.ColumnDefinitions>
@@ -47,9 +100,9 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0"
-                           Content="活动名" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                           Content="故事名" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     <Label Grid.Row="1" Grid.Column="0"
-                           Content="Json文件" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                           Content="Tags文件" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     <Label Grid.Row="2" Grid.Column="0"
                            Content="生成位置" VerticalAlignment="Center" HorizontalAlignment="Right" />
 
@@ -66,15 +119,14 @@
             </Grid>
 
             <Button
-                Grid.Row="1" HorizontalAlignment="Center"
+                Grid.Row="2" HorizontalAlignment="Center"
                 VerticalAlignment="Center" Command="{Binding LoadMdCommand}" Grid.Column="0" Width="100">
                 开始
             </Button>
             <Border
-                Grid.Row="2" Margin="7" BorderThickness="2" BorderBrush="#7001"
+                Grid.Row="3" Margin="7" BorderThickness="2" BorderBrush="#7001"
                 VerticalAlignment="Stretch" Height="225">
                 <hc:ScrollViewer
-                    Margin="10"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
                     properties:AutoScroll.AutoScroll="True"

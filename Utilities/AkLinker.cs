@@ -21,7 +21,7 @@ internal class AkLinker
     public AkLinker (string huodong)
     {
         // 为什么要用huodong呢？因为要输入的活动名必须是中文的 
-        this.ActiveName = huodong;
+        ActiveName = huodong;
         const string actListUrl = "https://wiki.biligame.com/arknights/%E7%94%A8%E6%88%B7:418054283/activity_table";
         var html = GetHtml(actListUrl);
         // 加载网页
@@ -34,7 +34,8 @@ internal class AkLinker
         var activeNode = selfNode.ParentNode.Descendants("td").ToList()[0];
         var activeCode =activeNode?.InnerHtml;
         this.ActiveCode = activeCode;
-        Console.WriteLine($"这个活动的代号是{activeCode}");
+        NotificationBlock.Instance.RaiseCommonEvent($"这个活动的代号是{activeCode}");
+        // Todo: 分辨主线与side
         GetStages();
     }
 
@@ -111,16 +112,10 @@ internal class AkLinker
     {
         // 这一坨用来把文件名里的数字提取出来
         var digitMatch =new Regex(@"\d+",RegexOptions.Compiled) ;
-        var oldMatches = digitMatch.Matches(name);
-        // 把匹配到的数字写进数组
-        var oldNumbers = new string[oldMatches.Count];
-        for (var i = 0; i < oldMatches.Count; i++)
-        {
-            oldNumbers[i] = oldMatches[i].Value;
-        }
+        var matchedNums = digitMatch.Matches(name);
         // 把数组里最后一个成员转换成整型
-        var oldNum = int.Parse(oldNumbers[^1]);
-        return oldNum;
+        var chapterNum = int.Parse(matchedNums?.LastOrDefault().Value);
+        return chapterNum;
     }
 
     private void AttachStageType(string title, Dictionary<string, string> plots, List<string> theStageList)
