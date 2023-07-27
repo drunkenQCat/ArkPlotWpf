@@ -43,7 +43,7 @@ public class ReviewTableParser
     {
         var stories =
             from item in reviewTable?.Children().ToList()
-            let obj = item.ToObject<JProperty>().Value
+            let obj = item?.ToObject<JProperty>().Value
             let actType = obj["actType"].ToString()
             where actType == type
             select obj;

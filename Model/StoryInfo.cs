@@ -20,12 +20,12 @@ public class ActInfo
     }
 }
 
-public class StoryInfo
-{
-    public string Lang;
-    public string Name;
-    public string AvgTag;
-    public string StoryTxt;
-    public string Url => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{Lang}/gamedata/story/{StoryTxt}.txt";
-    public string Title => $"{Name} {AvgTag}";
-}
+// public class StoryInfo
+// {
+//     public string Lang;
+//     public string Name;
+//     public string AvgTag;
+//     public string StoryTxt;
+//     public string Url => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{Lang}/gamedata/story/{StoryTxt}.txt";
+//     public string Title => $"{Name} {AvgTag}";
+// }

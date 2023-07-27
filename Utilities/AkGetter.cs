@@ -15,7 +15,7 @@ internal class AkGetter
     private readonly List<Task> tasks = new ();
     private string RawUrl => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
     
-    public List<Plot> ContentTable { get; } = new ();
+    public List<Plot> ContentTable { get; private set; } = new ();
 
     public AkGetter(ActInfo info)
     {
@@ -38,6 +38,11 @@ internal class AkGetter
             tasks.Add(GetSingleChapter());
         }
         await Task.WhenAll(tasks);
+        ContentTable = ContentTable.OrderBy(plot =>
+        {
+            var index = chapterUrlTable.Keys.ToList().IndexOf(plot.Title);
+            return index;
+        }).ToList();
     }
 
     private Dictionary<string, string> GetChapterUrls()

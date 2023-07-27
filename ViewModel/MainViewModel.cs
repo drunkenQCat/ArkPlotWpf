@@ -32,7 +32,7 @@ public partial class MainWindowViewModel : ObservableObject
     string outputPath = Environment.CurrentDirectory + @"\output";
 
     [ObservableProperty] 
-    ICollectionView storiesNames;
+    ICollectionView? storiesNames;
 
     [ObservableProperty] 
     int selectedIndex = 0;
