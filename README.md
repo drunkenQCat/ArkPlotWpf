@@ -1,5 +1,8 @@
+<div align="center">
+<img src="./assets/Donkey.png" alt="驴头" />
+</div>
+
 # ArkPlotWpf
-![驴头](./assets/donkey.png)
 
 一个使用.NET WPF框架，基于正则表达式的，明日方舟剧情文本生成器，可用来生成剧情的markdown/html文件。
 
@@ -18,11 +21,13 @@ edge浏览器“大声朗读”功能的TTS语音声音好听又富有情感。�
 * ~~粗暴~~处理游戏内原文本，可自定义tag及其处理用的正则表达式
 * ~~简陋~~精美UI
 
-<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/0cd2bbfa-de4a-42a0-aa30-cb9d3cd2407a" alt="image" style="zoom: 33%;" />
+<div align="center">
+<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/0cd2bbfa-de4a-42a0-aa30-cb9d3cd2407a" alt="image" style="display:block; margin: auto; zoom: 15%;" />
+</div>
 
-输出效果如下：
 
-<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/0fb983c8-1503-4067-a85e-c2a4fbe72480" alt="image" style="zoom: 50%;" />
+## 输出效果
+<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/11f9a7bb-923c-4907-865a-fbf225b09052" alt="image" style="zoom: 50%;" />
 
 <img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/67823cf5-5e11-4e0e-8dba-53035f881615" alt="image" style="zoom:50%;" />
 
