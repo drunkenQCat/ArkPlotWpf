@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>assets\donkey.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
