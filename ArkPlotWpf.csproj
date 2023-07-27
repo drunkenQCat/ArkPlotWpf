@@ -12,7 +12,6 @@
   <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
         <PackageReference Include="Markdig" Version="0.30.4" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
