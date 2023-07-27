@@ -28,13 +28,18 @@ public class ReviewTableParser
         LoadJson(lang);
     }
 
+    public ReviewTableParser()
+    {
+        lang = "zh_CN";
+    }
+
     private void LoadJson(string s)
     {
         var jsonContent = NetworkUtility.GetAsync(TableUrl).GetAwaiter().GetResult();
         reviewTable = JObject.Parse(jsonContent);
     }
-    
-    private List<JToken> GetStories(string  type)
+
+    public List<JToken> GetStories(string  type)
     {
         var stories =
             from item in reviewTable?.Children().ToList()
@@ -56,5 +61,4 @@ public class ReviewTableParser
     {
         return  GetStories("MAIN_STORY");
     }
-    
 }

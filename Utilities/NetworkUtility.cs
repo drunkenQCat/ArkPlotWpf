@@ -21,23 +21,7 @@ public static class NetworkUtility
             return "";
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        var buffer = new byte[4096];
-        var isMoreToRead = true;
-        var memoryStream = new MemoryStream();
-        do
-        {
-            var read = await stream.ReadAsync(buffer);
-            if (read == 0)
-            {
-                isMoreToRead = false;
-            }
-            else
-            {
-                await memoryStream.WriteAsync(buffer.AsMemory(0, read));
-            }
-        } while (isMoreToRead);
-        var fileContent = Encoding.UTF8.GetString(memoryStream.ToArray());
+        var fileContent =  await response.Content.ReadAsStringAsync();
         return fileContent;
     }
     

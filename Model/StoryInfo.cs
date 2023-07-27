@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 namespace ArkPlotWpf.Model;
@@ -8,13 +9,14 @@ public class ActInfo
     public string ActType;
     // public string Id;
     public string Name;
-    public List<StoryInfo>? Chapters;
+    public JToken Tokens;
 
-    public ActInfo(string lang, string actType, string name)
+    public ActInfo(string lang, string actType, string name, JToken tokens)
     {
         Lang = lang;
         ActType = actType;
         Name = name;
+        Tokens = tokens;
     }
 }
 

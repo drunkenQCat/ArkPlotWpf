@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
 using Markdig;
+using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Utilities
 {
@@ -16,7 +17,7 @@ namespace ArkPlotWpf.Utilities
             {
                 var chpName = "## " + chapter.Title;
                 var chpMd = new AkParser(chapter.Content, jsonPath);
-                md += chpName + chpMd.MarkDown;
+                md += chpName + "\r\n" + chpMd.MarkDown;
             }
             return md;
         }
@@ -31,27 +32,25 @@ namespace ArkPlotWpf.Utilities
 
         public static void WriteHtml(string path, string fileName, string plots)
         {
-            var html = path + "\\" + fileName + ".html";
+            var htmlPath = path + "\\" + fileName + ".html";
             plots = Markdown.ToHtml(plots);
-            using var file = File.OpenWrite(html);
+            using var htmlFile = File.OpenWrite(htmlPath);
             var info = new UTF8Encoding(true).GetBytes(plots);
-            file.Write(info, 0, info.Length);
+            htmlFile.Write(info, 0, info.Length);
         }
-        public static async Task MainProc(string chpName, string jsPah, string outPath)
+        public static async Task MainProc(ActInfo info, string jsPah, string outPath)
         {
-            var linker = new AkLinker(chpName);
-            var content = new AkGetter(linker.ActiveCode);
-            var activeTitle = linker.ActiveName;
+            var content = new AkGetter(info);
+            var activeTitle = info.Tokens["name"]?.ToString();
 
             //大工程，把所有的章节都下载下来
             await content.GetAllChapters();
             var allContent = content.ContentTable;
-            var linkedContent = linker.LinkStages(allContent);
             // 处理每一章，最后导出
-            var exportMd = ExportPlots(linkedContent, jsPah);
+            var exportMd = ExportPlots(allContent, jsPah);
             var finalMd = "# "+ activeTitle + "\r\n\r\n" + exportMd;
-            WriteMd(outPath, activeTitle, finalMd);
-            WriteHtml(outPath, activeTitle, finalMd);
+            WriteMd(outPath, activeTitle!, finalMd);
+            WriteHtml(outPath, activeTitle!, finalMd);
 
         }
     }

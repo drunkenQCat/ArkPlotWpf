@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -70,45 +68,3 @@ public class  ChapterLoadedEventArgs : EventArgs
 
     public string Title { get; }
 }
-
-public class NotificationOut : INotifyPropertyChanged, INotifyPropertyChanging
-{
-    public event PropertyChangedEventHandler? PropertyChanged;
-    public event PropertyChangingEventHandler? PropertyChanging;
-    private string _color = null!;
-    private string _content = null!;
-
-
-    public string Color
-    {
-        get => _color;
-        set
-        {
-            _color = value;
-            OnPropertyChanged();
-        }
-    }
-
-    public string Content
-    {
-        get => _content;
-        set
-        {
-            _content = value;
-            OnPropertyChanged();
-        }
-    }
-
-    public NotificationOut(string content, string color)
-    {
-        Color = color;
-        Content = content;
-    }
-
-    private void OnPropertyChanged([CallerMemberName] string propertyName = null!)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-}
-
