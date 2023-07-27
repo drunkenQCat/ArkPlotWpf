@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
 using Markdig;
-using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Utilities
 {
