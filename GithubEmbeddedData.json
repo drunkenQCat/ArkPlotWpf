@@ -1,0 +1,562 @@
+{
+    "payload": {
+        "allShortcutsEnabled": false,
+        "path": "zh_CN/gamedata/story/activities/act22side",
+        "repo": {
+            "id": 231095715,
+            "defaultBranch": "master",
+            "name": "ArknightsGameData",
+            "ownerLogin": "Kengxxiao",
+            "currentUserCanPush": false,
+            "isFork": false,
+            "isEmpty": false,
+            "createdAt": "2019-12-31T13:44:08.000Z",
+            "ownerAvatar": "https://avatars.githubusercontent.com/u/11478651?v=4",
+            "public": true,
+            "private": false,
+            "isOrgOwned": false
+        },
+        "currentUser": null,
+        "refInfo": {
+            "name": "master",
+            "listCacheKey": "v0:1683356890.0",
+            "canEdit": false,
+            "refType": "branch",
+            "currentOid": "abdcec4d7dc5d4c738ab8151e37a0869f31a0847"
+        },
+        "tree": {
+            "items": [
+                {
+                    "name": "training",
+                    "path": "zh_CN/gamedata/story/activities/act22side/training",
+                    "contentType": "directory"
+                },
+                {
+                    "name": "level_act22side_01_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_01_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_01_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_01_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_02_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_02_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_02_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_02_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_03_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_03_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_03_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_03_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_04_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_04_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_04_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_04_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_05_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_05_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_05_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_05_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_06_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_06_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_07_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_07_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_07_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_07_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_08_beg.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_08_beg.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_08_end.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_08_end.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_st01.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_st01.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_st02.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_st02.txt",
+                    "contentType": "file"
+                },
+                {
+                    "name": "level_act22side_st03.txt",
+                    "path": "zh_CN/gamedata/story/activities/act22side/level_act22side_st03.txt",
+                    "contentType": "file"
+                }
+            ],
+            "templateDirectorySuggestionUrl": null,
+            "readme": null,
+            "totalCount": 19,
+            "showBranchInfobar": false
+        },
+        "fileTree": {
+            "zh_CN/gamedata/story/activities": {
+                "items": [
+                    {
+                        "name": "a001",
+                        "path": "zh_CN/gamedata/story/activities/a001",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act10d5",
+                        "path": "zh_CN/gamedata/story/activities/act10d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act10mini",
+                        "path": "zh_CN/gamedata/story/activities/act10mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act11d0",
+                        "path": "zh_CN/gamedata/story/activities/act11d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act11d7",
+                        "path": "zh_CN/gamedata/story/activities/act11d7",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act11mini",
+                        "path": "zh_CN/gamedata/story/activities/act11mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act12d0",
+                        "path": "zh_CN/gamedata/story/activities/act12d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act12d6",
+                        "path": "zh_CN/gamedata/story/activities/act12d6",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act12mini",
+                        "path": "zh_CN/gamedata/story/activities/act12mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act12side",
+                        "path": "zh_CN/gamedata/story/activities/act12side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act13d0",
+                        "path": "zh_CN/gamedata/story/activities/act13d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act13d5",
+                        "path": "zh_CN/gamedata/story/activities/act13d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act13mini",
+                        "path": "zh_CN/gamedata/story/activities/act13mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act13side",
+                        "path": "zh_CN/gamedata/story/activities/act13side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act14mini",
+                        "path": "zh_CN/gamedata/story/activities/act14mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act14side",
+                        "path": "zh_CN/gamedata/story/activities/act14side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act15d0",
+                        "path": "zh_CN/gamedata/story/activities/act15d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act15d5",
+                        "path": "zh_CN/gamedata/story/activities/act15d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act15mini",
+                        "path": "zh_CN/gamedata/story/activities/act15mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act15side",
+                        "path": "zh_CN/gamedata/story/activities/act15side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act16d5",
+                        "path": "zh_CN/gamedata/story/activities/act16d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act16side",
+                        "path": "zh_CN/gamedata/story/activities/act16side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act17d0",
+                        "path": "zh_CN/gamedata/story/activities/act17d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act17d1",
+                        "path": "zh_CN/gamedata/story/activities/act17d1",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act17d7",
+                        "path": "zh_CN/gamedata/story/activities/act17d7",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act17side",
+                        "path": "zh_CN/gamedata/story/activities/act17side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act18d0",
+                        "path": "zh_CN/gamedata/story/activities/act18d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act18d3",
+                        "path": "zh_CN/gamedata/story/activities/act18d3",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act18side",
+                        "path": "zh_CN/gamedata/story/activities/act18side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act19side",
+                        "path": "zh_CN/gamedata/story/activities/act19side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act1bossrush",
+                        "path": "zh_CN/gamedata/story/activities/act1bossrush",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act1lock",
+                        "path": "zh_CN/gamedata/story/activities/act1lock",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act1sandbox",
+                        "path": "zh_CN/gamedata/story/activities/act1sandbox",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act20side",
+                        "path": "zh_CN/gamedata/story/activities/act20side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act21side",
+                        "path": "zh_CN/gamedata/story/activities/act21side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act22side",
+                        "path": "zh_CN/gamedata/story/activities/act22side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act23side",
+                        "path": "zh_CN/gamedata/story/activities/act23side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act24side",
+                        "path": "zh_CN/gamedata/story/activities/act24side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act25side",
+                        "path": "zh_CN/gamedata/story/activities/act25side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act26side",
+                        "path": "zh_CN/gamedata/story/activities/act26side",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act38d1",
+                        "path": "zh_CN/gamedata/story/activities/act38d1",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act3d0",
+                        "path": "zh_CN/gamedata/story/activities/act3d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act3fun",
+                        "path": "zh_CN/gamedata/story/activities/act3fun",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act4d0",
+                        "path": "zh_CN/gamedata/story/activities/act4d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act4fun",
+                        "path": "zh_CN/gamedata/story/activities/act4fun",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act5d0",
+                        "path": "zh_CN/gamedata/story/activities/act5d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act5d1",
+                        "path": "zh_CN/gamedata/story/activities/act5d1",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act6d5",
+                        "path": "zh_CN/gamedata/story/activities/act6d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act7d5",
+                        "path": "zh_CN/gamedata/story/activities/act7d5",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act7mini",
+                        "path": "zh_CN/gamedata/story/activities/act7mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act8d2",
+                        "path": "zh_CN/gamedata/story/activities/act8d2",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act8mini",
+                        "path": "zh_CN/gamedata/story/activities/act8mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act9d0",
+                        "path": "zh_CN/gamedata/story/activities/act9d0",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "act9mini",
+                        "path": "zh_CN/gamedata/story/activities/act9mini",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "bossrush",
+                        "path": "zh_CN/gamedata/story/activities/bossrush",
+                        "contentType": "directory"
+                    }
+                ],
+                "totalCount": 55
+            },
+            "zh_CN/gamedata/story": {
+                "items": [
+                    {
+                        "name": "[uc]info",
+                        "path": "zh_CN/gamedata/story/[uc]info",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "activities",
+                        "path": "zh_CN/gamedata/story/activities",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "obt",
+                        "path": "zh_CN/gamedata/story/obt",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "story_variables.json",
+                        "path": "zh_CN/gamedata/story/story_variables.json",
+                        "contentType": "file"
+                    }
+                ],
+                "totalCount": 4
+            },
+            "zh_CN/gamedata": {
+                "items": [
+                    {
+                        "name": "[uc]lua",
+                        "path": "zh_CN/gamedata/[uc]lua",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "art",
+                        "path": "zh_CN/gamedata/art",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "battle",
+                        "path": "zh_CN/gamedata/battle",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "building",
+                        "path": "zh_CN/gamedata/building",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "excel",
+                        "path": "zh_CN/gamedata/excel",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "levels",
+                        "path": "zh_CN/gamedata/levels",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "story",
+                        "path": "zh_CN/gamedata/story",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "buff_table.json",
+                        "path": "zh_CN/gamedata/buff_table.json",
+                        "contentType": "file"
+                    }
+                ],
+                "totalCount": 8
+            },
+            "zh_CN": {
+                "items": [
+                    {
+                        "name": "gamedata",
+                        "path": "zh_CN/gamedata",
+                        "contentType": "directory"
+                    }
+                ],
+                "totalCount": 1
+            },
+            "": {
+                "items": [
+                    {
+                        "name": ".github",
+                        "path": ".github",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "en_US",
+                        "path": "en_US",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "ja_JP",
+                        "path": "ja_JP",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "ko_KR",
+                        "path": "ko_KR",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "zh_CN",
+                        "path": "zh_CN",
+                        "contentType": "directory"
+                    },
+                    {
+                        "name": "README.md",
+                        "path": "README.md",
+                        "contentType": "file"
+                    }
+                ],
+                "totalCount": 6
+            }
+        },
+        "fileTreeProcessingTime": 10.573524,
+        "foldersToFetch": [],
+        "showSurveyBanner": false,
+        "showCodeNavSurvey": false,
+        "csrf_tokens": {
+            "/Kengxxiao/ArknightsGameData/branches": {
+                "post": "1nby3XN-TO473nkgQWhpYZ4jaOO_hdLIk2IIJi8-bp4kqmSkIpAH-PCUaiNvp_RHswENbIbWAZE4eRzP2X7WQA"
+            },
+            "/Kengxxiao/ArknightsGameData/branches/fetch_and_merge/master": {
+                "post": "pMf0GRDo5Rhum1GKmGTMJ8VvskK5ZUVv6kYzTa50MB3Db8CQuvRiSNCr1Rx9Ew4tvQwoI18vBxbsiQ5hTpEpzw"
+            },
+            "/Kengxxiao/ArknightsGameData/branches/fetch_and_merge/master?discard_changes=true": {
+                "post": "nuvkNP7tw4svqSZmgKJ5lGJkDT7sa1NG3olD65oNO3_5Q9C9VPFE25GZovBl1bueGgeXXwohET_YRn7HeugirQ"
+            }
+        }
+    },
+    "title": "ArknightsGameData/zh_CN/gamedata/story/activities/act22side at master · Kengxxiao/ArknightsGameData",
+    "locale": "en",
+    "appPayload": {
+        "helpUrl": "https://docs.github.com",
+        "findFileWorkerPath": "/assets-cdn/worker/find-file-worker-848bb9a5da17.js",
+        "findInFileWorkerPath": "/assets-cdn/worker/find-in-file-worker-4b57095adfc5.js",
+        "githubDevUrl": null,
+        "enabled_features": {
+            "virtualize_file_tree": true,
+            "react_repos_overview": false,
+            "code_nav_ui_events": false,
+            "ref_selector_v2": false,
+            "codeview_codemirror_next_editors": false,
+            "blob_firefox_separate_characters": true,
+            "column_symbol_auto_select": true,
+            "copilot_conversational_ux": false,
+            "copilot_popover_file_editor_header": false
+        }
+    }
+}
