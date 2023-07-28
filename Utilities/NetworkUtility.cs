@@ -10,19 +10,27 @@ public static class NetworkUtility
 {
     public static async Task<string> GetAsync(string url)
     {
-        // 发送一个request请求
-
-        using var client = new HttpClient();
-        using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            if (response.ReasonPhrase != null)
-                NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response.ReasonPhrase));
+            // 发送一个request请求
+            using var client = new HttpClient();
+            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.ReasonPhrase != null)
+                    NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response.ReasonPhrase));
+                return "";
+            }
+        
+            var fileContent =  await response.Content.ReadAsStringAsync();
+            return fileContent;
+                
+        }
+        catch (Exception e)
+        {
+            NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(e.Message));
             return "";
         }
-
-        var fileContent =  await response.Content.ReadAsStringAsync();
-        return fileContent;
     }
     
     // 获取查询的json

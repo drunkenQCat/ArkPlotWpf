@@ -6,13 +6,13 @@ using ArkPlotWpf.Utilities;
 using AkGetter = ArkPlotWpf.Utilities.AkGetter;
 using System;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Data;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.View;
 
 namespace ArkPlotWpf.ViewModel;
 
@@ -25,19 +25,19 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项\n\n" +
                                          "* 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；\n" +
-                                         "* 如果遇到报错\"出错的句子:****\"，请手动在tags.json里添加相应的tag的正则表达式；\n" +
+                                         "* 如果遇到报错【出错的句子:****】，请手动在tags.json里添加相应的tag的正则表达式；\n" +
                                          "* 如果有任何改进意见，欢迎Pr。\n");
 
-    [ObservableProperty] 
+    [ObservableProperty]
     string outputPath = Environment.CurrentDirectory + @"\output";
 
-    [ObservableProperty] 
+    [ObservableProperty]
     ICollectionView? storiesNames;
 
-    [ObservableProperty] 
+    [ObservableProperty]
     int selectedIndex = 0;
     ActInfo CurrentAct => currentActInfos[SelectedIndex];
-    
+
     NotificationBlock notiBlock = NotificationBlock.Instance;
     ReviewTableParser actsTable = new();
     string language = "zh_CN";
@@ -63,7 +63,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         AkProcessor.WriteMd(outputPath, activeTitle!, finalMd);
         AkProcessor.WriteHtml(outputPath, activeTitle!, finalMd);
-        var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！",  MessageBoxButton.OKCancel);
+        var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
         if (result == MessageBoxResult.OK)
         {
             try
@@ -99,9 +99,9 @@ public partial class MainWindowViewModel : ObservableObject
         var currentTokens = actsTable.GetStories(type);
         currentActInfos =
             (from act in currentTokens
-                let name = act["name"].ToString()
-                let info = new ActInfo(language, storyType, name, act)
-                select info
+             let name = act["name"].ToString()
+             let info = new ActInfo(language, storyType, name, act)
+             select info
             ).ToList();
         StoriesNames = CollectionViewSource.GetDefaultView(
             from info in currentActInfos
@@ -109,13 +109,22 @@ public partial class MainWindowViewModel : ObservableObject
             );
         SelectedIndex = 0;
     }
-    
+
     [RelayCommand]
     async Task LoadLangs(string lang)
     {
         language = lang;
-        await Task.Run(()=>actsTable.Lang = lang);
+        await Task.Run(() => actsTable.Lang = lang);
         LoadActs(storyType);
+    }
+
+    [RelayCommand]
+    void OpenEditor()
+    {
+        var editorView = new TagEditor();
+        var editorViewModel = new TagEditorViewModel(jsonPath, editorView.Close);
+        editorView.DataContext = editorViewModel;
+        editorView.Show();
     }
 
     private void SubscribeCommonNotification()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Utilities;
 using Newtonsoft.Json.Linq;
@@ -77,10 +78,28 @@ public partial class PlotRegs
         }
         var newTag = (string)tagList[tag]!;
         if (newTag == "") return newTag;
-        line = line.Replace("_", " ");
+        // line = line.Replace("_", " ");
         var tagReg = (string)tagList[tag+"_reg"]!;
-        line = newTag + Regex.Match(line, tagReg).Value;
+        var newValue = Regex.Match(line, tagReg).Value;
+        newValue = FindTheLongestWord(newValue);
+        newValue = string.Join("_", newValue);
+        if (newTag == "multiline")
+        {
+            newValue = newValue.Replace("\\n", "\n");
+            newValue = newValue.Replace("\\t", "\t");
+        }
+            
+        line = newTag + newValue;
         return line + Environment.NewLine;
+    }
+
+    private static string? FindTheLongestWord(string value)
+    {
+        var  newValue =
+            (from word in value.Split("_")
+                orderby word.Length descending
+                select word).FirstOrDefault();
+        return newValue;
     }
 
     private string MakeLine(string line)

@@ -70,10 +70,7 @@ internal class AkParser
     {
         var sentenceProcessor = plotRegs.RegexAndMethods
             .FirstOrDefault(proc => proc.Regex.Match(line).Success);
-        if (sentenceProcessor == null)
-        {
-            return line;
-        }
+        if (sentenceProcessor == null)  return line;
         var result = sentenceProcessor.Method(line);
         return result;
     }
