@@ -25,7 +25,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项\n\n" +
                                          "* 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；\n" +
-                                         "* 如果遇到报错【出错的句子:****】，请手动在tags.json里添加相应的tag的正则表达式；\n" +
+                                         "* 如果遇到报错【出错的句子:****】，请点击“编辑Tags”按钮，添加相应tag的项目；\n" +
                                          "* 如果有任何改进意见，欢迎Pr。\n");
 
     [ObservableProperty]

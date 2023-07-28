@@ -163,12 +163,12 @@
                     properties:AutoScroll.AutoScroll="True"
                     HorizontalScrollBarVisibility="Disabled"
                     IsInertiaEnabled="True">
-                    <TextBlock
+                    <TextBox
                         Margin="10 12 10 0"
                         TextWrapping="Wrap"
-                        IsEnabled="True"
                         Background="Transparent"
-                        Text="{Binding ConsoleOutput}" LineHeight="20" />
+                        IsReadOnly="True"
+                        Text="{Binding ConsoleOutput}" />
                 </hc:ScrollViewer>
             </Border>
         </Grid>
