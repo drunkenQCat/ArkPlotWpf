@@ -1,3 +1,27 @@
+<div align="center">
+<img src="./assets/Donkey.png" alt="驴头" />
+</div>
+
+
+# ArkPlotWpf
+
+
+简单来说是一个~~这片大地~~“话剧剧本”生成器。
+
+
+具体来说是一个使用.NET WPF框架，基于正则表达式的，明日方舟剧情文本生成器，可用来生成剧情的markdown/html文件。
+
+
+## 设计初衷
+
+
+edge浏览器“大声朗读”功能的TTS语音声音好听又富有情感。写ArkPlot就是想在打肉鸽的时候补剧情。目前用ArkPlot搭配大声朗读，我已经补了不少卡西米尔、莱塔尼亚、炎国、维多利亚……相关的剧情。
+
+
+你可能会问，咋不去听萧然或者其他up主的？原因很简单，他们读的时候只有一个人，但是方舟剧情里常常有五六个NPC七嘴八舌的情况。
+
+
+于是我找到了[Kengxxiao的《明日方舟》游戏数据 ](https://github.com/Kengxxiao/ArknightsGameData/tree/master)。量大管饱，按时CI。但是方舟剧情文本的txt文件是一种使用方括号的“html”，直接扔给“大声朗读”无异于给自己上刑。于是这个简陋的“parser”就诞生了。
 
 
 ## 主要功能
