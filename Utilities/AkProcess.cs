@@ -32,7 +32,7 @@ namespace ArkPlotWpf.Utilities
         public static void WriteHtml(string path, string fileName, string plots)
         {
             var htmlPath = path + "\\" + fileName + ".html";
-            var htmlBody= Markdown.ToHtml(plots);
+            var htmlBody = Markdown.ToHtml(plots);
             string htmlContent = FormatHtmlBody(htmlBody, fileName);
             var html = new UTF8Encoding(true).GetBytes(htmlContent);
             using var htmlFile = File.OpenWrite(htmlPath);
@@ -47,6 +47,8 @@ namespace ArkPlotWpf.Utilities
             head = $"<head>{head}{title}</head>";
             var html = $"<html>{head}{body}</html>";
             html = "<!doctype html>" + html;
+            var tail  = File.ReadAllText("assets/tail.html");
+            html += tail;
             return html;
         }
 

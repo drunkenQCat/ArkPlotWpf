@@ -10,14 +10,14 @@ internal class AkParser
 {
 
     private readonly PlotRegs plotRegs;
-    public string? MarkDown { get; private set;}
-    
+    public string? MarkDown { get; private set; }
+
     public AkParser(string plot, string jsonPath)
     {
         plotRegs = new PlotRegs(jsonPath);
         ConvertToMarkdown(plot);
     }
-    
+
     private void ConvertToMarkdown(string plotText)
     {
         var lines = PlotSplitter(plotText);
@@ -29,9 +29,10 @@ internal class AkParser
         {
             if (newLine == null) throw new ArgumentNullException(nameof(newLine));
             if (duplicateLineCount > 1 && prevLine != seperateLine)
-                // 合并重复的行数，比如: 音效：sword x 5
+            // 合并重复的行数，比如: 音效：sword x 5
             {
-                newLine = prevLine + "×" + duplicateLineCount;
+                newLine.TrimEnd();
+                newLine = prevLine + "×" + duplicateLineCount + "\r\n";
                 return;
             }
             newLine = prevLine;
@@ -50,7 +51,7 @@ internal class AkParser
         {
             var newLine = MatchType(line);
             if (IsDupOrEmptyLine(newLine)) continue;
-            
+
             var currentLine = newLine;
             DescendDupLines(ref newLine);
             prevLine = currentLine;
@@ -70,7 +71,7 @@ internal class AkParser
     {
         var sentenceProcessor = plotRegs.RegexAndMethods
             .FirstOrDefault(proc => proc.Regex.Match(line).Success);
-        if (sentenceProcessor == null)  return line;
+        if (sentenceProcessor == null) return line;
         var result = sentenceProcessor.Method(line);
         return result;
     }

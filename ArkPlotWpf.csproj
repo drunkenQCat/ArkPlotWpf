@@ -22,6 +22,10 @@
     <Content Include="tags.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Remove="assets\tail.html" />
+    <Resource Include="assets\tail.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +37,7 @@
     <Target Name="CopyFiles" AfterTargets="Build">
         <Copy SourceFiles="tags.json" DestinationFolder="$(OutputPath)" />
         <Copy SourceFiles="assets\head.html" DestinationFolder="$(OutputPath)\assets" />
+        <Copy SourceFiles="assets\tail.html" DestinationFolder="$(OutputPath)\assets" />
     </Target>
 
 </Project>

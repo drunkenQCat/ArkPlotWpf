@@ -14,6 +14,7 @@ namespace ArkPlotWpf
             InitializeComponent();
         }
         
+
         void ChooseJsonPath_OnClick(object sender,  EventArgs e)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog()
