@@ -16,7 +16,7 @@
 <div align="center">
 <img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/347f18d9-9139-4239-bf84-11802aa2ccf5" alt="image" style="max-width: 100px;" />
 </br>
-<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/836af671-1cda-42e4-8c2c-6e7c0274d5c5)、" alt="image" style="max-width: 100px;" />
+<img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/836af671-1cda-42e4-8c2c-6e7c0274d5c5" alt="image" style="max-width: 100px;" />
 </div>
 
 ---
