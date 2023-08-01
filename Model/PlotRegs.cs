@@ -91,7 +91,7 @@ public partial class PlotRegs
         }
 
         line = newTag + newValue;
-        if (mediaUrl != null) line += $"{Environment.NewLine}mediaUrl";
+        if (mediaUrl != null) line += $"\r\n\r\n{mediaUrl}\r\n\r\n";
         return line + Environment.NewLine;
     }
 
@@ -100,23 +100,33 @@ public partial class PlotRegs
     {
         var res = ResourceCsv.Instance;
         string? url = null;
+        newValue = newValue.Replace("$", "").Trim();
         var mediaType = GetMediaType(newTag);
         if (mediaType == null) return null;
 
-        switch (mediaType)
+        try
         {
-            case MediaType.Image:
-                url = res.DataImage[newValue];
-                url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
-                break;
-            case MediaType.Portrait:
-                url = res.DataChar[newValue];
-                url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
-                break;
-            case MediaType.Music:
-                url = res.DataAudio[newValue];
-                url = $"<audio src=\"{url}\" alt=\"{newValue}\"/>";
-                break;
+            switch (mediaType)
+            {
+                case MediaType.Image:
+                    // in csv, the background is bg_bg, fuck
+                    if(newTag.Contains("景")) url = $"bg_{url}";
+                    url = res.DataImage[newValue];
+                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
+                    break;
+                case MediaType.Portrait:
+                    url = res.DataChar[newValue];
+                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
+                    break;
+                case MediaType.Music:
+                    url = res.DataAudio[newValue];
+                    url = $"<audio alt=\"{newTag}\" src=\"{url}\" data-src=\"{url}\" controlslist=\"nodownload\" controls=\" \"preload=\"none\"></audio>";
+                    break;
+            }
+        }
+        catch
+        {
+            url = null;
         }
 
         return url;
@@ -124,8 +134,8 @@ public partial class PlotRegs
 
     private MediaType? GetMediaType(string newTag)
     {
-        if (newTag.Contains("图")) return MediaType.Image;
-        if (newTag.Contains("绘")) return MediaType.Music;
+        if (newTag.Contains("图") || newTag.Contains("景")) return MediaType.Image;
+        if (newTag.Contains("绘")) return MediaType.Portrait;
         if (newTag.Contains("音")) return MediaType.Music;
         return null;
     }

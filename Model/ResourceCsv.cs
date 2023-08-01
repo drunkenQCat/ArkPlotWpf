@@ -74,7 +74,7 @@ class ResourceCsv
         {
             var keyValue = item.Split(",");
             // for music, the data have to reprocess because it's fucking json
-            bool isJsonItem = keyValue is [_, ""];
+            var isJsonItem = JudgeJsonItem(keyValue);
             if (isJsonItem)
             {
                 var jsonItems = ParseSingleJsonItem(keyValue[0]);
@@ -84,6 +84,14 @@ class ResourceCsv
             if (keyValue.Length == 2) csvDict[keyValue[0]] =
               isJsonItem ? GetMusicUrl(keyValue[1]) : GetItemUrl(keyValue[1]);
         }
+    }
+
+    private static bool JudgeJsonItem(string[] keyValue)
+    {
+        if (keyValue.Length < 2) return false;
+        keyValue[1] = keyValue[1].Trim();
+        bool isJsonItem = keyValue is [_, ""];
+        return isJsonItem;
     }
 
     private static string GetMusicUrl(string url)
@@ -113,7 +121,7 @@ class ResourceCsv
 
     private static string GetItemUrl(string v)
     {
-        return $"https://prts.wiki/{v}";
+        return $"https://prts.wiki{v}";
     }
 
     private string StripHtml(IDocument inputDom)

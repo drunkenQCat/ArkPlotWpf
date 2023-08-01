@@ -41,7 +41,7 @@ public partial class TagEditorViewModel : ObservableObject
         var data = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
         var tagsAndRegs = from pair in data
                           where !pair.Key.EndsWith("_reg")
-                          let reg = data[pair.Key + "_reg"]
+                          let reg = data![pair.Key + "_reg"]
                           select new TagReg(pair.Key, reg, pair.Value);
         DataGrid = new(tagsAndRegs);
     }

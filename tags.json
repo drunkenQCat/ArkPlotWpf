@@ -80,5 +80,9 @@
     "gridbg":"`拼图：`",
     "gridbg_reg":"((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)",
     "verticalbg":"`拼图(竖立)：`",
-    "verticalbg_reg":"((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)"
+    "verticalbg_reg":"((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)",
+    "timersticker":"",
+    "timersticker_reg":"",
+    "timerclear":"",
+    "timerclear_reg":""
 }
