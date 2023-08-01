@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Utilities;
@@ -21,10 +19,10 @@ public static class NetworkUtility
                     NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response.ReasonPhrase));
                 return "";
             }
-        
-            var fileContent =  await response.Content.ReadAsStringAsync();
+
+            var fileContent = await response.Content.ReadAsStringAsync();
             return fileContent;
-                
+
         }
         catch (Exception e)
         {
@@ -32,7 +30,7 @@ public static class NetworkUtility
             return "";
         }
     }
-    
+
     // 获取查询的json
     public static async Task<string> GetJsonContent(string plotsJsonRequestUrl)
     {
@@ -50,7 +48,7 @@ public static class NetworkUtility
         catch (HttpRequestException e)
         {
             NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(e.Message));
-            return  "";
+            return "";
         }
     }
 }

@@ -12,7 +12,7 @@ namespace ArkPlotWpf.ViewModel;
 
 public partial class TagEditorViewModel : ObservableObject
 {
-    [ObservableProperty] 
+    [ObservableProperty]
     private ObservableCollection<TagReg> dataGrid = new();
     [ObservableProperty]
     int selectedIndex = 0;
@@ -29,7 +29,7 @@ public partial class TagEditorViewModel : ObservableObject
 
     public TagEditorViewModel()
     {
-        jsonPath= "tags.json";
+        jsonPath = "tags.json";
         CloseAction = LoadTagJson;
     }
 
@@ -40,9 +40,9 @@ public partial class TagEditorViewModel : ObservableObject
         var jsonContent = File.ReadAllText(jsonPath);
         var data = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
         var tagsAndRegs = from pair in data
-            where !pair.Key.EndsWith("_reg")
-            let reg = data[pair.Key + "_reg"]
-            select new TagReg(pair.Key, reg, pair.Value);
+                          where !pair.Key.EndsWith("_reg")
+                          let reg = data[pair.Key + "_reg"]
+                          select new TagReg(pair.Key, reg, pair.Value);
         DataGrid = new(tagsAndRegs);
     }
 
@@ -51,12 +51,12 @@ public partial class TagEditorViewModel : ObservableObject
     {
         var data =
             (from item in dataGrid
-                let tag = (item.Tag, item.NewTag)
-                let tagReg = ($"{item.Tag}_reg", item.Reg)
-                from pair in new[]{tag, tagReg} 
-                orderby pair.Item1
-                select pair)
-            .ToDictionary(x=>x.Item1, x=>x.Item2);
+             let tag = (item.Tag, item.NewTag)
+             let tagReg = ($"{item.Tag}_reg", item.Reg)
+             from pair in new[] { tag, tagReg }
+             orderby pair.Item1
+             select pair)
+            .ToDictionary(x => x.Item1, x => x.Item2);
         var jsonContent = JsonSerializer.Serialize(data);
         File.WriteAllText("tags.json", jsonContent);
         CloseAction!();

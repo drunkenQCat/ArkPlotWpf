@@ -36,6 +36,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     int selectedIndex = 0;
+    // Todo: 一点点防空值措施
     ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
     NotificationBlock notiBlock = NotificationBlock.Instance;
@@ -43,6 +44,7 @@ public partial class MainWindowViewModel : ObservableObject
     string language = "zh_CN";
     string storyType = "ACTIVITY_STORY";
     List<ActInfo> currentActInfos = new();
+    ResourceCsv resourceCsv = ResourceCsv.Instance;
 
     [RelayCommand]
     async Task LoadMd()
@@ -54,15 +56,16 @@ public partial class MainWindowViewModel : ObservableObject
 
         //大工程，把所有的章节都下载下来
         await content.GetAllChapters();
-        var allContent = content.ContentTable;
-        var exportMd = AkProcessor.ExportPlots(allContent, jsonPath);
-        var finalMd = "# " + activeTitle + "\r\n\r\n" + exportMd;
+        var allPlots = content.ContentTable;
+        var exportMd = AkProcessor.ExportPlots(allPlots, jsonPath);
+        var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
         if (Directory.Exists(outputPath) == false)
         {
             Directory.CreateDirectory(outputPath);
         }
-        AkProcessor.WriteMd(outputPath, activeTitle!, finalMd);
-        AkProcessor.WriteHtml(outputPath, activeTitle!, finalMd);
+        var markdown = new Plot(activeTitle!, mdWithTitle);
+        AkProcessor.WriteMd(outputPath, markdown);
+        AkProcessor.WriteHtml(outputPath, markdown);
         var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
         if (result == MessageBoxResult.OK)
         {
@@ -99,7 +102,7 @@ public partial class MainWindowViewModel : ObservableObject
         var currentTokens = actsTable.GetStories(type);
         currentActInfos =
             (from act in currentTokens
-             let name = act["name"].ToString()
+             let name = act["name"]!.ToString()
              let info = new ActInfo(language, storyType, name, act)
              select info
             ).ToList();
@@ -113,9 +116,15 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     async Task LoadLangs(string lang)
     {
+        await LoadResourceTable();
         language = lang;
         await Task.Run(() => actsTable.Lang = lang);
         LoadActs(storyType);
+    }
+
+    private async Task LoadResourceTable()
+    {
+        await resourceCsv.GetAllCsv();
     }
 
     [RelayCommand]

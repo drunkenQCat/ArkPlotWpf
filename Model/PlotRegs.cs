@@ -9,7 +9,7 @@ namespace ArkPlotWpf.Model;
 
 public partial class PlotRegs
 {
-    
+
     public List<Regex> RegList = new()
     {
         NameRegex(),
@@ -45,20 +45,20 @@ public partial class PlotRegs
 
     [GeneratedRegex("(?<=(\\[name=\")|(\\[multiline\\(name=\")).*(?=\")", RegexOptions.Compiled)]
     private static partial Regex NameRegex();
-    
+
     [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
     private static partial Regex RegexToSubName();
-    
+
     [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-    
+
     private static partial Regex SegmentRegex();
-    
+
     [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
     private static partial Regex CommentRegex();
-    
+
     [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
     private static partial Regex SpecialTagRegex();
-    
+
     private string ProcessName(string line)
     {
         var name = NameRegex().Match(line).Value;
@@ -70,7 +70,7 @@ public partial class PlotRegs
     {
         var tag = SpecialTagRegex().Match(line).Value;
         tag = tag.ToLower();
-        //Todo: tag为图片、音频时，提取关键词
+        // process the tag
         if (tagList[tag] == null)
         {
             NotificationBlock.Instance.OnLineNoMatch(new LineNoMatchEventArgs(line, tag));
@@ -78,27 +78,64 @@ public partial class PlotRegs
         }
         var newTag = (string)tagList[tag]!;
         if (newTag == "") return newTag;
-        // line = line.Replace("_", " ");
-        var tagReg = (string)tagList[tag+"_reg"]!;
-        var newValue = Regex.Match(line, tagReg).Value;
+        // process the value
+        var newValueReg = (string)tagList[tag + "_reg"]!;
+        var newValue = Regex.Match(line, newValueReg).Value;
+        string? mediaUrl = GetMediaUrl(newTag, newValue);
         newValue = FindTheLongestWord(newValue);
-        newValue = string.Join("_", newValue);
+        // process [multiline]
         if (newTag == "multiline")
         {
-            newValue = newValue.Replace("\\n", "\n");
+            newValue = newValue!.Replace("\\n", "\n");
             newValue = newValue.Replace("\\t", "\t");
         }
-            
+
         line = newTag + newValue;
+        if (mediaUrl != null) line += $"{Environment.NewLine}mediaUrl";
         return line + Environment.NewLine;
+    }
+
+
+    private string? GetMediaUrl(string newTag, string newValue)
+    {
+        var res = ResourceCsv.Instance;
+        string? url = null;
+        var mediaType = GetMediaType(newTag);
+        if (mediaType == null) return null;
+
+        switch (mediaType)
+        {
+            case MediaType.Image:
+                url = res.DataImage[newValue];
+                url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
+                break;
+            case MediaType.Portrait:
+                url = res.DataChar[newValue];
+                url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
+                break;
+            case MediaType.Music:
+                url = res.DataAudio[newValue];
+                url = $"<audio src=\"{url}\" alt=\"{newValue}\"/>";
+                break;
+        }
+
+        return url;
+    }
+
+    private MediaType? GetMediaType(string newTag)
+    {
+        if (newTag.Contains("图")) return MediaType.Image;
+        if (newTag.Contains("绘")) return MediaType.Music;
+        if (newTag.Contains("音")) return MediaType.Music;
+        return null;
     }
 
     private static string? FindTheLongestWord(string value)
     {
-        var  newValue =
+        var newValue =
             (from word in value.Split("_")
-                orderby word.Length descending
-                select word).FirstOrDefault();
+             orderby word.Length descending
+             select word).FirstOrDefault();
         return newValue;
     }
 
@@ -110,5 +147,12 @@ public partial class PlotRegs
     private string MakeComment(string line)
     {
         return $"> {line}\r\n";
+    }
+
+    private enum MediaType
+    {
+        Image,
+        Portrait,
+        Music
     }
 }

@@ -21,19 +21,19 @@ namespace ArkPlotWpf.Utilities
             return md;
         }
 
-        public static void WriteMd(string path, string fileName, string plots)
+        public static void WriteMd(string path, Plot markdown)
         {
-            var md = path + "\\" + fileName + ".md";
-            using var file = File.OpenWrite(md);
-            var info = new UTF8Encoding(true).GetBytes(plots);
+            var mdOutPath = path + "\\" + markdown.Title + ".md";
+            using var file = File.OpenWrite(mdOutPath);
+            var info = new UTF8Encoding(true).GetBytes(markdown.Content);
             file.Write(info, 0, info.Length);
         }
 
-        public static void WriteHtml(string path, string fileName, string plots)
+        public static void WriteHtml(string path, Plot markdown)
         {
-            var htmlPath = path + "\\" + fileName + ".html";
-            var htmlBody = Markdown.ToHtml(plots);
-            string htmlContent = FormatHtmlBody(htmlBody, fileName);
+            var htmlPath = path + "\\" + markdown.Title + ".html";
+            var htmlBody = Markdown.ToHtml(markdown.Content);
+            string htmlContent = FormatHtmlBody(htmlBody, markdown.Title);
             var html = new UTF8Encoding(true).GetBytes(htmlContent);
             using var htmlFile = File.OpenWrite(htmlPath);
             htmlFile.Write(html, 0, html.Length);
@@ -47,25 +47,25 @@ namespace ArkPlotWpf.Utilities
             head = $"<head>{head}{title}</head>";
             var html = $"<html>{head}{body}</html>";
             html = "<!doctype html>" + html;
-            var tail  = File.ReadAllText("assets/tail.html");
+            var tail = File.ReadAllText("assets/tail.html");
             html += tail;
             return html;
         }
 
-        public static async Task MainProc(ActInfo info, string jsPah, string outPath)
+        public static async Task MainProc(ActInfo info, string jsPah, string outputPath)
         {
             var content = new AkGetter(info);
             var activeTitle = info.Tokens["name"]?.ToString();
-
             //大工程，把所有的章节都下载下来
             await content.GetAllChapters();
             var allContent = content.ContentTable;
             // 处理每一章，最后导出
             var exportMd = ExportPlots(allContent, jsPah);
-            var finalMd = "# "+ activeTitle + "\r\n\r\n" + exportMd;
-            WriteMd(outPath, activeTitle!, finalMd);
-            WriteHtml(outPath, activeTitle!, finalMd);
+            var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
 
+            var markdown = new Plot(activeTitle!, mdWithTitle);
+            AkProcessor.WriteMd(outputPath, markdown);
+            AkProcessor.WriteHtml(outputPath, markdown);
         }
     }
 }

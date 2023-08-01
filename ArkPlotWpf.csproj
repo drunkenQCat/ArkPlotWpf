@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="1.0.4" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
         <PackageReference Include="Markdig" Version="0.30.4" />
