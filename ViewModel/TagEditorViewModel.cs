@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using ArkPlotWpf.Model;
 using System;
+using System.Text.Encodings.Web;
 
 namespace ArkPlotWpf.ViewModel;
 
@@ -50,14 +51,20 @@ public partial class TagEditorViewModel : ObservableObject
     void SaveTagJson()
     {
         var data =
-            (from item in dataGrid
-             let tag = (item.Tag, item.NewTag)
-             let tagReg = ($"{item.Tag}_reg", item.Reg)
-             from pair in new[] { tag, tagReg }
-             orderby pair.Item1
-             select pair)
-            .ToDictionary(x => x.Item1, x => x.Item2);
-        var jsonContent = JsonSerializer.Serialize(data);
+          (from item in dataGrid
+           let tag = (item.Tag, item.NewTag)
+           let tagReg = ($"{item.Tag}_reg", item.Reg)
+           from pair in new[] { tag, tagReg }
+           orderby pair.Item1
+           select pair)
+          .ToDictionary(x => x.Item1, x => x.Item2);
+        var options = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true,
+        };
+
+        var jsonContent = JsonSerializer.Serialize(data, options);
         File.WriteAllText("tags.json", jsonContent);
         CloseAction!();
     }

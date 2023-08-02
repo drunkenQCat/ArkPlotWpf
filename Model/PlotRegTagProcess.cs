@@ -23,9 +23,9 @@ public partial class PlotRegs
     private string? GetMediaUrl(string newTag, string newValue)
     {
         var res = ResourceCsv.Instance;
+        var mediaType = GetMediaType(newTag);
         string? url = null;
         newValue = newValue.Replace("$", "").Trim();
-        var mediaType = GetMediaType(newTag);
         if (mediaType == null) return null;
 
         try
@@ -94,7 +94,6 @@ public partial class PlotRegs
         return line;
     }
 
-
     private static string? FindTheLongestWord(string value)
     {
         var newValue =
@@ -104,5 +103,10 @@ public partial class PlotRegs
         return newValue;
     }
 
-
+    private enum MediaType
+    {
+        Image,
+        Portrait,
+        Music
+    }
 }

@@ -58,7 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
         await content.GetAllChapters();
         var allPlots = content.ContentTable;
         notiBlock.RaiseCommonEvent("正在处理文本....");
-        var exportMd = AkProcessor.ExportPlots(allPlots, jsonPath);
+        string exportMd = await ExportPlots(allPlots);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
         if (Directory.Exists(outputPath) == false)
         {
@@ -87,6 +87,13 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
     }
+
+    private async Task<string> ExportPlots(List<Plot> allPlots)
+    {
+        var output = await Task.Run(() => AkProcessor.ExportPlots(allPlots, jsonPath));
+        return output;
+    }
+
 
     private void SubscribeAll()
     {
@@ -130,7 +137,7 @@ public partial class MainWindowViewModel : ObservableObject
             await resourceCsv.GetAllCsv();
             notiBlock.RaiseCommonEvent("prts资源索引文件加载完成\r\n");
         }
-        catch (System.Exception)
+        catch (Exception)
         {
             var s = "\r\n网络错误，无法加载资源文件。\r\n";
             notiBlock.RaiseCommonEvent(s);
@@ -147,7 +154,7 @@ public partial class MainWindowViewModel : ObservableObject
             notiBlock.RaiseCommonEvent("剧情索引文件加载完成\r\n");
 
         }
-        catch (System.Exception)
+        catch (Exception)
         {
 
             var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";

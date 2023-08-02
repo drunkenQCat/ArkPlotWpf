@@ -35,8 +35,8 @@ public partial class PlotRegs
     public PlotRegs(string jsonPath)
     {
         RegexAndMethods.Add(new SentenceMethod(NameRegex(), ProcessName));
-        RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
         RegexAndMethods.Add(new SentenceMethod(SegmentRegex(), MakeLine));
+        RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
         RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
         tagList = JObject.Parse(System.IO.File.ReadAllText(jsonPath));
     }
@@ -45,6 +45,7 @@ public partial class PlotRegs
     private string ProcessName(string line)
     {
         var name = NameRegex().Match(line).Value;
+        if (name == "？？？") name = "神秘人士";
         var nameLine = RegexToSubName().Replace(line, $"**{name}**`讲道：`");
         return nameLine + Environment.NewLine;
     }
@@ -83,10 +84,4 @@ public partial class PlotRegs
         return $"> {line}\r\n";
     }
 
-    private enum MediaType
-    {
-        Image,
-        Portrait,
-        Music
-    }
 }

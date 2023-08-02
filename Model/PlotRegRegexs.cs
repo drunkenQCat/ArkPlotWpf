@@ -12,7 +12,6 @@ public partial class PlotRegs
     private static partial Regex RegexToSubName();
 
     [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-
     private static partial Regex SegmentRegex();
 
     [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
