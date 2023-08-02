@@ -18,7 +18,7 @@
     </Window.DataContext>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding LoadLangsCommand}" CommandParameter="zh_CN" />
+            <i:InvokeCommandAction Command="{Binding LoadInitResourceCommand}" CommandParameter="zh_CN" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <StackPanel>
@@ -149,7 +149,7 @@
                 <Button
                     Margin="0 0 0 10"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center" Command="{Binding OpenEditorCommand}"  Width="100">
+                    VerticalAlignment="Center" Command="{Binding OpenTagEditorCommand}"  Width="100">
                     编辑tags
                 </Button>
             </StackPanel>

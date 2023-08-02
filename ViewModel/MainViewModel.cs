@@ -57,6 +57,7 @@ public partial class MainWindowViewModel : ObservableObject
         //大工程，把所有的章节都下载下来
         await content.GetAllChapters();
         var allPlots = content.ContentTable;
+        notiBlock.RaiseCommonEvent("正在处理文本....");
         var exportMd = AkProcessor.ExportPlots(allPlots, jsonPath);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
         if (Directory.Exists(outputPath) == false)
@@ -114,21 +115,49 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    async Task LoadLangs(string lang)
+    async Task LoadInitResource(string lang)
     {
         await LoadResourceTable();
         language = lang;
-        await Task.Run(() => actsTable.Lang = lang);
+        await LoadLangTable(lang);
         LoadActs(storyType);
     }
 
     private async Task LoadResourceTable()
     {
-        await resourceCsv.GetAllCsv();
+        try
+        {
+            await resourceCsv.GetAllCsv();
+            notiBlock.RaiseCommonEvent("prts资源索引文件加载完成\r\n");
+        }
+        catch (System.Exception)
+        {
+            var s = "\r\n网络错误，无法加载资源文件。\r\n";
+            notiBlock.RaiseCommonEvent(s);
+            MessageBox.Show(s);
+        }
+    }
+
+    private async Task LoadLangTable(string lang)
+    {
+
+        try
+        {
+            await Task.Run(() => actsTable.Lang = lang);
+            notiBlock.RaiseCommonEvent("剧情索引文件加载完成\r\n");
+
+        }
+        catch (System.Exception)
+        {
+
+            var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
+            notiBlock.RaiseCommonEvent(s);
+            MessageBox.Show(s);
+        }
     }
 
     [RelayCommand]
-    void OpenEditor()
+    void OpenTagEditor()
     {
         var editorView = new TagEditor();
         var editorViewModel = new TagEditorViewModel(jsonPath, editorView.Close);

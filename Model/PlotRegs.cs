@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using ArkPlotWpf.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Model;
@@ -43,21 +41,6 @@ public partial class PlotRegs
         tagList = JObject.Parse(System.IO.File.ReadAllText(jsonPath));
     }
 
-    [GeneratedRegex("(?<=(\\[name=\")|(\\[multiline\\(name=\")).*(?=\")", RegexOptions.Compiled)]
-    private static partial Regex NameRegex();
-
-    [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
-    private static partial Regex RegexToSubName();
-
-    [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-
-    private static partial Regex SegmentRegex();
-
-    [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
-    private static partial Regex CommentRegex();
-
-    [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
-    private static partial Regex SpecialTagRegex();
 
     private string ProcessName(string line)
     {
@@ -68,85 +51,26 @@ public partial class PlotRegs
 
     private string ProcessTag(string line)
     {
-        var tag = SpecialTagRegex().Match(line).Value;
-        tag = tag.ToLower();
+        string tag = GetTagOfLine(line);
         // process the tag
-        if (tagList[tag] == null)
+        if (!IsTagExist(tag))
         {
-            NotificationBlock.Instance.OnLineNoMatch(new LineNoMatchEventArgs(line, tag));
+            NoticeNoMatchTag(line, tag);
             return line;
         }
-        var newTag = (string)tagList[tag]!;
-        if (newTag == "") return newTag;
+        string newTag = GetNewTag(tag);
+        if (IsNewTagEmpty(newTag)) return String.Empty;
         // process the value
-        var newValueReg = (string)tagList[tag + "_reg"]!;
-        var newValue = Regex.Match(line, newValueReg).Value;
+        string? newValue = GetRetainKeyword(line, tag);
         string? mediaUrl = GetMediaUrl(newTag, newValue);
+
         newValue = FindTheLongestWord(newValue);
-        // process [multiline]
-        if (newTag == "multiline")
-        {
-            newValue = newValue!.Replace("\\n", "\n");
-            newValue = newValue.Replace("\\t", "\t");
-        }
+        newValue = ProcessMultiLineTag(newTag, newValue);
 
         line = newTag + newValue;
-        if (mediaUrl != null) line += $"\r\n\r\n{mediaUrl}\r\n\r\n";
+        line = ProcessFlashBack(line, newTag, newValue);
+        line = AppendMediaUrl(line, mediaUrl);
         return line + Environment.NewLine;
-    }
-
-
-    private string? GetMediaUrl(string newTag, string newValue)
-    {
-        var res = ResourceCsv.Instance;
-        string? url = null;
-        newValue = newValue.Replace("$", "").Trim();
-        var mediaType = GetMediaType(newTag);
-        if (mediaType == null) return null;
-
-        try
-        {
-            switch (mediaType)
-            {
-                case MediaType.Image:
-                    // in csv, the background is bg_bg, fuck
-                    if(newTag.Contains("景")) url = $"bg_{url}";
-                    url = res.DataImage[newValue];
-                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
-                    break;
-                case MediaType.Portrait:
-                    url = res.DataChar[newValue];
-                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
-                    break;
-                case MediaType.Music:
-                    url = res.DataAudio[newValue];
-                    url = $"<audio alt=\"{newTag}\" src=\"{url}\" data-src=\"{url}\" controlslist=\"nodownload\" controls=\" \"preload=\"none\"></audio>";
-                    break;
-            }
-        }
-        catch
-        {
-            url = null;
-        }
-
-        return url;
-    }
-
-    private MediaType? GetMediaType(string newTag)
-    {
-        if (newTag.Contains("图") || newTag.Contains("景")) return MediaType.Image;
-        if (newTag.Contains("绘")) return MediaType.Portrait;
-        if (newTag.Contains("音")) return MediaType.Music;
-        return null;
-    }
-
-    private static string? FindTheLongestWord(string value)
-    {
-        var newValue =
-            (from word in value.Split("_")
-             orderby word.Length descending
-             select word).FirstOrDefault();
-        return newValue;
     }
 
     private string MakeLine(string line)

@@ -24,7 +24,7 @@ public class NotificationBlock
         ChapterLoaded?.Invoke(this, chapterLoadedEventArgs);
     }
 
-    internal void OnLineNoMatch(LineNoMatchEventArgs lineNoMatchEventArgs)
+    internal void OnNoMatchTag(LineNoMatchEventArgs lineNoMatchEventArgs)
     {
         LineNoMatch?.Invoke(this, lineNoMatchEventArgs);
     }
@@ -59,7 +59,7 @@ public class LineNoMatchEventArgs : EventArgs
 
 }
 
-public class  ChapterLoadedEventArgs : EventArgs
+public class ChapterLoadedEventArgs : EventArgs
 {
     public ChapterLoadedEventArgs(string title)
     {
