@@ -1,6 +1,7 @@
 <script crossorigin="anonymous" integrity="sha384-//wPThGdTrthOQR9M9/zrttkJAr5GB6+mtDs5KEBfyxRko5vM8k/UTYDYYbC9732" src="https://lib.baomitu.com/onecolor/latest/one-color.js"></script>
 
 <script>
+    // give the names clolor
     const stringToColor = (str) => {
         let hash = 0;
         str.split('').forEach(char => {
@@ -24,4 +25,20 @@
         var color = stringToColor(characterName);
         element.style.backgroundColor = color ;
     }); 
+</script>
+<script>
+    window.addEventListener('scroll', function () {
+        var audio = document.getElementsByClassName('music');
+        var musicStopTag = document.querySelector('musicstop');
+        const musicStopTagPosition = musicStopTag.getBoundingClientRect().top;
+        var audioPosition = audio.getBoundingClientRect().top;
+        var windowHeight = window.innerHeight;
+
+        if (audioPosition < windowHeight / 2) {
+            audio.play();
+        } else if(musicStopTagPosition < windowHeight / 2){
+            audio.pause();
+        }
+    });
+
 </script>

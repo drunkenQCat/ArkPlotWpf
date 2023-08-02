@@ -47,7 +47,16 @@ public partial class PlotRegs
         var name = NameRegex().Match(line).Value;
         if (name == "？？？") name = "神秘人士";
         var nameLine = RegexToSubName().Replace(line, $"**{name}**`讲道：`");
+        if(line.Contains("multiline"))
+            return ProcessMultiLine(nameLine) + Environment.NewLine;
         return nameLine + Environment.NewLine;
+    }
+    
+    private static string ProcessMultiLine(string? newValue)
+    {
+        newValue = newValue!.Replace("\\n", "\n");
+        newValue = newValue.Replace("\\t", "\t");
+        return newValue!;
     }
 
     private string ProcessTag(string line)
@@ -60,18 +69,18 @@ public partial class PlotRegs
             return line;
         }
         string newTag = GetNewTag(tag);
-        if (IsNewTagEmpty(newTag)) return String.Empty;
+        if (string.IsNullOrEmpty(newTag)) return String.Empty;
         // process the value
-        string? newValue = GetRetainKeyword(line, tag);
+        string newValue = GetRetainKeyword(line, tag);
+        if (string.IsNullOrEmpty(newValue)) return ProcessEmptyNewValue(newTag);
+        
+        // afterprocesing the newValue
         string? mediaUrl = GetMediaUrl(newTag, newValue);
-
         newValue = FindTheLongestWord(newValue);
-        newValue = ProcessMultiLineTag(newTag, newValue);
-
-        line = newTag + newValue;
-        line = ProcessFlashBack(line, newTag, newValue);
-        line = AppendMediaUrl(line, mediaUrl);
-        return line + Environment.NewLine;
+        var resultLine = newTag + newValue;
+        resultLine = ProcessFlashBack(resultLine , newTag, newValue);
+        resultLine = AttachToMediaUrl(resultLine, mediaUrl);
+        return resultLine + Environment.NewLine;
     }
 
     private string MakeLine(string line)

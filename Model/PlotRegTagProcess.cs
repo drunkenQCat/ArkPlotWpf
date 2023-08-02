@@ -6,6 +6,7 @@ namespace ArkPlotWpf.Model;
 
 public partial class PlotRegs
 {
+    private readonly ResourceCsv res = ResourceCsv.Instance;
     private string GetRetainKeyword(string line, string tag)
     {
         var newValueReg = (string)tagList[tag + "_reg"]!;
@@ -22,11 +23,11 @@ public partial class PlotRegs
     }
     private string? GetMediaUrl(string newTag, string newValue)
     {
-        var res = ResourceCsv.Instance;
         var mediaType = GetMediaType(newTag);
+        if (mediaType == null) return null;
+        
         string? url = null;
         newValue = newValue.Replace("$", "").Trim();
-        if (mediaType == null) return null;
 
         try
         {
@@ -34,17 +35,23 @@ public partial class PlotRegs
             {
                 case MediaType.Image:
                     // in csv, the background is bg_bg, fuck
-                    if (newTag.Contains("景")) newValue = $"bg_{newValue}";
+                    if (newTag.Contains('景')) newValue = $"bg_{newValue}";
                     url = res.DataImage[newValue];
                     url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
                     url = res.DataChar[newValue];
-                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:200px\"/>";
+                    url = $"<img class\"portrait\" src=\"{url}\" alt=\"{newValue}\" style=\"max-height:300\"/>";
                     break;
                 case MediaType.Music:
                     url = res.DataAudio[newValue];
                     url = $"<audio controls width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
+                    if (newTag.Contains('乐'))
+                    {
+                        var urlParts = url.Split(" ");
+                        urlParts[0] += "class=\"music\"";
+                        url = string.Join(" ", urlParts);
+                    }
                     break;
             }
         }
@@ -58,33 +65,22 @@ public partial class PlotRegs
 
     private MediaType? GetMediaType(string newTag)
     {
-        if (newTag.Contains("图") || newTag.Contains("景")) return MediaType.Image;
-        if (newTag.Contains("绘")) return MediaType.Portrait;
-        if (newTag.Contains("音")) return MediaType.Music;
+        if (newTag.Contains('图') || newTag.Contains('景')) return MediaType.Image;
+        if (newTag.Contains('绘')) return MediaType.Portrait;
+        if (newTag.Contains('音')) return MediaType.Music;
         return null;
     }
-    private static bool IsNewTagEmpty(string newTag) => newTag == "";
-
+    
     private bool IsTagExist(string tag) => tagList[tag] != null;
 
 
     private void NoticeNoMatchTag(string line, string tag) =>
         NotificationBlock.Instance.OnNoMatchTag(new LineNoMatchEventArgs(line, tag));
 
-    private static string? ProcessMultiLineTag(string newTag, string? newValue)
-    {
-        if (newTag == "multiline")
-        {
-            newValue = newValue!.Replace("\\n", "\n");
-            newValue = newValue.Replace("\\t", "\t");
-        }
 
-        return newValue;
-    }
-
-    private static string AppendMediaUrl(string line, string? mediaUrl)
+    private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
-        if (mediaUrl != null) line += $"\r\n\r\n{mediaUrl}\r\n\r\n";
+        if (mediaUrl != null) line = $"\r\n\r\n{line}\r\n\r\n{mediaUrl}\r\n\r\n";
         return line;
     }
 
@@ -94,13 +90,13 @@ public partial class PlotRegs
         return line;
     }
 
-    private static string? FindTheLongestWord(string value)
+    private static string FindTheLongestWord(string value)
     {
         var newValue =
             (from word in value.Split("_")
              orderby word.Length descending
              select word).FirstOrDefault();
-        return newValue;
+        return newValue!;
     }
 
     private enum MediaType
@@ -108,5 +104,17 @@ public partial class PlotRegs
         Image,
         Portrait,
         Music
+    }
+
+    private string ProcessEmptyNewValue(string newTag)
+    {
+        switch (newTag)
+        {
+            case "`音乐停止`":
+                return "<musicstop/>\r\n";
+            case "`立绘`":
+                return "";
+        }
+        return newTag;
     }
 }
