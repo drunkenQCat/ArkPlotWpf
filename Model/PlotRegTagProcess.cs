@@ -25,7 +25,7 @@ public partial class PlotRegs
     {
         var mediaType = GetMediaType(newTag);
         if (mediaType == null) return null;
-        
+
         string? url = null;
         newValue = newValue.Replace("$", "").Trim();
 
@@ -40,8 +40,16 @@ public partial class PlotRegs
                     url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
-                    url = res.DataChar[newValue];
-                    url = $"<img class\"portrait\" src=\"{url}\" alt=\"{newValue}\" style=\"max-height:300\"/>";
+                    if (res.DataChar.ContainsKey(newValue)) url = res.DataChar[newValue];
+                    else
+                    {
+                        // Handle the case where newValue does not exist in the keys
+                        var charName = FindTheLongestWord(newValue);
+                        var keyword = res.DataChar.Keys.FirstOrDefault(key => key.Contains(charName));
+                        url = res.DataChar[keyword!];
+                    }
+
+                    url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
                     url = res.DataAudio[newValue];
@@ -49,7 +57,7 @@ public partial class PlotRegs
                     if (newTag.Contains('乐'))
                     {
                         var urlParts = url.Split(" ");
-                        urlParts[0] += "class=\"music\"";
+                        urlParts[0] += " class=\"music\"";
                         url = string.Join(" ", urlParts);
                     }
                     break;
@@ -70,7 +78,7 @@ public partial class PlotRegs
         if (newTag.Contains('音')) return MediaType.Music;
         return null;
     }
-    
+
     private bool IsTagExist(string tag) => tagList[tag] != null;
 
 
@@ -80,7 +88,7 @@ public partial class PlotRegs
 
     private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
-        if (mediaUrl != null) line = $"\r\n\r\n{line}\r\n\r\n{mediaUrl}\r\n\r\n";
+        if (mediaUrl != null) line = $"\r\n\r\n{mediaUrl}\r\n\r\n{line}\r\n\r\n";
         return line;
     }
 
@@ -113,6 +121,8 @@ public partial class PlotRegs
             case "`音乐停止`":
                 return "<musicstop/>\r\n";
             case "`立绘`":
+                return "";
+            case "`图像`":
                 return "";
         }
         return newTag;

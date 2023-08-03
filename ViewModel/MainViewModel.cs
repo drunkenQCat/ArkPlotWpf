@@ -6,7 +6,6 @@ using ArkPlotWpf.Utilities;
 using AkGetter = ArkPlotWpf.Utilities.AkGetter;
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -124,10 +123,10 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     async Task LoadInitResource(string lang)
     {
-        await LoadResourceTable();
         language = lang;
         await LoadLangTable(lang);
         LoadActs(storyType);
+        await LoadResourceTable();
     }
 
     private async Task LoadResourceTable()
