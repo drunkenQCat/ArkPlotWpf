@@ -46,10 +46,14 @@ edge浏览器“大声朗读”功能的TTS语音声音好听又富有情感。�
 ---
 ---
 ## 输出效果
+
+### 默认输出html效果
+
 <img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/000b04bf-8781-4c66-b472-872129d82657" alt="image" style="zoom: 50%;" />
 
 
 
+### Typora 中使用 Autumns 主题的效果
 
 <img src="https://github.com/drunkenQCat/ArkPlotWpf/assets/39608175/67823cf5-5e11-4e0e-8dba-53035f881615" alt="image" style="zoom:50%;" />
 

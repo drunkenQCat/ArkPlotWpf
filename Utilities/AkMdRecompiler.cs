@@ -52,32 +52,42 @@ public class MdReconstructor
 
     private void CleanPortraitLines(PortraitGrp group)
     {
-        /*
-         *  ~~<img class="portrait"...~~
-         *  ~~`立绘`name~~
-         *  **Name**`说道：`....
-         *
-         */
         var portraitMark = group.PortraitMarks;
         foreach (var mark in portraitMark.Reverse())
         {
             var portraitIndex = mark.Index;
+            /*
+            *  ~~<img class="portrait"...~~
+            *  ~~`立绘`name~~
+            *  **Name**`说道：`....
+            */
+            // such kind of condition is normal condition, 
+            // remove two lines
             group.SList.RemoveRange(portraitIndex, 2);
         }
+        RemoveLiHui(group);
+
+    }
+
+    private static void RemoveLiHui(PortraitGrp group)
+    {
         // `立绘`grani#1 
         //  ^
         //  the first char is `. after clean if still has such line, clean them.
         for (var i = group.SList.Count - 1; i >= 0; i--)
         {
-            if(group.SList[i][0] == '`') group.SList.RemoveAt(i);
+            if (group.SList[i].Contains("立绘")) group.SList.RemoveAt(i);
         }
     }
 
     private CharPortrait StaticNames(IndexedCharacter[] characters)
     {
-        var charaDict = new Dictionary<string, string>();
-        foreach (var character in characters)
+        var charaDict = new CharPortrait();
+        foreach (var character in characters.Reverse())
+        {
+            if (character.Name == "s") continue;
             charaDict[character.Name] = AddTitleToPortrat(character.Name, character.Portrait);
+        }
         return charaDict;
     }
 
@@ -154,38 +164,35 @@ public class MdReconstructor
         for (var i = 0; i < paragraph.Count - 1; i++)
         {
             var line = paragraph[i];
-            if (GetTheP(line) != 'p')
-            {
-                characters.Add(MarkEmptyCharacter(i));
-                continue;
-            }
+            if (GetTheP(line) != 'p') continue;
             if (i + 2 >= paragraph.Count)
             {
-                characters.Add(MarkEmptyCharacter(i));
+                characters.Add(MarkStrangeCharacter(i));
                 continue;
             }
 
             string[] splitedStrong = paragraph[i + 2].Remove(0, 2).Split("**");
-            if (splitedStrong.Length != 2) continue;
             var name = splitedStrong.FirstOrDefault();
-            if (name == null || name.Length < 1) continue;
+            if (splitedStrong.Length != 2 || name == null || name.Length < 1)
+            {
+                /*
+                *  ~~<img class="portrait"...~~
+                *  ~~`立绘`name~~
+                *  <audio ...
+                *
+                */
+                // such kind of condition is named as "strange"("s")
+                characters.Add(MarkStrangeCharacter(i));
+                continue;
+            }
             characters.Add(new IndexedCharacter(i, name, line));
         }
-        RemoveEmptyCharacters(characters);
         return characters.ToArray();
     }
-
-    private void RemoveEmptyCharacters(List<IndexedCharacter> characters)
+    private IndexedCharacter MarkStrangeCharacter(int index)
     {
-        characters.RemoveAll(character => string.IsNullOrEmpty(character.Name));
+        return new IndexedCharacter(index, "s", "");
     }
-
-
-    private IndexedCharacter MarkEmptyCharacter(int index)
-    {
-        return new IndexedCharacter(index, "", "");
-    }
-
 
 
     public record PortraitGrp(int Index, SList SList, IndexedCharacter[] PortraitMarks);

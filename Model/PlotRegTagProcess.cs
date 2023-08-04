@@ -119,7 +119,7 @@ public partial class PlotRegs
         switch (newTag)
         {
             case "`音乐停止`":
-                return "<musicstop/>\r\n";
+                return "<musicstop></musicstop>\r\n";
             case "`立绘`":
                 return "";
             case "`图像`":
