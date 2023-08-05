@@ -1,21 +1,21 @@
-﻿using System;
+﻿using ArkPlotWpf.ViewModel;
+using System;
 using System.Windows;
-using ArkPlotWpf.ViewModel;
 
 namespace ArkPlotWpf
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow 
+    public partial class MainWindow
     {
         public MainWindow()
         {
             InitializeComponent();
         }
-        
 
-        void ChooseJsonPath_OnClick(object sender,  EventArgs e)
+
+        void ChooseJsonPath_OnClick(object sender, EventArgs e)
         {
             var dialog = new Microsoft.Win32.OpenFileDialog()
             {
@@ -24,13 +24,13 @@ namespace ArkPlotWpf
             };
             if (dialog.ShowDialog() == true)
             {
-            
+
                 (DataContext as MainWindowViewModel)?.SelectJsonFile(dialog.FileName);
             }
         }
-        void ChooseSpawnFolder_OnClick(object sender,  RoutedEventArgs e)
+        void ChooseSpawnFolder_OnClick(object sender, RoutedEventArgs e)
         {
-            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new ();
+            System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new();
             if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string path = folderBrowserDialog.SelectedPath;

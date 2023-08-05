@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using ArkPlotWpf.Model;
+using Markdig;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using ArkPlotWpf.Model;
-using Markdig;
 
 namespace ArkPlotWpf.Utilities
 {
@@ -31,7 +31,8 @@ namespace ArkPlotWpf.Utilities
         public static void WriteHtml(string path, Plot markdown)
         {
             var htmlPath = path + "\\" + markdown.Title + ".html";
-            var htmlBody = Markdown.ToHtml(markdown.Content);
+            var pipline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+            var htmlBody = Markdown.ToHtml(markdown.Content, pipline);
             string htmlContent = FormatHtmlBody(htmlBody, markdown.Title);
             var html = new UTF8Encoding(true).GetBytes(htmlContent);
             using var htmlFile = File.OpenWrite(htmlPath);

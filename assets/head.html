@@ -10,11 +10,11 @@
       rel="stylesheet" type="text/css">
 <style>
     .portrait {
-        object-fit: cover;
-        object-position: 20% 10%;
-        height: 100%;
-        width: auto;
-    }
+        display:flex;
+        object-fit:cover;
+        height: 277%;
+        width: 116%;
+    } 
 
     .portrait .title {
         position: absolute;
@@ -28,16 +28,26 @@
         text-align: center;
     }
 
-    th {
-        border: 1px solid var(--clabel);
-        background-color: var(--clabel);
-        color: var(--cwhite);
-        padding: 5px;
+    table {
+        width: 100%;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
     }
 
-    td {
-        border: 1px solid var(--clabel);
-        background-color: var(--ccard);
-        padding: 5px;
+    th {
+        max-width: 100px;
+        max-height: 100px;
+        border: 1px solid #dff3ea;
+        background-color: #6f837a;
+        color: #fff;
+        margin-top: 5px;
+        overflow: hidden;
     }
+
+    .crop {
+        height: 107px;
+        margin-top: 5px;
+        overflow: hidden;
+    } 
 </style>

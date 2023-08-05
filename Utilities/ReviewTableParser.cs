@@ -1,5 +1,5 @@
-using System.Linq;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -43,7 +43,7 @@ public class ReviewTableParser
     public List<JToken> GetStories(string type)
     {
         var stories =
-          // TODO:解决可能出现的解引用问题
+            // TODO:解决可能出现的解引用问题
             from item in reviewTable?.Children().ToList()
             let obj = item.ToObject<JProperty>()!.Value
             let actType = obj["actType"]!.ToString()

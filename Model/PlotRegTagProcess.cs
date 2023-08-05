@@ -1,6 +1,7 @@
+using ArkPlotWpf.Utilities;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using ArkPlotWpf.Utilities;
 
 namespace ArkPlotWpf.Model;
 
@@ -27,8 +28,8 @@ public partial class PlotRegs
         if (mediaType == null) return null;
 
         string? url = null;
-        newValue = newValue.Replace("$", "").Trim();
-
+        newValue = newValue.Trim();
+        if (newValue[0] == '$') newValue = newValue.Remove(0, 1);
         try
         {
             switch (mediaType)
@@ -44,11 +45,10 @@ public partial class PlotRegs
                     else
                     {
                         // Handle the case where newValue does not exist in the keys
-                        var charName = FindTheLongestWord(newValue);
-                        var keyword = res.DataChar.Keys.FirstOrDefault(key => key.Contains(charName));
-                        url = res.DataChar[keyword!];
+                        var charName = FindCharNum(newValue);
+                        var keyword = res.DataChar.Keys.FirstOrDefault(key => key.Contains(charName!));
+                        url = keyword is null ? "https://prts.wiki/images/ak.png?8efd0" : res.DataChar[keyword];
                     }
-
                     url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
@@ -69,6 +69,16 @@ public partial class PlotRegs
         }
 
         return url;
+    }
+
+    private string? FindCharNum(string newValue)
+    {
+        var splitedParts = newValue.Split('_');
+
+        return (from part in splitedParts
+                where Regex.Match(part, @"\d+").Success
+                select part).FirstOrDefault();
+
     }
 
     private MediaType? GetMediaType(string newTag)
@@ -104,6 +114,7 @@ public partial class PlotRegs
             (from word in value.Split("_")
              orderby word.Length descending
              select word).FirstOrDefault();
+        if (newValue == "path") Console.WriteLine();
         return newValue!;
     }
 

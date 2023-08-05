@@ -1,17 +1,17 @@
+using ArkPlotWpf.Model;
+using ArkPlotWpf.Utilities;
+using ArkPlotWpf.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
-using System.Windows;
-using ArkPlotWpf.Utilities;
-using AkGetter = ArkPlotWpf.Utilities.AkGetter;
 using System;
-using System.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
-using ArkPlotWpf.Model;
-using ArkPlotWpf.View;
+using AkGetter = ArkPlotWpf.Utilities.AkGetter;
 
 namespace ArkPlotWpf.ViewModel;
 

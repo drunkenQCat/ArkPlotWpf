@@ -5,7 +5,7 @@ namespace ArkPlotWpf.Model;
 
 public partial class PlotRegs
 {
-    [GeneratedRegex("(?<=(\\[name=\")|(\\[multiline\\(name=\")).*(?=\")", RegexOptions.Compiled)]
+    [GeneratedRegex("(?<=(\\[name=[\'\"])|(\\[multiline\\(name=[\'\"])).*(?=[\'\"])", RegexOptions.Compiled)]
     private static partial Regex NameRegex();
 
     [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]

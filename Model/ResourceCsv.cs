@@ -1,9 +1,9 @@
-using System;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Dom;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Model;
 
