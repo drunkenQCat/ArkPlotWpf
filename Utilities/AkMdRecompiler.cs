@@ -34,15 +34,15 @@ public class MdReconstructor
         GroupLinesBySegment();
         ProcessPortraits();
     }
-    public void GetResultToBuilder(StringBuilder _builder)
+    public void GetResultToBuilder(StringBuilder builder)
     {
-        _builder.AppendLine();
+        builder.AppendLine();
         foreach (var group in LineGroups)
         {
-            _builder.Append("\r\n\r\n---\r\n\r\n");
-            _builder.AppendJoin("\r\n\r\n", group);
+            builder.Append("\r\n\r\n---\r\n\r\n");
+            builder.AppendJoin("\r\n\r\n", group);
         }
-        _builder.AppendLine();
+        builder.AppendLine();
     }
 
     private void ProcessPortraits()
