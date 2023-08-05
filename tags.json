@@ -18,7 +18,7 @@
   "charactercutin": "`立绘突出`：",
   "charactercutin_reg": "((?<=name=\"\\d+\\s.*\\s).*(?=\\s.*\",\\sstyle))|((?<=fadetime=).*?)|((?<=widget).*?)",
   "charslot": "`立绘`",
-  "charslot_reg": "(?<=name=\").*?(?=\")",
+  "charslot_reg": "(?<=name\\s*=\\s*\").*?(?=\\s*\")",
   "curtain": "`黑场转场`",
   "curtain_reg": "",
   "dealy": "",

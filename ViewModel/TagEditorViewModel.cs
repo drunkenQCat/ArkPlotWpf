@@ -1,12 +1,12 @@
+using ArkPlotWpf.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using ArkPlotWpf.Model;
-using System;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace ArkPlotWpf.ViewModel;
 

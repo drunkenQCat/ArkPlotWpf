@@ -1,7 +1,7 @@
-using System.Linq;
-using System.Threading.Tasks;
 using ArkPlotWpf.Model;
 using Newtonsoft.Json.Linq;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -11,20 +11,20 @@ internal class AkGetter
     private readonly JToken storyTokens;
     private readonly string lang;
     readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
-    private readonly List<Task> tasks = new ();
+    private readonly List<Task> tasks = new();
     private string RawUrl => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
-    
-    public List<Plot> ContentTable { get; private set; } = new ();
+
+    public List<Plot> ContentTable { get; private set; } = new();
 
     public AkGetter(ActInfo info)
     {
         lang = info.Lang;
         storyTokens = info.Tokens;
     }
-        
+
     public async Task GetAllChapters()
     {
-        var chapterUrlTable =  GetChapterUrls();
+        var chapterUrlTable = GetChapterUrls();
         foreach (var chapter in chapterUrlTable)
         {
             async Task GetSingleChapter()
@@ -53,6 +53,6 @@ internal class AkGetter
             let txt = $"{RawUrl}{chapter["storyTxt"]}.txt"
             let plot = new KeyValuePair<string, string>(title, txt)
             select plot;
-        return  collection.ToDictionary(pair => pair.Key, pair => pair.Value);
+        return collection.ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 }

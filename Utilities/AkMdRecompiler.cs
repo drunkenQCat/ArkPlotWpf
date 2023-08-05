@@ -1,8 +1,9 @@
 using System.Linq;
-using SList = System.Collections.Generic.List<string>;
-using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<string>>;
+using System.Threading.Tasks;
 // the character name and character portrait pair
 using CharPortrait = System.Collections.Generic.Dictionary<string, string>;
+using SList = System.Collections.Generic.List<string>;
+using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<string>>;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -16,7 +17,7 @@ public class MdReconstructor
         get
         {
             var lines = LineGroups.Select(grp => string.Join("\r\n\r\n", grp));
-            return string.Join("\r\n\r\n---\r\n\r\n", lines);
+            return "\r\n" + string.Join("\r\n\r\n---\r\n\r\n", lines) + "\r\n";
         }
     }
 
@@ -30,23 +31,32 @@ public class MdReconstructor
 
     private void ProcessPortraits()
     {
+        var tasks = new List<Task>();
         foreach (var group in PortraitGrps)
         {
-            CleanPortraitLines(group);
-            CharPortrait portraitLinks = StaticNames(group.PortraitMarks);
-            MakePortraitChart(group, portraitLinks);
+            Task ProcessSingleGroup()
+            {
+                CleanPortraitLines(group);
+                CharPortrait portraitLinks = StaticNames(group.PortraitMarks);
+                MakePortraitChart(group, portraitLinks);
+                LineGroups[group.Index] = group.SList;
+                return Task.CompletedTask;
+            }
+
+            tasks.Add(ProcessSingleGroup());
         }
+        Task.WhenAll(tasks);
     }
 
     private void MakePortraitChart(PortraitGrp group, CharPortrait portraitLinks)
     {
+        if (portraitLinks.Count == 0) return;
         var chartItems = string.Join("|", portraitLinks.Values);
         var chartHead = $"|{chartItems}|";
         var chartSeg = string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count));
         chartSeg = $"|{chartSeg}";
         var chartBody = $"{chartHead}\r\n{chartSeg}\r\n\r\n";
         group.SList.Insert(0, chartBody);
-        LineGroups[group.Index] = group.SList;
     }
 
 
@@ -95,7 +105,8 @@ public class MdReconstructor
     {
         var splitPortrait = portrait.Split(' ').ToList();
         splitPortrait.Insert(1, $"title=\"{title}\"");
-        return string.Join(" ", splitPortrait);
+        var concated = string.Join(" ", splitPortrait);
+        return $"<div class=\"crop\">{concated}</div>";
     }
     private void WashLines()
     {
@@ -134,6 +145,41 @@ public class MdReconstructor
             isPortaritGrp = false;
         }
     }
+
+    // private void GroupLinesBySegmentA()
+    // {
+    //     StringBuilder temp = new();
+    //     var isPortaritGrp = false;
+    //     int grpIndex = 0;
+    //     // Regex pattern to match lines starting with '-' or containing '<img class="portrait"'
+    //     Regex pattern = new Regex(@"^-\s*|<img class=""portrait""");
+    //     foreach (var item in _lines)
+    //     {
+    //         // Check if the line matches the pattern
+    //         Match match = pattern.Match(item);
+    //         if (match.Success && temp.Length >= 16)
+    //         {
+    //             // Remove the lines starting with '-'
+    //             temp.Replace("-\n", "");
+    //             // Split the StringBuilder into an array of strings and add it to the LineGroups
+    //             LineGroups.Add(temp.ToString().Split('\n').ToList());
+    //             if (isPortaritGrp) AddPortrait(grpIndex, temp.ToString());
+    //             PrepareForNextGroup();
+    //         }
+    //         // Check if the match contains the '<img class="portrait"' tag
+    //         if (match.Groups[1].Success) isPortaritGrp = true;
+    //         // Append the line to the StringBuilder
+    //         temp.AppendLine(item);
+    //     }
+    //
+    //     void PrepareForNextGroup()
+    //     {
+    //         temp.Clear();
+    //         grpIndex++;
+    //         isPortaritGrp = false;
+    //     }
+    // }
+
 
     private static char GetTheP(string item)
     {

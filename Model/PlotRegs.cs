@@ -1,6 +1,6 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Model;
 
@@ -46,11 +46,11 @@ public partial class PlotRegs
         var name = NameRegex().Match(line).Value;
         if (name == "？？？") name = "神秘人士";
         var nameLine = RegexToSubName().Replace(line, $"**{name}**`讲道：`");
-        if(line.Contains("multiline"))
+        if (line.Contains("multiline"))
             return ProcessMultiLine(nameLine) + Environment.NewLine;
         return nameLine + Environment.NewLine;
     }
-    
+
     private static string ProcessMultiLine(string? newValue)
     {
         newValue = newValue!.Replace("\\n", "\n");
@@ -68,19 +68,29 @@ public partial class PlotRegs
             return line;
         }
         string newTag = GetNewTag(tag);
+        if (newTag == "`立绘`") Console.WriteLine();
         if (string.IsNullOrEmpty(newTag)) return String.Empty;
         // process the value
         string newValue = GetRetainKeyword(line, tag);
         if (string.IsNullOrEmpty(newValue)) return ProcessEmptyNewValue(newTag);
-        
+
+        if (newValue.Contains("avg_npc_530_1#1$1")) Console.WriteLine();
         // afterprocesing the newValue
         string? mediaUrl = GetMediaUrl(newTag, newValue);
         newValue = FindTheLongestWord(newValue);
+        newValue = RipDollar(newValue);
         var resultLine = newTag + newValue;
-        resultLine = ProcessFlashBack(resultLine , newTag, newValue);
+        resultLine = ProcessFlashBack(resultLine, newTag, newValue);
         resultLine = AttachToMediaUrl(resultLine, mediaUrl);
         return resultLine + Environment.NewLine;
     }
+
+    private static string RipDollar(string text)
+    {
+        text = Regex.Replace(text, @"\$", "");
+        return text;
+    }
+
 
     private string MakeLine(string line)
     {

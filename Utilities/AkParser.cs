@@ -1,7 +1,6 @@
+using ArkPlotWpf.Model;
 using System;
 using System.Linq;
-using System.Text.RegularExpressions;
-using ArkPlotWpf.Model;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -31,7 +30,7 @@ internal class AkParser
             // 合并重复的行数，比如: 音效：sword x 5
             {
                 newLine.TrimEnd();
-                newLine = prevLine + "×" + duplicateLineCount + "\r\n";
+                newLine = prevLine.Trim() + " × " + duplicateLineCount + "\r\n";
                 return;
             }
             newLine = prevLine;
@@ -45,7 +44,6 @@ internal class AkParser
             return true;
 
         }
-
         foreach (var line in lines)
         {
             var newLine = MatchType(line);
@@ -57,13 +55,14 @@ internal class AkParser
             duplicateLineCount = 1; // initialize the duplicateLineCount of duplicated lines
             MarkDown = MarkDown + newLine + "\r\n";
         }
-
         if (MarkDown == null)
         {
             Console.WriteLine("什么都没写上去");
             Environment.Exit(1);
         }
-        MarkDown = RipDollar(MarkDown);
+
+        var reconstructor = new MdReconstructor(MarkDown);
+        MarkDown = reconstructor.Result;
     }
 
     private string MatchType(string line)
@@ -79,11 +78,4 @@ internal class AkParser
     {
         return plot.Split("\n");
     }
-
-    private static string RipDollar(string text)
-    {
-        text = Regex.Replace(text, @"\$", "");
-        return text;
-    }
-
 }
