@@ -98,7 +98,7 @@ public partial class PlotRegs
 
     private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
-        if (mediaUrl != null) line = $"\r\n\r\n{mediaUrl}\r\n\r\n{line}\r\n\r\n";
+        if (mediaUrl != null) line = $"\n{mediaUrl}\n{line}";
         return line;
     }
 

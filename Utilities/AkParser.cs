@@ -1,5 +1,4 @@
 using ArkPlotWpf.Model;
-using System;
 using System.Linq;
 
 namespace ArkPlotWpf.Utilities;
@@ -8,64 +7,76 @@ internal class AkParser
 {
 
     private readonly PlotRegs plotRegs;
-    public string? MarkDown { get; private set; }
+    public string MarkDown { get; private set; } = "";
 
-    public AkParser(string plot, string jsonPath)
+    public AkParser(string jsonPath)
     {
         plotRegs = new PlotRegs(jsonPath);
-        ConvertToMarkdown(plot);
     }
 
-    private void ConvertToMarkdown(string plotText)
+    public void ConvertToMarkdown(StringBuilder plotBuilder)
     {
-        var lines = PlotSplitter(plotText);
+        var lines = plotBuilder.ToString().Split("\n");
         // 每一章的第一个有效句一定是分隔线
-        var duplicateLineCount = 1; // initialize the duplicateLineCount of duplicated lines
-        const string seperateLine = "\r\n\r\n---";
-        var prevLine = seperateLine;
-        void DescendDupLines(ref string newLine)
+        const string seperateLine = "---";
+        LineCounter prevLine = new(seperateLine);
+        plotBuilder.Clear();
+
+        var lineCounters = new List<LineCounter>();
+
+        bool IsDupOrEmptyLine(LineCounter newLine)
         {
-            if (newLine == null) throw new ArgumentNullException(nameof(newLine));
-            if (duplicateLineCount > 1 && prevLine != seperateLine)
+            if (newLine.Line == "") return true;
+            if (newLine.Line != prevLine.Line) return false;
+            newLine.Counter++;
+            return true;
+        }
+
+        void DescendDupLines(LineCounter newLine)
+        {
+            if (newLine.Counter > 1 && prevLine.Line != seperateLine)
             // 合并重复的行数，比如: 音效：sword x 5
             {
-                newLine.TrimEnd();
-                newLine = prevLine.Trim() + " × " + duplicateLineCount + "\r\n";
+                newLine.Line.TrimEnd();
+                newLine.Line = prevLine.Line + " × " + newLine.Counter.ToString();
                 return;
             }
             newLine = prevLine;
         }
 
-        bool IsDupOrEmptyLine(string newLine)
-        {
-            if (newLine == "") return true;
-            if (newLine != prevLine) return false;
-            duplicateLineCount++;
-            return true;
-
-        }
         foreach (var line in lines)
         {
-            var newLine = MatchType(line);
+            var matched = ClassifyAndProcess(line);
+            LineCounter newLine = new(matched);
             if (IsDupOrEmptyLine(newLine)) continue;
-
-            var currentLine = newLine;
-            DescendDupLines(ref newLine);
-            prevLine = currentLine;
-            duplicateLineCount = 1; // initialize the duplicateLineCount of duplicated lines
-            MarkDown = MarkDown + newLine + "\r\n";
-        }
-        if (MarkDown == null)
-        {
-            Console.WriteLine("什么都没写上去");
-            Environment.Exit(1);
+            var _ = newLine;
+            DescendDupLines(newLine);
+            prevLine = _;
+            LinkDetect(newLine, lineCounters);
         }
 
-        var reconstructor = new MdReconstructor(MarkDown);
-        MarkDown = reconstructor.Result;
+        var output = from l in lineCounters
+                     select l.Line;
+        var reconstructor = new MdReconstructor(output);
+        reconstructor.GetResultToBuilder(plotBuilder);
+        MarkDown = plotBuilder.ToString();
     }
 
-    private string MatchType(string line)
+    private static void LinkDetect(LineCounter newLine, List<LineCounter> lineCounters)
+    {
+        if (newLine.Line[0] != '\n')
+        {
+            lineCounters.Add(newLine);
+            return;
+        }
+        var newLineSplited = newLine.Line.TrimStart().Split('\n');
+        foreach (string s in newLineSplited)
+        {
+            lineCounters.Add(new LineCounter(s));
+        }
+    }
+
+    private string ClassifyAndProcess(string line)
     {
         var sentenceProcessor = plotRegs.RegexAndMethods
             .FirstOrDefault(proc => proc.Regex.Match(line).Success);
@@ -77,5 +88,16 @@ internal class AkParser
     private static IEnumerable<string> PlotSplitter(string plot)
     {
         return plot.Split("\n");
+    }
+    class LineCounter
+    {
+        public string Line = "";
+
+        public int Counter = 1;
+
+        public LineCounter(string line)
+        {
+            Line = line;
+        }
     }
 }

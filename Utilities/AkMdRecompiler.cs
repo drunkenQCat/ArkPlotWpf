@@ -28,6 +28,22 @@ public class MdReconstructor
         GroupLinesBySegment();
         ProcessPortraits();
     }
+    public MdReconstructor(IEnumerable<string> lines)
+    {
+        _lines = lines.ToList();
+        GroupLinesBySegment();
+        ProcessPortraits();
+    }
+    public void GetResultToBuilder(StringBuilder _builder)
+    {
+        _builder.AppendLine();
+        foreach (var group in LineGroups)
+        {
+            _builder.Append("\r\n\r\n---\r\n\r\n");
+            _builder.AppendJoin("\r\n\r\n", group);
+        }
+        _builder.AppendLine();
+    }
 
     private void ProcessPortraits()
     {

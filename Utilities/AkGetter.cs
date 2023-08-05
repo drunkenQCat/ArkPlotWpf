@@ -31,7 +31,7 @@ internal class AkGetter
             {
                 var content = await NetworkUtility.GetAsync(chapter.Value);
                 notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                ContentTable.Add(new(chapter.Key, content));
+                ContentTable.Add(new(chapter.Key, new StringBuilder(content)));
             }
 
             tasks.Add(GetSingleChapter());

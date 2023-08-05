@@ -63,7 +63,7 @@ public partial class MainWindowViewModel : ObservableObject
         {
             Directory.CreateDirectory(outputPath);
         }
-        var markdown = new Plot(activeTitle!, mdWithTitle);
+        var markdown = new Plot(activeTitle!, new(mdWithTitle));
         AkProcessor.WriteMd(outputPath, markdown);
         AkProcessor.WriteHtml(outputPath, markdown);
         var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);

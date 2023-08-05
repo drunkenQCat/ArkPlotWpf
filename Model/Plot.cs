@@ -1,3 +1,3 @@
 namespace ArkPlotWpf.Model;
 
-public record Plot(string Title, string Content);
+public record Plot(string Title, StringBuilder Content);

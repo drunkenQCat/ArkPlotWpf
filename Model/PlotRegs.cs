@@ -48,7 +48,7 @@ public partial class PlotRegs
         var nameLine = RegexToSubName().Replace(line, $"**{name}**`讲道：`");
         if (line.Contains("multiline"))
             return ProcessMultiLine(nameLine) + Environment.NewLine;
-        return nameLine + Environment.NewLine;
+        return nameLine;
     }
 
     private static string ProcessMultiLine(string? newValue)
@@ -82,7 +82,7 @@ public partial class PlotRegs
         var resultLine = newTag + newValue;
         resultLine = ProcessFlashBack(resultLine, newTag, newValue);
         resultLine = AttachToMediaUrl(resultLine, mediaUrl);
-        return resultLine + Environment.NewLine;
+        return resultLine;
     }
 
     private static string RipDollar(string text)
@@ -94,12 +94,12 @@ public partial class PlotRegs
 
     private string MakeLine(string line)
     {
-        return "\r\n\r\n---";
+        return "---";
     }
 
     private string MakeComment(string line)
     {
-        return $"> {line}\r\n";
+        return $"> {line}";
     }
 
 }
