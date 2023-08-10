@@ -18,8 +18,6 @@ namespace ArkPlotWpf.ViewModel;
 public partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty]
-    string actName = "照我以火";
-    [ObservableProperty]
     string jsonPath = Environment.CurrentDirectory + @"\tags.json";
     [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项\n\n" +
@@ -31,10 +29,10 @@ public partial class MainWindowViewModel : ObservableObject
     string outputPath = Environment.CurrentDirectory + @"\output";
 
     [ObservableProperty]
-    ICollectionView? storiesNames;
+    ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(new[]{ "加载中，请稍等..."});
 
     [ObservableProperty]
-    int selectedIndex = 0;
+    int selectedIndex;
     // Todo: 一点点防空值措施
     ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
@@ -121,11 +119,9 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    async Task LoadInitResource(string lang)
+    async Task LoadInitResource()
     {
-        language = lang;
-        await LoadLangTable(lang);
-        LoadActs(storyType);
+        await LoadLangTable(language);
         await LoadResourceTable();
     }
 
@@ -144,18 +140,19 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
     private async Task LoadLangTable(string lang)
     {
 
         try
         {
+            language = lang;
             await Task.Run(() => actsTable.Lang = lang);
             notiBlock.RaiseCommonEvent("剧情索引文件加载完成\r\n");
-
+            LoadActs(storyType);
         }
         catch (Exception)
         {
-
             var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
             notiBlock.RaiseCommonEvent(s);
             MessageBox.Show(s);

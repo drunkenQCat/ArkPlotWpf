@@ -18,7 +18,7 @@
     </Window.DataContext>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding LoadInitResourceCommand}" CommandParameter="zh_CN" />
+            <i:InvokeCommandAction Command="{Binding LoadInitResourceCommand}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <StackPanel>
@@ -68,19 +68,19 @@
                     <RadioButton
                         Content="简中"
                         IsChecked="True"
-                        Command="{Binding LoadLangsCommand}"
+                        Command="{Binding LoadLangTableCommand}"
                         CommandParameter="zh_CN" />
                     <RadioButton
                         Content="日本語"
-                        Command="{Binding LoadLangsCommand}"
+                        Command="{Binding LoadLangTableCommand}"
                         CommandParameter="ja_JP" />
                     <RadioButton
                         Content="Eng"
-                        Command="{Binding LoadLangsCommand}"
+                        Command="{Binding LoadLangTableCommand}"
                         CommandParameter="en_US" />
                     <RadioButton
                         Content="한국어"
-                        Command="{Binding LoadLangsCommand}"
+                        Command="{Binding LoadLangTableCommand}"
                         CommandParameter="ko_KR" />
                 </hc:ButtonGroup>
             </StackPanel>
