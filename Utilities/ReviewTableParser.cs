@@ -15,7 +15,17 @@ public class ReviewTableParser
             LoadJson(lang);
         }
     }
-    private string TableUrl => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
+
+    private string GetTableUrl()
+    {
+        if (lang == "zh_CN")
+        {
+            return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
+        }
+
+        return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/master/{lang}/gamedata/excel/story_review_table.json";
+    }
+
     private string KGithubTableUrl => $"https://raw.kgithub.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
     private JObject? reviewTable;
 
@@ -36,14 +46,13 @@ public class ReviewTableParser
 
     private void LoadJson(string s)
     {
-        var jsonContent = NetworkUtility.GetAsync(TableUrl).GetAwaiter().GetResult();
+        var jsonContent = NetworkUtility.GetAsync(GetTableUrl()).GetAwaiter().GetResult();
         reviewTable = JObject.Parse(jsonContent);
     }
 
     public List<JToken> GetStories(string type)
     {
         var stories =
-            // TODO:解决可能出现的解引用问题
             from item in reviewTable?.Children().ToList()
             let obj = item.ToObject<JProperty>()!.Value
             let actType = obj["actType"]!.ToString()

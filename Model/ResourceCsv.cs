@@ -1,8 +1,6 @@
-using AngleSharp;
-using AngleSharp.Dom;
-using System;
+using ArkPlotWpf.Utilities;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Model;
@@ -10,14 +8,14 @@ namespace ArkPlotWpf.Model;
 class ResourceCsv
 {
     /// table of Background Images
-    public StringDict DataImage = new();
+    public readonly StringDict DataImage = new();
     /// table of Character Images
-    public StringDict DataChar = new();
+    public readonly StringDict DataChar = new();
     /// table of Sound Effects and Musics
-    public StringDict DataAudio = new();
+    public readonly StringDict DataAudio = new();
     /* public StringDict DataOverride = new(); */
     /* public StringDict DataLink = new(); */
-    readonly List<PrtsData> allData;
+    private readonly List<PrtsData> _allData;
     private static ResourceCsv? instance = null;
     public static ResourceCsv Instance
     {
@@ -33,9 +31,9 @@ class ResourceCsv
 
     public ResourceCsv()
     {
-        allData = new(){
+        _allData = new(){
             new PrtsData( "Data_Image", DataImage ),
-            new PrtsData(  "Data_Char", DataChar  ),
+            new PrtsData( "Data_Char", DataChar  ),
             new PrtsData( "Data_Audio", DataAudio)
             /* { "Data_Override", DataOverride }, */
             /* { "Data_Link", DataLink } */
@@ -44,11 +42,7 @@ class ResourceCsv
 
     public async Task GetAllCsv()
     {
-        List<Task> tasks = new();
-        foreach (var data in allData)
-        {
-            tasks.Add(GetCsv(data));
-        }
+        var tasks = _allData.Select(GetCsv).ToList();
         await Task.WhenAll(tasks);
 
     }
@@ -58,11 +52,10 @@ class ResourceCsv
     private async Task GetCsv(PrtsData singleData)
     {
         // 所有csv都是从Prts的模板里扒下来的
-        var prtsTemplateUrl = $"https://prts.wiki/index.php?title=Widget:{singleData.Tag}&action=edit";
-        var config = Configuration.Default.WithDefaultLoader();
-        var context = BrowsingContext.New(config);
-        var document = await context.OpenAsync(prtsTemplateUrl);
-        var csv = StripHtml(document);
+        var prtsTemplateUrl = "https://prts.wiki/api.php?action=expandtemplates&format=json&text={{Widget:" + singleData.Tag + "}}";
+        var query = await NetworkUtility.GetAsync(prtsTemplateUrl);
+        var csv = ProcessQuery(query);
+        if(csv is null) return;
         var csvItems = LinesSplitter(csv);
         ParseCsvItems(singleData.Data, csvItems);
     }
@@ -89,7 +82,7 @@ class ResourceCsv
     {
         if (keyValue.Length < 2) return false;
         keyValue[1] = keyValue[1].Trim();
-        bool isJsonItem = keyValue is [_, ""];
+        var isJsonItem = keyValue is [_, ""];
         return isJsonItem;
     }
 
@@ -123,7 +116,7 @@ class ResourceCsv
         return $"https://prts.wiki{v}";
     }
 
-    private string StripHtml(IDocument inputDom)
+    private string? ProcessQuery(string inputQuery)
     {
         /* csv is the Element which id is wpTextbox1
          * and the csv is surrounded in <noincluedonly> like this:
@@ -135,8 +128,9 @@ class ResourceCsv
             ...
             </includeonly>
          */
-        var csvElement = inputDom.QuerySelector("#wpTextbox1");
-        return Regex.Replace(csvElement!.TextContent, "<[a-zA-Z/].*?>", String.Empty);
+        var jsonElement = JsonDocument.Parse(inputQuery).RootElement.GetProperty("expandtemplates").GetProperty("*");
+        var csvElement = jsonElement.GetString();
+        return csvElement;
     }
     private IEnumerable<string> LinesSplitter(string plot)
     {

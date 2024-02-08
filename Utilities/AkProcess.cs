@@ -29,8 +29,14 @@ internal abstract class AkProcessor
     public static void WriteHtml(string path, Plot markdown)
     {
         var htmlPath = path + "\\" + markdown.Title + ".html";
-        var pipline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-        var htmlBody = Markdown.ToHtml(markdown.Content.ToString(), pipline);
+        var pipeline = new MarkdownPipelineBuilder()
+                          .UseAdvancedExtensions()
+                          .Build();
+        var testPipeline = new MarkdownPipelineBuilder()
+                          .UseAdvancedExtensions() // Add most of all advanced extensions
+                          .UseTableOfContent() //Add MarkdigToc extension
+                          .Build();
+        var htmlBody = Markdown.ToHtml(markdown.Content.ToString(), pipeline);
         string htmlContent = FormatHtmlBody(htmlBody, markdown.Title);
         File.WriteAllText(htmlPath, htmlContent);
 

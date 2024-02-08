@@ -27,18 +27,36 @@
     }); 
 </script>
 <script>
-    window.addEventListener('scroll', function () {
-        var audio = document.getElementsByClassName('music');
-        var musicStopTag = document.querySelector('musicstop');
-        const musicStopTagPosition = musicStopTag.getBoundingClientRect().top;
-        var audioPosition = audio.getBoundingClientRect().top;
-        var windowHeight = window.innerHeight;
+  document.addEventListener("DOMContentLoaded", function() {
+    var lazyAudios = document.querySelectorAll("audio[data-src]");
 
-        if (audioPosition < windowHeight / 2) {
-            audio.play();
-        } else if(musicStopTagPosition < windowHeight / 2){
-            audio.pause();
+    function lazyLoadAudio(audio) {
+      var source = audio.getAttribute("data-src");
+      if (source) {
+        audio.src = source;
+        audio.removeAttribute("data-src");
+      }
+    }
+
+    function handleIntersection(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          lazyLoadAudio(entry.target);
+          observer.unobserve(entry.target);
         }
-    });
+      });
+    }
 
+    var options = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.1
+    };
+
+    var observer = new IntersectionObserver(handleIntersection, options);
+
+    lazyAudios.forEach(function(audio) {
+      observer.observe(audio);
+    });
+  });
 </script>

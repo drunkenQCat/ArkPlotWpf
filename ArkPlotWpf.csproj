@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows</TargetFramework>
+    <DefaultLanguage>zh-Hans</DefaultLanguage>
+    <PublishRoot>bin\Publish</PublishRoot>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWPF>true</UseWPF>
@@ -13,6 +15,7 @@
         <PackageReference Include="AngleSharp" Version="1.0.4" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
+        <PackageReference Include="Leisn.MarkdigToc" Version="0.1.3" />
         <PackageReference Include="Markdig" Version="0.30.4" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
@@ -22,10 +25,12 @@
         <None Remove="tags.json" />
     <Content Include="tags.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
     <None Remove="assets\tail.html" />
     <Resource Include="assets\tail.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Resource>
   </ItemGroup>
 
@@ -33,12 +38,18 @@
         <None Remove="assets\head.html" />
     <Resource Include="assets\head.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Resource>
   </ItemGroup>
     <Target Name="CopyFiles" AfterTargets="Build">
         <Copy SourceFiles="tags.json" DestinationFolder="$(OutputPath)" />
         <Copy SourceFiles="assets\head.html" DestinationFolder="$(OutputPath)\assets" />
         <Copy SourceFiles="assets\tail.html" DestinationFolder="$(OutputPath)\assets" />
+    </Target>
+    <Target Name="CopyFiles" AfterTargets="Publish">
+        <Copy SourceFiles="tags.json" DestinationFolder="$(PublishRoot)" />
+        <Copy SourceFiles="assets\head.html" DestinationFolder="$(PublishRoot)\assets" />
+        <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishRoot)\assets" />
     </Target>
 
 </Project>
