@@ -38,7 +38,7 @@ public partial class PlotRegs
                     // in csv, the background is bg_bg, fuck
                     if (newTag.Contains('景')) newValue = $"bg_{newValue}";
                     url = res.DataImage[newValue];
-                    url = $"<img src=\"{url}\" alt=\"{newValue}\" style=\"max-height:350px\"/>";
+                    url = $"<img src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
                     if (res.DataChar.ContainsKey(newValue)) url = res.DataChar[newValue];
@@ -49,11 +49,11 @@ public partial class PlotRegs
                         var keyword = res.DataChar.Keys.FirstOrDefault(key => key.Contains(charName!));
                         url = keyword is null ? "https://prts.wiki/images/ak.png?8efd0" : res.DataChar[keyword];
                     }
-                    url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" style=\"max-height:300px\"/>";
+                    url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
                     url = res.DataAudio[newValue];
-                    url = $"<audio controls width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
+                    url = $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
                     if (newTag.Contains('乐'))
                     {
                         var urlParts = url.Split(" ");

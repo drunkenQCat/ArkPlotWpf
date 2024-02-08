@@ -149,8 +149,7 @@ public class MdReconstructor
             }
             // <img class="portrait"
             //             ^         it's 13th alphabet
-            char k = GetTheP(item);
-            if (k == 'p') isPortaritGrp = true;
+            if (IsPortrait(item)) isPortaritGrp = true;
             temp.Add(item);
         }
 
@@ -197,21 +196,7 @@ public class MdReconstructor
     // }
 
 
-    private static char GetTheP(string item)
-    {
-        char k;
-        try
-        {
-            k = item[12];
-        }
-        catch (System.IndexOutOfRangeException)
-        {
-
-            k = ' ';
-        }
-
-        return k;
-    }
+    private static bool IsPortrait(string item) => item.Length > 12 && item[12] == 'p';
 
     private void AddPortrait(int grpIndex, SList temp)
     {
@@ -226,7 +211,7 @@ public class MdReconstructor
         for (var i = 0; i < paragraph.Count - 1; i++)
         {
             var line = paragraph[i];
-            if (GetTheP(line) != 'p') continue;
+            if (!IsPortrait(line)) continue;
             if (i + 2 >= paragraph.Count)
             {
                 characters.Add(MarkStrangeCharacter(i));
