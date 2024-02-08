@@ -204,7 +204,7 @@ public class MdReconstructor
         {
             k = item[12];
         }
-        catch (System.Exception)
+        catch (System.IndexOutOfRangeException)
         {
 
             k = ' ';

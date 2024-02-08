@@ -12,7 +12,16 @@ internal class AkGetter
     private readonly string lang;
     readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
     private readonly List<Task> tasks = new();
-    private string RawUrl => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
+
+    private string GetRawUrl()
+    {
+        if (lang == "zh_CN")
+        {
+            return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
+        }
+
+        return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/master/{lang}/gamedata/story/";
+    }
 
     public List<Plot> ContentTable { get; private set; } = new();
 
@@ -50,7 +59,7 @@ internal class AkGetter
         var collection =
             from chapter in plots
             let title = $"{chapter["storyCode"]} {chapter["storyName"]} {chapter["avgTag"]}"
-            let txt = $"{RawUrl}{chapter["storyTxt"]}.txt"
+            let txt = $"{GetRawUrl()}{chapter["storyTxt"]}.txt"
             let plot = new KeyValuePair<string, string>(title, txt)
             select plot;
         return collection.ToDictionary(pair => pair.Key, pair => pair.Value);
