@@ -69,12 +69,11 @@ public partial class PlotRegs
         }
         string newTag = GetNewTag(tag);
         if (newTag == "`立绘`") Console.WriteLine();
-        if (string.IsNullOrEmpty(newTag)) return String.Empty;
+        if (string.IsNullOrEmpty(newTag)) return string.Empty;
         // process the value
         string newValue = GetRetainKeyword(line, tag);
         if (string.IsNullOrEmpty(newValue)) return ProcessEmptyNewValue(newTag);
 
-        if (newValue.Contains("avg_npc_530_1#1$1")) Console.WriteLine();
         // afterprocesing the newValue
         string? mediaUrl = GetMediaUrl(newTag, newValue);
         newValue = FindTheLongestWord(newValue);

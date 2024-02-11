@@ -1,6 +1,7 @@
 using ArkPlotWpf.Utilities;
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace ArkPlotWpf.Model;
@@ -41,14 +42,7 @@ public partial class PlotRegs
                     url = $"<img src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
-                    if (res.DataChar.ContainsKey(newValue)) url = res.DataChar[newValue];
-                    else
-                    {
-                        // Handle the case where newValue does not exist in the keys
-                        var charName = FindCharNum(newValue);
-                        var keyword = res.DataChar.Keys.FirstOrDefault(key => key.Contains(charName!));
-                        url = keyword is null ? "https://prts.wiki/images/ak.png?8efd0" : res.DataChar[keyword];
-                    }
+                    url = GetPortraitUrl(newValue);
                     url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
@@ -71,15 +65,108 @@ public partial class PlotRegs
         return url;
     }
 
-    private string? FindCharNum(string newValue)
+    public (string, int) FindPortraitInLinkData(string keyData)
     {
-        var splitedParts = newValue.Split('_');
+        if (string.IsNullOrWhiteSpace(keyData))
+        {
+            Console.WriteLine("The input parameter is empty, has skipped the data.");
+            return ("-1", -1);
+        }
 
-        return (from part in splitedParts
-                where Regex.Match(part, @"\d+").Success
-                select part).FirstOrDefault();
+        var matchedCodeParts = CharPortraitCodeRegex().Match(keyData);
+        if (!matchedCodeParts.Success)
+        {
+            Console.WriteLine("Can't get key from the input parameter, has skipped the data.");
+            return ("-1", -1);
+        }
 
+        int? GetSubIndex(int index) => matchedCodeParts!.Groups[index].Success ? int.Parse(matchedCodeParts.Groups[index].Value) : null;
+ 
+
+        string portraitNameGroup = matchedCodeParts.Groups[1].Value!;
+        var emotionIndex = GetSubIndex(3);
+
+        if (!res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
+        {
+            Console.WriteLine($"The appointed key [{portraitNameGroup}] not exist, has skipped the data.");
+            return ("-1", -1);
+        }
+
+        var groupIndex = GetSubIndex(4);
+        var groupSubIndex = GetSubIndex(5);
+        if (groupIndex is not null && groupSubIndex is not null) return ProcessDollarSymbol();
+
+        if (matchedCodeParts.Groups[2].Success)
+        {
+            var symbol = matchedCodeParts.Groups[2].Value;
+
+            switch (symbol)
+            {
+                case "@":
+                    for (int idx = 0; idx < linkItem.GetProperty("array").GetArrayLength(); idx++)
+                    {
+                        var currentElement = linkItem.GetProperty("array")[idx];
+                        if (currentElement.GetProperty("alias").GetString() == emotionIndex.ToString())
+                        {
+                            return (portraitNameGroup, idx);
+                        }
+                    }
+                    Console.WriteLine("Data analyze error, use the default char to instead.");
+                    return (portraitNameGroup, 0);
+                case "$":
+                    return ProcessDollarSymbol();
+                case "#":
+                    int outputIndex = emotionIndex ?? 0;
+                    if(outputIndex >= linkItem.GetProperty("array").GetArrayLength())
+                    {
+                        Console.WriteLine($"The analyze key [{portraitNameGroup} : {outputIndex}] is out of range, use the default char to instead");
+                        outputIndex = 0;
+                    }
+                    return (portraitNameGroup, outputIndex); // Adjusting because array index is zero-based
+                default:
+                    break;
+            }
+        }
+        (string portraitNameGroup, int) ProcessDollarSymbol()
+        {
+            string subIndex = "$" + (groupSubIndex  ?? emotionIndex); // 组合group
+            emotionIndex = groupIndex != null ? groupIndex : emotionIndex;
+            var arrayElements = linkItem.GetProperty("array")
+                .EnumerateArray()
+                .Select((element, index) => new { Name = element.GetProperty("name").GetString(), Index = index })
+                .ToList();
+
+            if(arrayElements is null) return ("-1", -1);
+            var matchingElements = arrayElements.Where(element => element.Name!.EndsWith(subIndex)).ToList();
+            if (!matchingElements.Any())
+            {
+                Console.WriteLine($"No elements ending with {subIndex}.");
+                return (portraitNameGroup, 0); // Using default index if no matching elements
+            }
+            emotionIndex = Math.Min(emotionIndex??0, matchingElements.Count - 1);
+            var targetElement = matchingElements.ElementAt(emotionIndex??0);
+
+            // Return original name and adjusted index within the global array
+            return (portraitNameGroup, arrayElements.IndexOf(targetElement));
+        }
+        // Default fallback if no special symbol is used
+        return (portraitNameGroup, Math.Max(emotionIndex ?? 1 - 1, 0)); // Adjusting because array index is zero-based
     }
+
+    string GetPortraitUrl(string inputKey)
+    {
+        (string key, int index) = FindPortraitInLinkData(inputKey);
+        if (!res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
+        {
+            Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
+            return key;
+        }
+        var newKey =  linkItem.GetProperty("array")[index]
+            .GetProperty("name")
+            .GetString();
+        return res.DataChar[newKey?? "char_293_thorns_1"];
+    }
+
 
     private MediaType? GetMediaType(string newTag)
     {

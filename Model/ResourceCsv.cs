@@ -1,7 +1,9 @@
+using AngleSharp.Common;
 using ArkPlotWpf.Utilities;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace ArkPlotWpf.Model;
 
@@ -13,6 +15,11 @@ class ResourceCsv
     public readonly StringDict DataChar = new();
     /// table of Sound Effects and Musics
     public readonly StringDict DataAudio = new();
+    /// <summary>
+    /// table of links in prts
+    /// </summary>
+    public readonly StringDict DataLink = new();
+    public JsonDocument PortraitLinkDocument;
     /* public StringDict DataOverride = new(); */
     /* public StringDict DataLink = new(); */
     private readonly List<PrtsData> _allData;
@@ -29,12 +36,14 @@ class ResourceCsv
         }
     }
 
+
     public ResourceCsv()
     {
         _allData = new(){
             new PrtsData( "Data_Image", DataImage ),
             new PrtsData( "Data_Char", DataChar  ),
-            new PrtsData( "Data_Audio", DataAudio)
+            new PrtsData( "Data_Audio", DataAudio ),
+            new PrtsData( "Data_Link", DataLink )
             /* { "Data_Override", DataOverride }, */
             /* { "Data_Link", DataLink } */
         };
@@ -47,8 +56,6 @@ class ResourceCsv
 
     }
 
-
-
     private async Task GetCsv(PrtsData singleData)
     {
         // 所有csv都是从Prts的模板里扒下来的
@@ -56,32 +63,53 @@ class ResourceCsv
         var query = await NetworkUtility.GetAsync(prtsTemplateUrl);
         var csv = ProcessQuery(query);
         if(csv is null) return;
+        if (singleData.Tag == "Data_Link") {
+            csv = Regex.Unescape(csv);
+            PortraitLinkDocument = GetPortraitLinkUrl(csv);
+            return;
+        }
         var csvItems = LinesSplitter(csv);
-        ParseCsvItems(singleData.Data, csvItems);
+        ParseItemList(singleData, csvItems);
     }
 
-    private static void ParseCsvItems(StringDict csvDict, IEnumerable<string> csvItems)
+    private JsonDocument GetPortraitLinkUrl(string portraitLinkJson)
     {
+        var jsonElement = JsonDocument.Parse(portraitLinkJson);
+        return jsonElement;
+    }
+
+    private static void ParseItemList(PrtsData prts, IEnumerable<string> csvItems)
+    {
+        var csvDict = prts.Data;
         foreach (var item in csvItems)
         {
             var keyValue = item.Split(",");
             // for music, the data have to reprocess because it's fucking json
-            var isJsonItem = JudgeJsonItem(keyValue);
+            var isJsonItem = JudgeJsonItemAndTrimKey(keyValue);
+            var title = keyValue[0];
             if (isJsonItem)
             {
-                var jsonItems = ParseSingleJsonItem(keyValue[0]);
+                var jsonItems = ParseSingleJsonItem(title);
                 if (jsonItems == null) continue;
                 keyValue = jsonItems;
             }
-            if (keyValue.Length == 2) csvDict[keyValue[0]] =
-              isJsonItem ? GetMusicUrl(keyValue[1]) : GetItemUrl(keyValue[1]);
+            if (keyValue.Length != 2) continue;
+
+            if (!isJsonItem)
+            {
+                csvDict[title] = GetItemUrl(keyValue[1]);
+                continue;
+            }
+            if (prts.Tag == "Data_Audio") csvDict[title] = GetMusicUrl(keyValue[1]);
         }
     }
 
-    private static bool JudgeJsonItem(string[] keyValue)
+    private static bool JudgeJsonItemAndTrimKey(string[] keyValue)
     {
         if (keyValue.Length < 2) return false;
         keyValue[1] = keyValue[1].Trim();
+        // if value is empty string, it's json dictionary item
+        //   "axia_name": "小小小天使"
         var isJsonItem = keyValue is [_, ""];
         return isJsonItem;
     }
@@ -102,6 +130,13 @@ class ResourceCsv
 
     private static string[]? ParseSingleJsonItem(string jsonItem)
     {
+        // for some history reason, the json contains some strange items, like:
+        /*
+         ```
+         \"axia_name\": \"小小小天使\",\n  \"bg_width\": 0.5,\n  \"bg_height\": 1.5,\n\n  \"avatar_sys\": \"system_100_mys\",\n  \"avatar_doberm\": \"char_130_doberm\",\n  \"avatar_jesica\": \"char_235_jesica\",\n
+         ```
+         */
+        // so we have to skip these useless items.
         if (!jsonItem.Contains("Sound")) return null;
         var items = jsonItem.Replace("\"", "").Split(':');
         items =
