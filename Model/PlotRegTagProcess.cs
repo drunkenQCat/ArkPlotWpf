@@ -29,7 +29,7 @@ public partial class PlotRegs
         if (mediaType == null) return null;
 
         string? url = null;
-        newValue = newValue.Trim();
+        newValue = newValue.Trim().ToLower();
         if (newValue[0] == '$') newValue = newValue.Remove(0, 1);
         try
         {
@@ -80,10 +80,10 @@ public partial class PlotRegs
             return ("-1", -1);
         }
 
-        int? GetSubIndex(int index) => matchedCodeParts!.Groups[index].Success ? int.Parse(matchedCodeParts.Groups[index].Value) : null;
+        int? GetSubIndex(int index) => matchedCodeParts.Groups[index].Success ? int.Parse(matchedCodeParts.Groups[index].Value) : null;
  
 
-        string portraitNameGroup = matchedCodeParts.Groups[1].Value!;
+        string portraitNameGroup = matchedCodeParts.Groups[1].Value;
         var emotionIndex = GetSubIndex(3);
 
         if (!res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
@@ -123,8 +123,6 @@ public partial class PlotRegs
                         outputIndex = 0;
                     }
                     return (portraitNameGroup, outputIndex); // Adjusting because array index is zero-based
-                default:
-                    break;
             }
         }
         (string portraitNameGroup, int) ProcessDollarSymbol()
@@ -136,7 +134,6 @@ public partial class PlotRegs
                 .Select((element, index) => new { Name = element.GetProperty("name").GetString(), Index = index })
                 .ToList();
 
-            if(arrayElements is null) return ("-1", -1);
             var matchingElements = arrayElements.Where(element => element.Name!.EndsWith(subIndex)).ToList();
             if (!matchingElements.Any())
             {
@@ -144,7 +141,7 @@ public partial class PlotRegs
                 return (portraitNameGroup, 0); // Using default index if no matching elements
             }
             emotionIndex = Math.Min(emotionIndex??0, matchingElements.Count - 1);
-            var targetElement = matchingElements.ElementAt(emotionIndex??0);
+            var targetElement = matchingElements.ElementAt((int)emotionIndex);
 
             // Return original name and adjusted index within the global array
             return (portraitNameGroup, arrayElements.IndexOf(targetElement));
@@ -153,7 +150,7 @@ public partial class PlotRegs
         return (portraitNameGroup, Math.Max(emotionIndex ?? 1 - 1, 0)); // Adjusting because array index is zero-based
     }
 
-    string GetPortraitUrl(string inputKey)
+    public string GetPortraitUrl(string inputKey)
     {
         (string key, int index) = FindPortraitInLinkData(inputKey);
         if (!res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
@@ -164,7 +161,7 @@ public partial class PlotRegs
         var newKey =  linkItem.GetProperty("array")[index]
             .GetProperty("name")
             .GetString();
-        return res.DataChar[newKey?? "char_293_thorns_1"];
+        return res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
     }
 
 

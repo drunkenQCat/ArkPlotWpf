@@ -12,7 +12,7 @@ public class ReviewTableParser
         set
         {
             lang = value;
-            LoadJson(lang);
+            LoadJson();
         }
     }
 
@@ -26,7 +26,7 @@ public class ReviewTableParser
         return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/master/{lang}/gamedata/excel/story_review_table.json";
     }
 
-    private string KGithubTableUrl => $"https://raw.kgithub.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
+    // private string KGithubTableUrl => $"https://raw.kgithub.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/excel/story_review_table.json";
     private JObject? reviewTable;
 
     public List<JToken> TitleList => GetSideStory();
@@ -36,7 +36,7 @@ public class ReviewTableParser
     public ReviewTableParser(string language)
     {
         lang = language;
-        LoadJson(lang);
+        LoadJson();
     }
 
     public ReviewTableParser()
@@ -44,7 +44,7 @@ public class ReviewTableParser
         lang = "zh_CN";
     }
 
-    private void LoadJson(string s)
+    private void LoadJson()
     {
         var jsonContent = NetworkUtility.GetAsync(GetTableUrl()).GetAwaiter().GetResult();
         reviewTable = JObject.Parse(jsonContent);

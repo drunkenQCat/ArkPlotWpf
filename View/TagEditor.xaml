@@ -5,8 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ArkPlotWpf.ViewModel"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:hc="https://handyorg.github.io/handycontrol"
-        xmlns:local="clr-namespace:ArkPlotWpf.View"
         mc:Ignorable="d"
         Title="TagEditor" Height="558" Width="530">
     <Window.DataContext>

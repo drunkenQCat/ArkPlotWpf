@@ -1,8 +1,6 @@
-using System.Windows;
-
 namespace ArkPlotWpf.View;
 
-public partial class TagEditor : Window
+public partial class TagEditor
 {
     public TagEditor()
     {

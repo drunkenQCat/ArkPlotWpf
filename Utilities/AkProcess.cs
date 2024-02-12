@@ -1,7 +1,6 @@
 ﻿using ArkPlotWpf.Model;
 using Markdig;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Utilities;
 
@@ -32,10 +31,9 @@ internal abstract class AkProcessor
         var pipeline = new MarkdownPipelineBuilder()
                           .UseAdvancedExtensions()
                           .Build();
-        var testPipeline = new MarkdownPipelineBuilder()
-                          .UseAdvancedExtensions() // Add most of all advanced extensions
-                          .UseTableOfContent() //Add MarkdigToc extension
-                          .Build();
+        new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions() // Add most of all advanced extensions
+            .Build();
         var htmlBody = Markdown.ToHtml(markdown.Content.ToString(), pipeline);
         string htmlContent = FormatHtmlBody(htmlBody, markdown.Title);
         File.WriteAllText(htmlPath, htmlContent);
@@ -52,21 +50,5 @@ internal abstract class AkProcessor
         var tail = File.ReadAllText("assets/tail.html");
         html += tail;
         return html;
-    }
-
-    static async Task MainProc(ActInfo info, string jsPah, string outputPath)
-    {
-        var content = new AkGetter(info);
-        var activeTitle = info.Tokens["name"]?.ToString();
-        //大工程，把所有的章节都下载下来
-        await content.GetAllChapters();
-        var allContent = content.ContentTable;
-        // 处理每一章，最后导出
-        var exportMd = ExportPlots(allContent, jsPah);
-        var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
-
-        var markdown = new Plot(activeTitle!, new(mdWithTitle));
-        AkProcessor.WriteMd(outputPath, markdown);
-        AkProcessor.WriteHtml(outputPath, markdown);
     }
 }

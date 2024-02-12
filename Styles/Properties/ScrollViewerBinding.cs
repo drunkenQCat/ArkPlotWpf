@@ -74,7 +74,7 @@ public static class ScrollViewerBinding
         }
 
         scrollViewer.SetValue(VerticalOffsetBindingProperty, true);
-        scrollViewer.ScrollChanged += (s, se) =>
+        scrollViewer.ScrollChanged += (_, se) =>
         {
             if (se.VerticalChange == 0)
             {
@@ -150,12 +150,12 @@ public static class ScrollViewerBinding
 
         scrollViewer.SetValue(ViewportHeightBindingProperty, true);
 
-        scrollViewer.Loaded += (s, se) =>
+        scrollViewer.Loaded += (_, _) =>
         {
             SetViewportHeight(scrollViewer, scrollViewer.ViewportHeight);
         };
 
-        scrollViewer.ScrollChanged += (s, se) =>
+        scrollViewer.ScrollChanged += (_, se) =>
         {
             SetViewportHeight(scrollViewer, se.ViewportHeight);
         };
@@ -226,7 +226,7 @@ public static class ScrollViewerBinding
 
         scrollViewer.SetValue(ExtentHeightBindingProperty, true);
 
-        scrollViewer.Loaded += (s, se) =>
+        scrollViewer.Loaded += (_, _) =>
         {
             SetExtentHeight(scrollViewer, scrollViewer.ExtentHeight);
         };
@@ -299,7 +299,7 @@ public static class ScrollViewerBinding
         scrollViewer.SetValue(DividerVerticalOffsetListBindingProperty, true);
 
         // 当滚动条载入时，遍历 StackPanel 中的所有 Divider 子元素对应位置
-        scrollViewer.Loaded += (s, se) =>
+        scrollViewer.Loaded += (_, _) =>
         {
             if (!scrollViewer.HasContent || !(scrollViewer.Content is StackPanel))
             {

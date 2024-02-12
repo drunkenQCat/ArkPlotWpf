@@ -15,7 +15,7 @@ public partial class TagEditorViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<TagReg> dataGrid = new();
     [ObservableProperty]
-    int selectedIndex = 0;
+    int selectedIndex;
 
     private readonly string jsonPath;
 
@@ -65,7 +65,7 @@ public partial class TagEditorViewModel : ObservableObject
 
         var jsonContent = JsonSerializer.Serialize(data, options);
         File.WriteAllText("tags.json", jsonContent);
-        CloseAction!();
+        CloseAction();
     }
 
     [RelayCommand]
@@ -78,7 +78,7 @@ public partial class TagEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    void CloseWindow() => CloseAction!();
+    void CloseWindow() => CloseAction();
 
     private int FindMaxIndexOfNewItem()
     {

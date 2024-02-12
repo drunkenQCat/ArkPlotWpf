@@ -1,5 +1,5 @@
 namespace ArkPlotWpf.Model
 {
-    public class StringDict : System.Collections.Generic.Dictionary<string, string> { }
+    public class StringDict : Dictionary<string, string> { }
 }
 

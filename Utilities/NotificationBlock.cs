@@ -4,10 +4,10 @@ namespace ArkPlotWpf.Utilities;
 
 public class NotificationBlock
 {
-    private static readonly Lazy<NotificationBlock> _instance =
+    private static readonly Lazy<NotificationBlock> InstanceLazy =
         new Lazy<NotificationBlock>(() => new NotificationBlock());
 
-    public static NotificationBlock Instance => _instance.Value;
+    public static NotificationBlock Instance => InstanceLazy.Value;
 
     public event EventHandler<string>? CommonEventHandler;
     public event EventHandler<ChapterLoadedEventArgs>? ChapterLoaded;

@@ -7,7 +7,6 @@ internal class AkParser
 {
 
     private readonly PlotRegs plotRegs;
-    public string MarkDown { get; private set; } = "";
 
     public AkParser(string jsonPath)
     {
@@ -16,10 +15,11 @@ internal class AkParser
 
     public void ConvertToMarkdown(StringBuilder plotBuilder)
     {
-        var lines = plotBuilder.ToString().Split("\n");
+        var s = plotBuilder.ToString();
+        var lines = s.Split("\n");
         // 每一章的第一个有效句一定是分隔线
-        const string seperateLine = "---";
-        LineCounter prevLine = new(seperateLine);
+        const string separateLine = "---";
+        LineCounter prevLine = new(separateLine);
         plotBuilder.Clear();
 
         var lineCounters = new List<LineCounter>();
@@ -34,14 +34,10 @@ internal class AkParser
 
         void DescendDupLines(LineCounter newLine)
         {
-            if (newLine.Counter > 1 && prevLine.Line != seperateLine)
+            if (newLine.Counter <= 1 || prevLine.Line == separateLine) return;
             // 合并重复的行数，比如: 音效：sword x 5
-            {
-                newLine.Line.TrimEnd();
-                newLine.Line = prevLine.Line + " × " + newLine.Counter.ToString();
-                return;
-            }
-            newLine = prevLine;
+            newLine.Line.TrimEnd();
+            newLine.Line = prevLine.Line + " × " + newLine.Counter;
         }
 
         foreach (var line in lines)
@@ -59,7 +55,6 @@ internal class AkParser
                      select l.Line;
         var reconstructor = new MdReconstructor(output);
         reconstructor.GetResultToBuilder(plotBuilder);
-        MarkDown = plotBuilder.ToString();
     }
 
     private static void LinkDetect(LineCounter newLine, List<LineCounter> lineCounters)
@@ -85,13 +80,9 @@ internal class AkParser
         return result;
     }
 
-    private static IEnumerable<string> PlotSplitter(string plot)
+    private class LineCounter
     {
-        return plot.Split("\n");
-    }
-    class LineCounter
-    {
-        public string Line = "";
+        public string Line;
 
         public int Counter = 1;
 

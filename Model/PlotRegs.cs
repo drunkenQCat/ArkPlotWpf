@@ -39,9 +39,17 @@ public partial class PlotRegs
         RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
         tagList = JObject.Parse(System.IO.File.ReadAllText(jsonPath));
     }
+    public PlotRegs()
+    {
+        RegexAndMethods.Add(new SentenceMethod(NameRegex(), ProcessName));
+        RegexAndMethods.Add(new SentenceMethod(SegmentRegex(), MakeLine));
+        RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
+        RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
+        tagList = JObject.Parse("[]");
+    }
 
 
-    private string ProcessName(string line)
+    private static string ProcessName(string line)
     {
         var name = NameRegex().Match(line).Value;
         if (name == "？？？") name = "神秘人士";
@@ -55,7 +63,7 @@ public partial class PlotRegs
     {
         newValue = newValue!.Replace("\\n", "\n");
         newValue = newValue.Replace("\\t", "\t");
-        return newValue!;
+        return newValue;
     }
 
     private string ProcessTag(string line)

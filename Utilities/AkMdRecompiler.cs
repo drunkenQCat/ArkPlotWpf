@@ -9,7 +9,7 @@ namespace ArkPlotWpf.Utilities;
 
 public class MdReconstructor
 {
-    private SList _lines;
+    private SList lineList;
     public readonly SListGroup LineGroups = new();
     public readonly List<PortraitGrp> PortraitGrps = new();
     public string Result
@@ -23,14 +23,14 @@ public class MdReconstructor
 
     public MdReconstructor(string md)
     {
-        _lines = new SList(md.Split("\r\n"));
+        lineList = new SList(md.Split("\r\n"));
         WashLines();
         GroupLinesBySegment();
         ProcessPortraits();
     }
     public MdReconstructor(IEnumerable<string> lines)
     {
-        _lines = lines.ToList();
+        lineList = lines.ToList();
         GroupLinesBySegment();
         ProcessPortraits();
     }
@@ -127,10 +127,10 @@ public class MdReconstructor
     private void WashLines()
     {
         var linesWithoutEmptyLine =
-          from line in _lines
+          from line in lineList
           where !string.IsNullOrEmpty(line)
           select line;
-        _lines = linesWithoutEmptyLine.ToList();
+        lineList = linesWithoutEmptyLine.ToList();
     }
 
     private void GroupLinesBySegment()
@@ -138,7 +138,7 @@ public class MdReconstructor
         SList temp = new();
         var isPortaritGrp = false;
         int grpIndex = 0;
-        foreach (var item in _lines)
+        foreach (var item in lineList)
         {
             if (item.StartsWith('-') && temp.Count >= 16)
             {

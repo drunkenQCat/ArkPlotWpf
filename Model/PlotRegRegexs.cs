@@ -6,20 +6,19 @@ namespace ArkPlotWpf.Model;
 public partial class PlotRegs
 {
     [GeneratedRegex("(?<=(\\[name=[\'\"])|(\\[multiline\\(name=[\'\"])).*(?=[\'\"])", RegexOptions.Compiled)]
-    private static partial Regex NameRegex();
+    public static partial Regex NameRegex();
 
     [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
-    private static partial Regex RegexToSubName();
+    public static partial Regex RegexToSubName();
 
     [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-    private static partial Regex SegmentRegex();
+    public static partial Regex SegmentRegex();
 
     [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
-    private static partial Regex CommentRegex();
+    public static partial Regex CommentRegex();
 
     [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
-    private static partial Regex SpecialTagRegex();
-    /// <summary>
+    public static partial Regex SpecialTagRegex();
     /*
     ^：匹配输入字符串的开始位置。
     ([^@#$]+)：捕获组1，匹配一次或多次任何不是@、#、$的字符。
@@ -34,11 +33,9 @@ public partial class PlotRegs
     (\d+)：捕获组5，匹配一次或多次数字。
     $：匹配输入字符串的结束位置。
      */
-    /// </summary>
     /// <returns></returns>
     [GeneratedRegex(@"^([^@#$]+)(?:([@#$])([a-z\d]+)|#(\d+)\$(\d+))?$", RegexOptions.Compiled)]
-    private static partial Regex CharPortraitCodeRegex();
-    /// <summary>
+    public static partial Regex CharPortraitCodeRegex();
     /*
         ### 正则表达式解释
 
@@ -65,10 +62,8 @@ public partial class PlotRegs
 ]
     */ 
 
-    ///</summary>
     [GeneratedRegex(@"^\[\s*(?:(.*?)\((.*)\)|(?:([\.\w]*)|(.*?)))\s*\]\s*(.*)", RegexOptions.Compiled)]
-    private static partial Regex UniversalTagsRegex();
-    /// <summary>
+    public static partial Regex UniversalTagsRegex();
         /*
         然后第三个元素有以下解析方式：
         ```
@@ -95,8 +90,6 @@ String.prototype.toObject = function (sep1 = ",", sep2 = "=", tolower = true) {
         ```
         之后也许可以用作新的解析方式。
          */
-    /// </summary>
-    /// <returns></returns>
     [GeneratedRegex(@"\s*(.*?)\s*=\s*(?:['""](.*?)['""]|([\w.-]+))\s*,?", RegexOptions.Compiled)]
-    private static partial Regex TagParametersRegex();
+    public static partial Regex TagParametersRegex();
 }
