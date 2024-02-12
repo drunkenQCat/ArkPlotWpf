@@ -29,7 +29,7 @@ public partial class PlotRegs
         if (mediaType == null) return null;
 
         string? url = null;
-        newValue = newValue.Trim();
+        newValue = newValue.Trim().ToLower();
         if (newValue[0] == '$') newValue = newValue.Remove(0, 1);
         try
         {
@@ -153,7 +153,7 @@ public partial class PlotRegs
         return (portraitNameGroup, Math.Max(emotionIndex ?? 1 - 1, 0)); // Adjusting because array index is zero-based
     }
 
-    string GetPortraitUrl(string inputKey)
+    public string GetPortraitUrl(string inputKey)
     {
         (string key, int index) = FindPortraitInLinkData(inputKey);
         if (!res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
@@ -164,7 +164,7 @@ public partial class PlotRegs
         var newKey =  linkItem.GetProperty("array")[index]
             .GetProperty("name")
             .GetString();
-        return res.DataChar[newKey?? "char_293_thorns_1"];
+        return res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
     }
 
 

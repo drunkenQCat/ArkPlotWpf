@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System;
 
 namespace ArkPlotWpf.Model;
 
@@ -19,6 +20,7 @@ class ResourceCsv
     /// table of links in prts
     /// </summary>
     public readonly StringDict DataLink = new();
+    public JsonDocument DataOverrideDocument;
     public JsonDocument PortraitLinkDocument;
     /* public StringDict DataOverride = new(); */
     /* public StringDict DataLink = new(); */
@@ -43,7 +45,8 @@ class ResourceCsv
             new PrtsData( "Data_Image", DataImage ),
             new PrtsData( "Data_Char", DataChar  ),
             new PrtsData( "Data_Audio", DataAudio ),
-            new PrtsData( "Data_Link", DataLink )
+            new PrtsData( "Data_Link"),
+            new PrtsData( "Data_Override")
             /* { "Data_Override", DataOverride }, */
             /* { "Data_Link", DataLink } */
         };
@@ -64,12 +67,141 @@ class ResourceCsv
         var csv = ProcessQuery(query);
         if(csv is null) return;
         if (singleData.Tag == "Data_Link") {
-            csv = Regex.Unescape(csv);
             PortraitLinkDocument = GetPortraitLinkUrl(csv);
+            return;
+        }
+        if (singleData.Tag == "Data_Override") {
+            var overrideTxt = csv;
+            var overrideItems = LinesSplitter(overrideTxt);
+            DataOverrideDocument = ParseOverrideList(overrideItems);
             return;
         }
         var csvItems = LinesSplitter(csv);
         ParseItemList(singleData, csvItems);
+    }
+
+    public JsonDocument ParseOverrideList(IEnumerable<string> lines)
+    {
+        var ride = new Dictionary<string, Dictionary<string, object>>();
+        bool publicDisabled = false; // Assuming this is a flag you need to track
+
+        foreach (var line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                continue;
+
+            var parts = line.Split(':', 2);
+            if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[1]))
+                continue;
+
+            var key = parts[0].Trim().ToLower();
+            var value = parts[1].Trim();
+            switch (key)
+            {
+                case "title":
+                    ParseTitle(ride, value);
+                    break;
+                case "char":
+                case "image":
+                case "tween":
+                case "override":
+                    ParseKeyValueStructure(ride, key, value);
+                    break;
+                case "disable":
+                    ParseDisable(ride, value, ref publicDisabled);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Convert the ride dictionary to a JsonDocument
+        var json = JsonSerializer.Serialize(ride);
+        var options = new JsonDocumentOptions { AllowTrailingCommas = true };
+        return JsonDocument.Parse(json, options);
+    }
+
+    private void ParseTitle(Dictionary<string, Dictionary<string, object>> ride, string value)
+    {
+        var parts = value.Split('=', 2);
+        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[1]))
+            return;
+
+        var p = parts[0];
+        var n = parts[1];
+        if (!ride.ContainsKey("title"))
+            ride["title"] = new Dictionary<string, object>();
+        ride["title"][p] = n;
+    }
+
+    private void ParseKeyValueStructure(Dictionary<string, Dictionary<string, object>> ride, string key, string value)
+    {
+        var mainParts = value.Split(';', 2);
+        if (mainParts.Length != 2)
+            return;
+
+        var locationParts = mainParts[0].Split(',');
+        if (locationParts.Length != 2)
+            return;
+
+        var page = locationParts[0];
+        var line = locationParts[1];
+        var values = mainParts[1].Split(',');
+
+        var obj = new Dictionary<string, string>();
+        foreach (var pair in values)
+        {
+            var kv = pair.Split('=');
+            if (kv.Length == 2)
+                obj[kv[0]] = kv[1];
+        }
+
+        if (!ride.ContainsKey(key))
+            ride[key] = new Dictionary<string, object>();
+        if (!ride[key].ContainsKey(page))
+            ride[key][page] = new Dictionary<string, object>();
+        ((Dictionary<string, object>)ride[key][page])[line] = obj;
+    }
+
+    private void ParseDisable(Dictionary<string, Dictionary<string, object>> ride, string value, ref bool publicDisabled)
+    {
+        if (publicDisabled) return;
+
+        var parts = value.Split(';');
+        if (parts.Length == 2 && parts[0] == "public")
+        {
+            // Assuming handling of the public disable note
+            publicDisabled = true;
+            // Directly setting the note for public disable
+            if (!ride.ContainsKey("disable")) ride["disable"] = new Dictionary<string, object>();
+            ride["disable"]["note"] = parts[1];
+        }
+        else
+        {
+            foreach (var part in parts)
+            {
+                var kv = part.Split(':');
+                if (kv.Length != 2 || string.IsNullOrWhiteSpace(kv[1])) continue;
+
+                switch (kv[0])
+                {
+                    case "prefix":
+                    case "title":
+                        if (!ride.ContainsKey("disable")) ride["disable"] = new Dictionary<string, object>();
+                        if (!ride["disable"].ContainsKey(kv[0])) ride["disable"][kv[0]] = new Dictionary<string, object>();
+                        ((Dictionary<string, object>)ride["disable"][kv[0]])[kv[1]] = ""; // Assuming empty value signifies disabled
+                        break;
+                    case "note":
+                        // Inline handling for "note" case
+                        if (!ride.ContainsKey("disable")) ride["disable"] = new Dictionary<string, object>();
+                        if (!ride["disable"].ContainsKey("note")) ride["disable"]["note"] = new Dictionary<string, string>();
+                        // Assuming each note should be tied to a specific prefix or title, but since those aren't specified here,
+                        // you might need to adjust how notes are associated or stored based on your application's logic.
+                        ((Dictionary<string, string>)ride["disable"]["note"])[parts[0]] = kv[1];
+                        break;
+                }
+            }
+        }
     }
 
     private JsonDocument GetPortraitLinkUrl(string portraitLinkJson)
@@ -93,14 +225,15 @@ class ResourceCsv
                 if (jsonItems == null) continue;
                 keyValue = jsonItems;
             }
+            // filter the non-csv items
             if (keyValue.Length != 2) continue;
 
-            if (!isJsonItem)
+            if (prts.Tag == "Data_Audio") csvDict[keyValue[0]] = GetMusicUrl(keyValue[1]);
+            else
             {
                 csvDict[title] = GetItemUrl(keyValue[1]);
                 continue;
             }
-            if (prts.Tag == "Data_Audio") csvDict[title] = GetMusicUrl(keyValue[1]);
         }
     }
 
@@ -114,7 +247,7 @@ class ResourceCsv
         return isJsonItem;
     }
 
-    private static string GetMusicUrl(string url)
+    public static string GetMusicUrl(string url)
     {
         // from:
         // Sound_Beta_2/General/g_ui/g_ui_stagepush
@@ -146,7 +279,7 @@ class ResourceCsv
         return items;
     }
 
-    private static string GetItemUrl(string v)
+    public static string GetItemUrl(string v)
     {
         return $"https://prts.wiki{v}";
     }

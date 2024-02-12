@@ -5,6 +5,13 @@ public class PrtsData
     public readonly string Tag;
     /* public StringDict Data; */
     public StringDict Data;
+
+    public PrtsData(string v)
+    {
+        Tag = v;
+        Data = new StringDict{ };
+    }
+
     public PrtsData(string tag, StringDict data)
     {
         Tag = tag;

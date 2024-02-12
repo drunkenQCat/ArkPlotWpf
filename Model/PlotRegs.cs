@@ -39,6 +39,14 @@ public partial class PlotRegs
         RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
         tagList = JObject.Parse(System.IO.File.ReadAllText(jsonPath));
     }
+    public PlotRegs()
+    {
+        RegexAndMethods.Add(new SentenceMethod(NameRegex(), ProcessName));
+        RegexAndMethods.Add(new SentenceMethod(SegmentRegex(), MakeLine));
+        RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
+        RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
+        tagList = JObject.Parse("[]");
+    }
 
 
     private string ProcessName(string line)
