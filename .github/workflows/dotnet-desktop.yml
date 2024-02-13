@@ -5,6 +5,8 @@ permissions:
 on:
   push:
     # Sequence of patterns matched against refs/tags
+    branches:
+      - ci-test
     tags:
       - v*
 
