@@ -9,7 +9,7 @@ public class PrtsData
     public PrtsData(string v)
     {
         Tag = v;
-        Data = new StringDict();
+        Data = new StringDict{ };
     }
 
     public PrtsData(string tag, StringDict data)
