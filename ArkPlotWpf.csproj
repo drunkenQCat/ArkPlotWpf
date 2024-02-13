@@ -46,12 +46,12 @@
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Resource>
   </ItemGroup>
-    <Target Name="CopyFiles" AfterTargets="Build">
+    <Target Name="CopyFilesAfterBuild" AfterTargets="Build">
         <Copy SourceFiles="tags.json" DestinationFolder="$(OutputPath)" />
         <Copy SourceFiles="assets\head.html" DestinationFolder="$(OutputPath)\assets" />
         <Copy SourceFiles="assets\tail.html" DestinationFolder="$(OutputPath)\assets" />
     </Target>
-    <Target Name="CopyFiles" AfterTargets="Publish">
+    <Target Name="CopyFilesAfterPub" AfterTargets="Publish">
         <Copy SourceFiles="tags.json" DestinationFolder="$(PublishRoot)" />
         <Copy SourceFiles="assets\head.html" DestinationFolder="$(PublishRoot)\assets" />
         <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishRoot)\assets" />

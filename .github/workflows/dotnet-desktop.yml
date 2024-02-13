@@ -47,28 +47,20 @@ jobs:
       run: dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
 
     # 提取版本号
-    - name: Extract version
-      id: extract_version
-      run: |
-        $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-        $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
-        echo "Version=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
-        echo "name=project_version::$version" >> $GITHUB_OUTPUT
-
     - name: Zip the published app
-      run: Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }}_Win-X64.zip
+      run: Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ github.ref }}_Win-X64.zip
 
     - name: Upload build artifact (ZIP)
       uses: actions/upload-artifact@v3
       with:
         name: PublishedAppZip
-        path: ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }}_Win-X64.zip
+        path: ${{ github.workspace }}/ArkPlot${{ github.ref }}_Win-X64.zip
      
     - name: Create Release and Upload Release Asset
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ steps.extract_version.outputs.project_version }}
-        name: ArkPlot ${{ steps.extract_version.outputs.project_version }}
+        tag_name: v${{ github.ref }}
+        name: ArkPlot ${{ github.ref }}
         body: TODO New Release.
         draft: false
         prerelease: false
