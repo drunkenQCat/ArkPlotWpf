@@ -4,21 +4,16 @@ permissions:
 
 on:
   push:
-    # Sequence of patterns matched against refs/heads
-    branches:    
-      - main
     # Sequence of patterns matched against refs/tags
-    tags:        
+    tags:
       - v*
 
 jobs:
-
   build:
-
     runs-on: windows-latest
 
     env:
-      Solution_Name: ArkPlotWpf.csproj  # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
+      Solution_Name: ArkPlotWpf.csproj # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
       # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #请替换为您的测试项目路径
 
     strategy:
@@ -26,43 +21,44 @@ jobs:
         configuration: [Release]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '7.0.x'  # 更新为您项目的目标.NET版本
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "7.0.x" # 更新为您项目的目标.NET版本
 
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.Solution_Name }}
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.Solution_Name }}
 
-    - name: Build
-      run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
+      - name: Build
+        run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
 
-    - name: Publish
-      run: dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
+      - name: Publish
+        run: dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
 
-    # 提取版本号
-    - name: Zip the published app
-      run: Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ github.ref }}_Win-X64.zip
+      # 提取版本号
+      - name: Extract version
+        id: extract_version
+        run: |
+          $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-    - name: Upload build artifact (ZIP)
-      uses: actions/upload-artifact@v3
-      with:
-        name: PublishedAppZip
-        path: ${{ github.workspace }}/ArkPlot${{ github.ref }}_Win-X64.zip
-     
-    - name: Create Release and Upload Release Asset
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ github.ref }}
-        name: ArkPlot ${{ github.ref }}
-        body: TODO New Release.
-        draft: false
-        prerelease: false
-        files: |
-          *.zip
+      - name: Zip the published app
+        run: Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.version }}_Win-X64.zip
+
+      - name: Create Release and Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.ref }}
+          name: ArkPlot ${{ github.ref }}
+          body: TODO New Release.
+          draft: false
+          prerelease: false
+          files: |
+            *.zip
