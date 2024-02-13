@@ -1,18 +1,10 @@
-name: .NET Core Desktop CI
-permissions:
-  contents: write
+name: Pr Validation
 
 on:
-  push:
-    # Sequence of patterns matched against refs/tags
-    branches:
-      - publish
-    tags:
-      - v*
   pull_request:
-    types: [closed]
     branches:
       - publish
+      - main
 
 jobs:
   build:
@@ -63,33 +55,3 @@ jobs:
           # 现在路径已经确保存在，复制文件到目标路径
           $sourceHtml|ForEach-Object{Copy-Item -Force $_ $publishPath}
           Get-ChildItem $publistPath
-
-
-
-      # 提取版本号
-      - name: Extract version
-        id: extract_version
-        run: |
-          $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
-          $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
-          echo "version=$version"
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "### 我day到了!是$version! :rocket:" >> $env:GITHUB_STEP_SUMMARY
-
-      - name: Zip the published app
-        run: |
-          $version = ${{steps.extract_version.outputs.version}}
-          echo "$version"
-          Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.version }}_Win-X64.zip
-
-      - name: Create Release and Upload Release Asset
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-        with:
-          tag_name: v${{ steps.extract_version.outputs.version }}
-          name: ArkPlot ${{ steps.extract_version.outputs.version }}
-          body: TODO New Release.
-          draft: false
-          prerelease: false
-          files: |
-            *.zip
