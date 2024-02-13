@@ -61,12 +61,15 @@ jobs:
       with:
         name: PublishedAppZip
         path: ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }}_Win-X64.zip
-    
-    - uses: "marvinpinto/action-automatic-releases@latest"
+     
+    - name: Create Release and Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-        repo_token: "v#{ secrets.GITHUB_TOKEN }"
-        automatic_release_tag: "v${{ steps.extract_version.outputs.project_version }}"
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        body: TODO New Release.
+        draft: false
         prerelease: false
-        title: "Development Build"
         files: |
           *.zip
