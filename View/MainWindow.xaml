@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:c="clr-namespace:CalcBinding;assembly=CalcBinding"
     xmlns:vm="clr-namespace:ArkPlotWpf.ViewModel"
     xmlns:properties="clr-namespace:ArkPlotWpf.Styles.Properties"
     xmlns:hc="https://handyorg.github.io/handycontrol"
@@ -48,13 +49,16 @@
                     <RadioButton
                         Content="插曲"
                         IsChecked="True"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="ACTIVITY_STORY" />
                     <RadioButton
                         Content="故事集"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="MINI_STORY" />
                     <RadioButton
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Content="主题曲"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="MAIN_STORY" />
@@ -67,18 +71,26 @@
                         Content="简中"
                         IsChecked="True"
                         Command="{Binding LoadLangTableCommand}"
+                        Visibility="{c:Binding Path=!IsChecked ,RelativeSource={RelativeSource Self}}"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         CommandParameter="zh_CN" />
                     <RadioButton
                         Content="日本語"
                         Command="{Binding LoadLangTableCommand}"
+                        Visibility="{c:Binding Path=!IsChecked ,RelativeSource={RelativeSource Self}}"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         CommandParameter="ja_JP" />
                     <RadioButton
                         Content="Eng"
                         Command="{Binding LoadLangTableCommand}"
+                        Visibility="{c:Binding Path=!IsChecked ,RelativeSource={RelativeSource Self}}"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         CommandParameter="en_US" />
                     <RadioButton
                         Content="한국어"
                         Command="{Binding LoadLangTableCommand}"
+                        Visibility="{c:Binding Path=!IsChecked ,RelativeSource={RelativeSource Self}}"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         CommandParameter="ko_KR" />
                 </hc:ButtonGroup>
             </StackPanel>
@@ -139,6 +151,7 @@
                 Grid.Row="2"
                 VerticalAlignment="Center">
                 <Button
+                    IsEnabled="{c:Binding !LoadInitResourceCommand.IsRunning and IsInitialized}"
                     Margin="0 10 0 10"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" Command="{Binding LoadMdCommand}"  Width="100">

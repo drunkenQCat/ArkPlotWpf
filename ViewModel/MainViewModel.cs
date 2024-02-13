@@ -22,7 +22,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项\n\n" +
                                          "* 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；\n" +
-                                         "* 如果遇到报错【出错的句子:****】，请点击“编辑Tags”按钮，添加相应tag的项目；\n" +
+                                         "* 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；\n" +
                                          "* 如果有任何改进意见，欢迎Pr。\n");
 
     [ObservableProperty]
@@ -33,21 +33,26 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     int selectedIndex;
-    // Todo: 一点点防空值措施
+
+    [ObservableProperty]
+    bool isInitialized = false;
+
     ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
     NotificationBlock notiBlock = NotificationBlock.Instance;
     ReviewTableParser actsTable = new();
+
     string language = "zh_CN";
     string storyType = "ACTIVITY_STORY";
+
     List<ActInfo> currentActInfos = new();
     ResourceCsv resourceCsv = ResourceCsv.Instance;
 
     [RelayCommand]
     async Task LoadMd()
     {
-        ConsoleOutput = ""; //先清空这片区域
-        SubscribeAll();
+        IsInitialized = false;
+        ClearConsoleOutput();
         var content = new AkGetter(CurrentAct);
         var activeTitle = CurrentAct.Tokens["name"]?.ToString();
 
@@ -83,6 +88,12 @@ public partial class MainWindowViewModel : ObservableObject
                 MessageBox.Show(win32Exception.Message);
             }
         }
+        IsInitialized = true;
+    }
+
+    private void ClearConsoleOutput()
+    {
+        ConsoleOutput = ""; //先清空这片区域
     }
 
     private async Task<string> ExportPlots(List<Plot> allPlots)
@@ -121,8 +132,10 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     async Task LoadInitResource()
     {
-        await LoadLangTable(language);
+        SubscribeAll();
         await LoadResourceTable();
+        await LoadLangTable(language);
+        IsInitialized = true;
     }
 
     private async Task LoadResourceTable()
@@ -130,7 +143,7 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             await resourceCsv.GetAllCsv();
-            notiBlock.RaiseCommonEvent("prts资源索引文件加载完成\r\n");
+            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成\r\n】");
         }
         catch (Exception)
         {
@@ -148,7 +161,7 @@ public partial class MainWindowViewModel : ObservableObject
         {
             language = lang;
             await Task.Run(() => actsTable.Lang = lang);
-            notiBlock.RaiseCommonEvent("剧情索引文件加载完成\r\n");
+            notiBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
             LoadActs(storyType);
         }
         catch (Exception)

@@ -9,6 +9,9 @@ on:
       - publish
     tags:
       - v*
+  pull_request:
+    branches:
+      - publish
 
 jobs:
   build:

@@ -12,13 +12,14 @@
     <Title>ArkPlot</Title>
     <Authors>QuantumCat</Authors>
     <NeutralLanguage>zh-CN</NeutralLanguage>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <VersionPrefix>$(Version)</VersionPrefix>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
+        <PackageReference Include="CalcBinding" Version="2.5.2" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
         <PackageReference Include="Markdig" Version="0.30.4" />
