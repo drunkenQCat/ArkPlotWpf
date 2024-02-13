@@ -45,7 +45,7 @@ jobs:
           $sourceHtml = Get-ChildItem .\assets\*.html
 
           # 目标文件路径
-          $publishPath = ${{ github.workspace }}\Publish\assets
+          $publishPath = "${{ github.workspace }}\Publish\assets"
 
           # 获取目标文件夹路径（不包括文件名）
 
