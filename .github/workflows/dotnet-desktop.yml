@@ -13,12 +13,12 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ArkPlotWpf.sln  # ¼ÙÉè½â¾ö·½°¸Ãû³ÆºÍÏîÄ¿ÎÄ¼şÃûÏàÍ¬£¬Èç¹û²»ÊÇ£¬Çë½øĞĞµ÷Õû
-      # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #ÇëÌæ»»ÎªÄúµÄ²âÊÔÏîÄ¿Â·¾¶
+      Solution_Name: ArkPlotWpf.csproj  # å‡è®¾è§£å†³æ–¹æ¡ˆåç§°å’Œé¡¹ç›®æ–‡ä»¶åç›¸åŒï¼Œå¦‚æœä¸æ˜¯ï¼Œè¯·è¿›è¡Œè°ƒæ•´
+      # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #è¯·æ›¿æ¢ä¸ºæ‚¨çš„æµ‹è¯•é¡¹ç›®è·¯å¾„
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
 
     steps:
     - name: Checkout
@@ -27,7 +27,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'  # ¸üĞÂÎªÄúÏîÄ¿µÄÄ¿±ê.NET°æ±¾
+        dotnet-version: '7.0.x'  # æ›´æ–°ä¸ºæ‚¨é¡¹ç›®çš„ç›®æ ‡.NETç‰ˆæœ¬
 
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
@@ -35,64 +35,41 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ${{ env.Solution_Name }}
 
-    - name: Execute unit tests
-      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }}
-
     - name: Build
       run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
 
     - name: Publish
       run: dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: PublishedApp
-        path: ${{ github.workspace }}/Publish
-
-    # ÌáÈ¡°æ±¾ºÅ
+    # æå–ç‰ˆæœ¬å·
     - name: Extract version
       id: extract_version
       run: |
         $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
         $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
         echo "Version=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
-        echo "::set-output name=project_version::$version"
+        echo "name=project_version::$version" >> $GITHUB_OUTPUT
 
-    - name: Get the latest release
-      id: latest_release
-      uses: actions/github-script@v5
+    - name: Zip the published app
+      run: Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }} Win-X64.zip
+
+    - name: Upload build artifact (ZIP)
+      uses: actions/upload-artifact@v3
       with:
-        script: |
-          const response = await github.rest.repos.getLatestRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-          });
-          return {
-            tag_name: response.data.tag_name,
-            commit_sha: response.data.target_commitish,
-          }
-
-    - name: Get commits since last release
-      id: get_commits
-      run: |
-        $commitSha = "${{ steps.latest_release.outputs.commit_sha }}"
-        # ¼ì²écommitShaÊÇ·ñÎª¿Õ£¬Èç¹ûÎª¿Õ£¬»ØÍËµ½È«ÀúÊ·commit
-        if ([string]::IsNullOrWhiteSpace($commitSha)) {
-          $commitSha = "HEAD"
-        }
-        $commits = git log $commitSha..HEAD --pretty=format:"%s" | Where-Object { $_ -like "*:*" } | Out-String
-        echo "::set-output name=commits::$commits"
-
-    - name: Create Release
-      uses: actions/create-release@v1
+        name: PublishedAppZip
+        path: ${{ github.workspace }}/PublishedApp.zip
+    
+    - name: AutoRelease
+      uses: CupOfTea696/gh-action-auto-release@v1.0.0
+      with:
+        title: "Release: ${{ steps.extract_version.outputs.project_version }}"
+        tag: "v${{ steps.extract_version.outputs.project_version }}"
+        draft: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
       with:
-        tag_name: v${{ steps.extract_version.outputs.project_version }}
-        release_name: Release v${{ steps.extract_version.outputs.project_version }}
-        body: |
-          Changes in this release:
-          ${{ steps.get_commits.outputs.commits }}
-        draft: false
-        prerelease: false
+        files: ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }} Win-X64.zip

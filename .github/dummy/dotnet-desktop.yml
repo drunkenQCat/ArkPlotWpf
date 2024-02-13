@@ -13,12 +13,12 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ArkPlotWpf.sln  # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
+      Solution_Name: ArkPlotWpf.csproj  # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
       # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #请替换为您的测试项目路径
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
 
     steps:
     - name: Checkout
@@ -34,9 +34,6 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore ${{ env.Solution_Name }}
-
-    - name: Execute unit tests
-      run: dotnet test ${{ env.Test_Project_Path }} --configuration ${{ matrix.configuration }}
 
     - name: Build
       run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
@@ -57,42 +54,28 @@ jobs:
         $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
         $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
         echo "Version=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
-        echo "::set-output name=project_version::$version"
+        echo "name=project_version::$version" >> $GITHUB_OUTPUT
 
-    - name: Get the latest release
-      id: latest_release
-      uses: actions/github-script@v5
+    - uses: rlespinasse/github-slug-action@v3.x
+
+    - name: Get previous release tag
+      id: previous-release
+      uses: sammcoe/get-previous-release-action@v1
+
+    - name: Generate Changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@v1.0.0
       with:
-        script: |
-          const response = await github.rest.repos.getLatestRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-          });
-          return {
-            tag_name: response.data.tag_name,
-            commit_sha: response.data.target_commitish,
-          }
+        mytoken: ${{ secrets.GITHUB_TOKEN }}
+        base-ref: ${{ steps.previous-release.output.release }}
 
-    - name: Get commits since last release
-      id: get_commits
-      run: |
-        $commitSha = "${{ steps.latest_release.outputs.commit_sha }}"
-        # 检查commitSha是否为空，如果为空，回退到全历史commit
-        if ([string]::IsNullOrWhiteSpace($commitSha)) {
-          $commitSha = "HEAD"
-        }
-        $commits = git log $commitSha..HEAD --pretty=format:"%s" | Where-Object { $_ -like "*:*" } | Out-String
-        echo "::set-output name=commits::$commits"
-
-    - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Updating Release
+      uses: ncipollo/release-action@v1.8.6
       with:
-        tag_name: v${{ steps.extract_version.outputs.project_version }}
-        release_name: Release v${{ steps.extract_version.outputs.project_version }}
         body: |
-          Changes in this release:
-          ${{ steps.get_commits.outputs.commits }}
-        draft: false
-        prerelease: false
+          Changes in this Release: 
+          ${{ steps.changelog.outputs.changelog }}
+
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Release ${{ env.GITHUB_REF_SLUG }}
+        allowUpdates: true
