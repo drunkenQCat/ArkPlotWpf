@@ -4,10 +4,10 @@ on:
   push:
     # Sequence of patterns matched against refs/heads
     branches:    
-      - dev
+      - main
     # Sequence of patterns matched against refs/tags
-    # tags:        
-    #   - v*
+    tags:        
+      - v*
 
 jobs:
 
@@ -62,7 +62,6 @@ jobs:
         name: PublishedAppZip
         path: ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.project_version }}_Win-X64.zip
     
-
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
