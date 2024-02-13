@@ -47,6 +47,7 @@ jobs:
         run: |
           $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
           $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
+          echo "version=$version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Zip the published app
