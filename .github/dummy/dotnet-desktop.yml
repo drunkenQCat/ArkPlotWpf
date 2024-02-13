@@ -1,0 +1,81 @@
+name: .NET Core Desktop CI
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: windows-latest
+
+    env:
+      Solution_Name: ArkPlotWpf.csproj  # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
+      # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #请替换为您的测试项目路径
+
+    strategy:
+      matrix:
+        configuration: [Release]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'  # 更新为您项目的目标.NET版本
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build
+      run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
+
+    - name: Publish
+      run: dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: PublishedApp
+        path: ${{ github.workspace }}/Publish
+
+    # 提取版本号
+    - name: Extract version
+      id: extract_version
+      run: |
+        $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
+        echo "Version=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "name=project_version::$version" >> $GITHUB_OUTPUT
+
+    - uses: rlespinasse/github-slug-action@v3.x
+
+    - name: Get previous release tag
+      id: previous-release
+      uses: sammcoe/get-previous-release-action@v1
+
+    - name: Generate Changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@v1.0.0
+      with:
+        mytoken: ${{ secrets.GITHUB_TOKEN }}
+        base-ref: ${{ steps.previous-release.output.release }}
+
+    - name: Updating Release
+      uses: ncipollo/release-action@v1.8.6
+      with:
+        body: |
+          Changes in this Release: 
+          ${{ steps.changelog.outputs.changelog }}
+
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Release ${{ env.GITHUB_REF_SLUG }}
+        allowUpdates: true
