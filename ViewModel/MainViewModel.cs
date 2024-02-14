@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using AkGetter = ArkPlotWpf.Utilities.AkGetter;
+using AkGetter = ArkPlotWpf.Utilities.AkpGetter;
 
 namespace ArkPlotWpf.ViewModel;
 
@@ -68,8 +68,8 @@ public partial class MainWindowViewModel : ObservableObject
             Directory.CreateDirectory(outputPath);
         }
         var markdown = new Plot(activeTitle!, new(mdWithTitle));
-        AkProcessor.WriteMd(outputPath, markdown);
-        AkProcessor.WriteHtml(outputPath, markdown);
+        AkpProcessor.WriteMd(outputPath, markdown);
+        AkpProcessor.WriteHtml(outputPath, markdown);
         var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
         if (result == MessageBoxResult.OK)
         {
@@ -126,7 +126,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async Task<string> ExportPlots(List<Plot> allPlots)
     {
-        var output = await Task.Run(() => AkProcessor.ExportPlots(allPlots, jsonPath));
+        var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots, jsonPath));
         return output;
     }
 

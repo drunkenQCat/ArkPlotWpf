@@ -3,14 +3,15 @@ using System.Linq;
 
 namespace ArkPlotWpf.Utilities;
 
-internal class AkParser
+internal class AkpParser
 {
 
-    private readonly PlotRegs plotRegs;
+    private readonly TagProcessor tagProcessor;
 
-    public AkParser(string jsonPath)
+    public AkpParser(string jsonPath)
     {
-        plotRegs = new PlotRegs(jsonPath);
+        tagProcessor = new();
+        tagProcessor.Regs.GetRegsFromJson(jsonPath);
     }
 
     public void ConvertToMarkdown(StringBuilder plotBuilder)
@@ -73,7 +74,7 @@ internal class AkParser
 
     private string ClassifyAndProcess(string line)
     {
-        var sentenceProcessor = plotRegs.RegexAndMethods
+        var sentenceProcessor = tagProcessor.Regs.RegexAndMethods
             .FirstOrDefault(proc => proc.Regex.Match(line).Success);
         if (sentenceProcessor == null) return line;
         var result = sentenceProcessor.Method(line);

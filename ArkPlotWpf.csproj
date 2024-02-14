@@ -47,10 +47,6 @@
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Resource>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Data" />
-  </ItemGroup>
     <Target Name="CopyFilesAfterBuild" AfterTargets="Build">
         <Copy SourceFiles="tags.json" DestinationFolder="$(OutputPath)" />
         <Copy SourceFiles="assets\head.html" DestinationFolder="$(OutputPath)\assets" />

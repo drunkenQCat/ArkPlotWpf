@@ -1,24 +1,8 @@
+﻿using System.Text.RegularExpressions;
 
-using System.Text.RegularExpressions;
-
-namespace ArkPlotWpf.Model;
-
-public partial class PlotRegs
+namespace ArkPlotWpf.Data;
+internal partial class ArkPlotRegs
 {
-    [GeneratedRegex("(?<=(\\[name=[\'\"])|(\\[multiline\\(name=[\'\"])).*(?=[\'\"])", RegexOptions.Compiled)]
-    public static partial Regex NameRegex();
-
-    [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
-    public static partial Regex RegexToSubName();
-
-    [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
-    public static partial Regex SegmentRegex();
-
-    [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
-    public static partial Regex CommentRegex();
-
-    [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
-    public static partial Regex SpecialTagRegex();
     /*
     ^：匹配输入字符串的开始位置。
     ([^@#$]+)：捕获组1，匹配一次或多次任何不是@、#、$的字符。
@@ -36,6 +20,48 @@ public partial class PlotRegs
     /// <returns></returns>
     [GeneratedRegex(@"^([^@#$]+)(?:([@#$])([a-z\d]+)|#(\d+)\$(\d+))?$", RegexOptions.Compiled)]
     public static partial Regex CharPortraitCodeRegex();
+
+    [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
+    public static partial Regex CommentRegex();
+    [GeneratedRegex("(?<=(\\[name=[\'\"])|(\\[multiline\\(name=[\'\"])).*(?=[\'\"])", RegexOptions.Compiled)]
+    public static partial Regex NameRegex();
+
+    [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
+    public static partial Regex RegexToSubName();
+
+    [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
+    public static partial Regex SegmentRegex();
+
+    [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
+    public static partial Regex SpecialTagRegex();
+    /*
+    然后第三个元素有以下解析方式：
+    ```
+String.prototype.toObject = function (sep1 = ",", sep2 = "=", tolower = true) {
+var regStr = `\\s*(.*?)\\s*${sep2}\\s*(?:[\'"](.*?)[\'"]|([\\w.-]+))\\s*${sep1}?`;
+var reg = new RegExp(regStr, 'g');
+var ms = this.matchAll(reg);
+var o = {};
+for (var m of ms) {
+    var p = m[1], v = m[2] === undefined ? m[3] : m[2];
+    if (tolower) p = p.toLowerCase();
+    o[p] = v;
+}
+if (Object.keys(o).length == 0) {
+    var m = this.match(regStr);
+    if (m) {
+        var p = m[1], v = m[2] === undefined ? m[3] : m[2];
+        if (tolower) p = p.toLowerCase();
+        o[p] = v;
+    }
+}
+return o;
+}
+    ```
+    之后也许可以用作新的解析方式。
+     */
+    [GeneratedRegex(@"\s*(.*?)\s*=\s*(?:['""](.*?)['""]|([\w.-]+))\s*,?", RegexOptions.Compiled)]
+    public static partial Regex TagParametersRegex();
     /*
         ### 正则表达式解释
 
@@ -60,36 +86,8 @@ public partial class PlotRegs
     null,
     "古米 习惯"
 ]
-    */ 
+    */
 
     [GeneratedRegex(@"^\[\s*(?:(.*?)\((.*)\)|(?:([\.\w]*)|(.*?)))\s*\]\s*(.*)", RegexOptions.Compiled)]
     public static partial Regex UniversalTagsRegex();
-        /*
-        然后第三个元素有以下解析方式：
-        ```
-String.prototype.toObject = function (sep1 = ",", sep2 = "=", tolower = true) {
-    var regStr = `\\s*(.*?)\\s*${sep2}\\s*(?:[\'"](.*?)[\'"]|([\\w.-]+))\\s*${sep1}?`;
-    var reg = new RegExp(regStr, 'g');
-    var ms = this.matchAll(reg);
-    var o = {};
-    for (var m of ms) {
-        var p = m[1], v = m[2] === undefined ? m[3] : m[2];
-        if (tolower) p = p.toLowerCase();
-        o[p] = v;
-    }
-    if (Object.keys(o).length == 0) {
-        var m = this.match(regStr);
-        if (m) {
-            var p = m[1], v = m[2] === undefined ? m[3] : m[2];
-            if (tolower) p = p.toLowerCase();
-            o[p] = v;
-        }
-    }
-    return o;
-}
-        ```
-        之后也许可以用作新的解析方式。
-         */
-    [GeneratedRegex(@"\s*(.*?)\s*=\s*(?:['""](.*?)['""]|([\w.-]+))\s*,?", RegexOptions.Compiled)]
-    public static partial Regex TagParametersRegex();
 }

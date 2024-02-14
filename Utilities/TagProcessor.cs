@@ -1,28 +1,63 @@
-using ArkPlotWpf.Utilities;
 using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using ArkPlotWpf.Data;
+using ArkPlotWpf.Model;
 
-namespace ArkPlotWpf.Model;
+namespace ArkPlotWpf.Utilities;
 
-public partial class PlotRegs
+public class TagProcessor
 {
+    public PlotRegs Regs = PlotRegs.Instance;
     private readonly ResourceCsv res = ResourceCsv.Instance;
+
+    public TagProcessor()
+    {
+        Regs.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
+    }
+
+    public string ProcessTag(string line)
+    {
+        string tag = GetTagOfLine(line);
+        // process the tag
+        if (!IsTagExist(tag))
+        {
+            NoticeNoMatchTag(line, tag);
+            return line;
+        }
+        string newTag = GetNewTag(tag);
+        if (string.IsNullOrEmpty(newTag)) return string.Empty;
+        // process the value
+        string newValue = GetRetainKeyword(line, tag);
+        if (string.IsNullOrEmpty(newValue)) return ProcessEmptyNewValue(newTag);
+
+        // afterprocesing the newValue
+        string? mediaUrl = GetMediaUrl(newTag, newValue);
+        newValue = FindTheLongestWord(newValue);
+        newValue = PlotRegsBasicHelper.RipDollar(newValue);
+        var resultLine = newTag + newValue;
+        resultLine = ProcessFlashBack(resultLine, newTag, newValue);
+        resultLine = AttachToMediaUrl(resultLine, mediaUrl);
+        return resultLine;
+    }
+
     private string GetRetainKeyword(string line, string tag)
     {
-        var newValueReg = (string)tagList[tag + "_reg"]!;
+        var newValueReg = (string)Regs.TagList[tag + "_reg"]!;
         var newValue = Regex.Match(line, newValueReg).Value;
         return newValue;
     }
 
-    private string GetNewTag(string tag) => (string)tagList[tag]!;
+    private string GetNewTag(string tag) => (string)Regs.TagList[tag]!;
+
     private static string GetTagOfLine(string line)
     {
-        var tag = SpecialTagRegex().Match(line).Value;
+        var tag = ArkPlotRegs.SpecialTagRegex().Match(line).Value;
         tag = tag.ToLower();
         return tag;
     }
+
     private string? GetMediaUrl(string newTag, string newValue)
     {
         var mediaType = GetMediaType(newTag);
@@ -72,7 +107,7 @@ public partial class PlotRegs
             return ("-1", -1);
         }
 
-        var matchedCodeParts = CharPortraitCodeRegex().Match(keyData);
+        var matchedCodeParts = ArkPlotRegs.CharPortraitCodeRegex().Match(keyData);
         if (!matchedCodeParts.Success)
         {
             Console.WriteLine("Can't get key from the input parameter, has skipped the data.");
@@ -168,7 +203,6 @@ public partial class PlotRegs
         return res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
     }
 
-
     private MediaType? GetMediaType(string newTag)
     {
         if (newTag.Contains('图') || newTag.Contains('景')) return MediaType.Image;
@@ -177,12 +211,10 @@ public partial class PlotRegs
         return null;
     }
 
-    private bool IsTagExist(string tag) => tagList[tag] != null;
-
+    private bool IsTagExist(string tag) => Regs.TagList[tag] != null;
 
     private void NoticeNoMatchTag(string line, string tag) =>
         NotificationBlock.Instance.OnNoMatchTag(new LineNoMatchEventArgs(line, tag));
-
 
     private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
@@ -200,17 +232,10 @@ public partial class PlotRegs
     {
         var newValue =
             (from word in value.Split("_")
-             orderby word.Length descending
-             select word).FirstOrDefault();
+                orderby word.Length descending
+                select word).FirstOrDefault();
         if (newValue == "path") Console.WriteLine();
         return newValue!;
-    }
-
-    private enum MediaType
-    {
-        Image,
-        Portrait,
-        Music
     }
 
     private string ProcessEmptyNewValue(string newTag)

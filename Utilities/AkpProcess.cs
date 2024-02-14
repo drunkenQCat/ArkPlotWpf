@@ -4,12 +4,12 @@ using System.IO;
 
 namespace ArkPlotWpf.Utilities;
 
-internal abstract class AkProcessor
+internal abstract class AkpProcessor
 {
     public static string ExportPlots(List<Plot> plotList, string jsonPath)
     {
         var md = new StringBuilder();
-        var parser = new AkParser(jsonPath);
+        var parser = new AkpParser(jsonPath);
         foreach (var chapter in plotList)
         {
             md.AppendLine($"## {chapter.Title}");

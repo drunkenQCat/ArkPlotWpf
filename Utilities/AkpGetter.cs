@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ArkPlotWpf.Utilities;
 
-internal class AkGetter
+internal class AkpGetter
 {
     // 从GitHub拿到章节的文件名以及相应的所有内容
     private readonly JToken storyTokens;
@@ -25,7 +25,7 @@ internal class AkGetter
 
     public List<Plot> ContentTable { get; private set; } = new();
 
-    public AkGetter(ActInfo info)
+    public AkpGetter(ActInfo info)
     {
         lang = info.Lang;
         storyTokens = info.Tokens;

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Data;
 // Define the alias
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
@@ -14,7 +15,7 @@ public class PrtsPreloader
     private readonly ResourceCsv resources;
     public readonly string Page;
     private int counter;
-    private readonly PlotRegs portraitProcessor = new();
+    private readonly TagProcessor portraitProcessor = new();
 
     public readonly PreloadSet Assets = new();
     public List<string> PlotText { get; private set; }
@@ -42,7 +43,7 @@ public class PrtsPreloader
             if (string.IsNullOrWhiteSpace(txt) || txt.TrimStart().StartsWith("//")) continue;
 
             OverrideCurrentText();
-            var match = PlotRegs.UniversalTagsRegex().Match(txt);
+            var match = ArkPlotRegs.UniversalTagsRegex().Match(txt);
             if (!match.Success) continue;
 
             // Assigning named results based on your description
