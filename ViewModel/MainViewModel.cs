@@ -9,7 +9,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -37,18 +36,18 @@ public partial class MainWindowViewModel : ObservableObject
     int selectedIndex;
 
     [ObservableProperty]
-    bool isInitialized = false;
+    bool isInitialized;
 
     ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
-    NotificationBlock notiBlock = NotificationBlock.Instance;
-    ReviewTableParser actsTable = new();
+    readonly NotificationBlock notiBlock = NotificationBlock.Instance;
+    readonly ReviewTableParser actsTable = new();
 
     string language = "zh_CN";
     string storyType = "ACTIVITY_STORY";
 
     List<ActInfo> currentActInfos = new();
-    ResourceCsv resourceCsv = ResourceCsv.Instance;
+    readonly ResourceCsv resourceCsv = ResourceCsv.Instance;
 
     [RelayCommand]
     async Task LoadMd()
@@ -94,9 +93,9 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
 
-    async public Task<string> LoadSingleMd()
+    public async Task<string> LoadSingleMd()
     {
-        List<Plot> allPlots = new();
+        List<Plot> allPlots;
         FileInfo plotsJsonFile = new FileInfo("C:\\TechnicalProjects\\ArkPlot\\ArkPlotWpf\\all_plots.json");
         if (!plotsJsonFile.Exists)
         {
@@ -117,7 +116,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         var testPlot = allPlots.First();
         var title = testPlot.Title;
-        return title + "\n" + testPlot.Content.ToString();
+        return title + "\n" + testPlot.Content;
     }
 
     private void ClearConsoleOutput()

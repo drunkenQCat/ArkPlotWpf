@@ -1,5 +1,4 @@
 using ArkPlotWpf.Utilities;
-using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -259,14 +258,12 @@ class ResourceCsv
             // 假设data.Audio是一个Dictionary<string, string>类型的字段或属性
             return DataAudio.ContainsKey(audioKeyLower[1..]) ? DataAudio[audioKeyLower[1..]] : "";
         }
-        else if (audioKey.StartsWith("@"))
+
+        if (audioKey.StartsWith("@"))
         {
-            return string.Concat(AssetsUrl, audioKeyLower.AsSpan(1));
+            return string.Concat(AssetsUrl, audioKeyLower[1..]);
         }
-        else
-        {
-            return AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
-        }
+        return AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
     }
 
     private static string[]? ParseSingleJsonItem(string jsonItem)
@@ -274,7 +271,7 @@ class ResourceCsv
         // for some history reason, the json contains some strange items, like:
         /*
          ```
-         \"axia_name\": \"小小小天使\",\n  \"bg_width\": 0.5,\n  \"bg_height\": 1.5,\n\n  \"avatar_sys\": \"system_100_mys\",\n  \"avatar_doberm\": \"char_130_doberm\",\n  \"avatar_jesica\": \"char_235_jesica\",\n
+         \"axia_name\": \"小小小天使\",\n  \"bg_width\": 0.5,\n  ...
          ```
          */
         // so we have to skip these useless items.
@@ -287,7 +284,7 @@ class ResourceCsv
         return items;
     }
 
-    public static string GetItemUrl(string v)
+    private static string GetItemUrl(string v)
     {
         return $"https://prts.wiki{v}";
     }
