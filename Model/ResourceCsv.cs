@@ -1,4 +1,5 @@
 using ArkPlotWpf.Utilities;
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace ArkPlotWpf.Model;
 class ResourceCsv
 {
     private const string EmptyJson = "{ }";
+    private const string AssetsUrl = "https://torappu.prts.wiki/assets/";
 
     /// table of Background Images
     public readonly StringDict DataImage = new();
@@ -56,7 +58,7 @@ class ResourceCsv
         var csv = ProcessQuery(query);
         if(csv is null) return;
         if (singleData.Tag == "Data_Link") {
-            PortraitLinkDocument = GetPortraitLinkUrl(csv);
+            PortraitLinkDocument = GetPortraitLinkDocument(csv);
             return;
         }
         if (singleData.Tag == "Data_Override") {
@@ -190,7 +192,7 @@ class ResourceCsv
         }
     }
 
-    private JsonDocument GetPortraitLinkUrl(string portraitLinkJson)
+    private JsonDocument GetPortraitLinkDocument(string portraitLinkJson)
     {
         var jsonElement = JsonDocument.Parse(portraitLinkJson);
         return jsonElement;
@@ -214,7 +216,7 @@ class ResourceCsv
             // filter the non-csv items
             if (keyValue.Length != 2) continue;
 
-            if (prts.Tag == "Data_Audio") csvDict[keyValue[0]] = GetMusicUrl(keyValue[1]);
+            if (prts.Tag == "Data_Audio") csvDict[keyValue[0]] = GetAudioLink(keyValue[1]);
             else
             {
                 csvDict[title] = GetItemUrl(keyValue[1]);
@@ -232,18 +234,39 @@ class ResourceCsv
         return isJsonItem;
     }
 
-    public static string GetMusicUrl(string url)
+     static string GetAudioLink(string url)
     {
         // from:
         // Sound_Beta_2/General/g_ui/g_ui_stagepush
         // to:
         // music/general/g_ui/g_ui_stagepush.mp3
         url = url.ToLower();
-        // rip out https://
         var urlToken = url.Split('/');
         // [0] is "sound_beta_2"
-        urlToken[0] = "music";
-        return "https://static.prts.wiki/" + string.Join("/", urlToken) + ".mp3";
+        urlToken[0] = "audio";
+        return AssetsUrl + string.Join("/", urlToken) + ".mp3";
+    }
+
+    public string GetRealAudioUrl(string audioKey)
+    {
+        if (string.IsNullOrEmpty(audioKey))
+            return "";
+
+        string audioKeyLower = audioKey.ToLower();
+
+        if (audioKey.StartsWith("$"))
+        {
+            // 假设data.Audio是一个Dictionary<string, string>类型的字段或属性
+            return DataAudio.ContainsKey(audioKeyLower[1..]) ? DataAudio[audioKeyLower[1..]] : "";
+        }
+        else if (audioKey.StartsWith("@"))
+        {
+            return string.Concat(AssetsUrl, audioKeyLower.AsSpan(1));
+        }
+        else
+        {
+            return AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
+        }
     }
 
     private static string[]? ParseSingleJsonItem(string jsonItem)

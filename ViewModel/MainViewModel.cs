@@ -3,11 +3,13 @@ using ArkPlotWpf.Utilities;
 using ArkPlotWpf.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -89,6 +91,33 @@ public partial class MainWindowViewModel : ObservableObject
             }
         }
         IsInitialized = true;
+    }
+
+
+    async public Task<string> LoadSingleMd()
+    {
+        List<Plot> allPlots = new();
+        FileInfo plotsJsonFile = new FileInfo("C:\\TechnicalProjects\\ArkPlot\\ArkPlotWpf\\all_plots.json");
+        if (!plotsJsonFile.Exists)
+        {
+            var content = new AkGetter(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
+            await content.GetAllChapters();
+            allPlots = content.ContentTable;
+            string plotJson = JsonConvert.SerializeObject(allPlots, Formatting.Indented); // 使用Newtonsoft.Json进行序列化
+
+            // 将序列化的JSON字符串写入文件
+            await File.WriteAllTextAsync(plotsJsonFile.FullName, plotJson);
+        }
+        else
+        {
+            // 从文件中读取JSON字符串并反序列化
+            string plotJson = await File.ReadAllTextAsync(plotsJsonFile.FullName);
+            allPlots = JsonConvert.DeserializeObject<List<Plot>>(plotJson)!; // 使用Newtonsoft.Json进行反序列化
+        }
+
+        var testPlot = allPlots.First();
+        var title = testPlot.Title;
+        return title + "\n" + testPlot.Content.ToString();
     }
 
     private void ClearConsoleOutput()

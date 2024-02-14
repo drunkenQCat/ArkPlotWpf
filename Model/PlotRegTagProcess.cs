@@ -30,24 +30,28 @@ public partial class PlotRegs
 
         string? url = null;
         newValue = newValue.Trim().ToLower();
-        if (newValue[0] == '$') newValue = newValue.Remove(0, 1);
+        string newValueTrimed = "";
+        if (newValue.StartsWith('$') || newValue.StartsWith('@'))
+        {
+            newValueTrimed = newValue[1..];
+        }
         try
         {
             switch (mediaType)
             {
                 case MediaType.Image:
                     // in csv, the background is bg_bg, fuck
-                    if (newTag.Contains('景')) newValue = $"bg_{newValue}";
-                    url = res.DataImage[newValue];
-                    url = $"<img src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:350px\"/>";
+                    if (newTag.Contains('景')) newValueTrimed = $"bg_{newValueTrimed}";
+                    url = res.DataImage[newValueTrimed];
+                    url = $"<img src=\"{url}\" alt=\"{newValueTrimed}\" loading=\"lazy\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
-                    url = GetPortraitUrl(newValue);
-                    url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:300px\"/>";
+                    url = GetPortraitUrl(newValueTrimed);
+                    url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValueTrimed}\" loading=\"lazy\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
-                    url = res.DataAudio[newValue];
-                    url = $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
+                    url = res.GetRealAudioUrl(newValue);
+                    url = $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValueTrimed}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
                     if (newTag.Contains('乐'))
                     {
                         var urlParts = url.Split(" ");

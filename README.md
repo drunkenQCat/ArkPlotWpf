@@ -64,7 +64,7 @@ edge浏览器“大声朗读”功能的TTS语音声音好听又富有情感。�
 
 
 
-
+:warning:本程序基于 .Net 7.0 构建，运行前请保证[.Net 7.0 运行时](https://dotnet.microsoft.com/zh-cn/download/dotnet/7.0)已安装:warning:
 1. 因为程序所有内容都来自GitHub仓库，所以在使用时请务必全程`科学上网`
 2. 如果不出意外，选好活动名，点开始，一切便会好起来
 3. 随游戏更新，《明日方舟》的AVG总是会添加新tag~~或者错别字~~。新tag在没有收入tags.json中的时候，相应的语句不会处理，直接写入生成文件，例如:假如明日方舟新出了一个立绘变形方式，取名characteraction，tags.json中没有收录这个tag，那么```[characteraction(name="middle",type="move",ypos=-50,fadetime=0.51)]```会直接写到生成的文件里，而不是写入```人物动作：移动```这样的中文缩写，~~耳朵要偶尔受刑~~

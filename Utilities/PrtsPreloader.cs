@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.Json;
 
 using ArkPlotWpf.Model;
@@ -10,29 +11,37 @@ namespace ArkPlotWpf.Utilities;
 
 public class PrtsPreloader
 {
-    private PreloadSet assets = new();
     private readonly ResourceCsv resources;
-    private readonly string page;
+    public string page;
     private int counter;
     private PlotRegs portraitProcessor = new();
 
-    public PrtsPreloader(string pageName)
+    public PreloadSet assets = new();
+    public List<string> plotText { get; private set; }
+    private bool isImageNeedsOverride = true;
+    private bool isTextNeedsOverride = true;
+    private bool isTweenNeedsOverride = true;
+    private bool isCharacterNeedsOverride = true;
+
+    public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
     {
         resources = ResourceCsv.Instance;
         // 用来将章节名称替换成prts页面地址
         page = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
-            .Replace(" 幕间", "/NBT")
-            .Replace(" ", "_");
+            .Replace(" 幕间", "/NBT");
+            //.Replace(" ", "_");
+        plotText = dataTxt.ToList();
     }
 
-    public PreloadSet ParseAndCollectAssets(IEnumerable<string> dataTxt)
+    public void ParseAndCollectAssets()
     {
-        foreach (var txt in dataTxt)
+        foreach (var txt in plotText)
         {
             if (string.IsNullOrWhiteSpace(txt) || txt.TrimStart().StartsWith("//")) continue;
 
+            OverrideCurrentText();
             var match = PlotRegs.UniversalTagsRegex().Match(txt);
             if (!match.Success) continue;
 
@@ -49,13 +58,41 @@ public class PrtsPreloader
             }
             counter++;
         }
+    }
 
-        return assets;
+    private void OverrideCurrentText()
+    {
+        if (!isTextNeedsOverride)  return;
+        // 尝试获取'override'属性
+        var isOverrideExists = resources.DataOverrideDocument.RootElement.TryGetProperty("override", out var overrideLineList);
+        // 如果'override'属性不存在，则立即返回
+        if (!isOverrideExists) return;
+
+        // 尝试获取对应页的'override'内容
+        var isOverPageImageExists = overrideLineList.TryGetProperty(page, out var pageOverrideLineList) && isOverrideExists;
+        // 如果对应页的'override'内容不存在，则立即返回
+        if (!isOverPageImageExists)
+        {
+            isImageNeedsOverride = false; 
+            return;
+        }
+
+
+        // 测试当前行是否需要覆盖？
+        var isCurrentTextNeedOverride = pageOverrideLineList.TryGetProperty((counter + 1).ToString(), out JsonElement lineOverrides) && isOverPageImageExists;
+        // 如果不需要覆盖，则立即返回
+        if (!isCurrentTextNeedOverride) return;
+        // Check if overrides exist for the current page and counter
+        if (isCurrentTextNeedOverride && lineOverrides.ValueKind == JsonValueKind.Object)
+        {
+            plotText[counter] = lineOverrides.EnumerateObject().First().ToString();
+        }
     }
 
     private void ProcessCommand(string command, string parameters)
     {
         var commandDict = parameters.ToObject();
+        commandDict["type"] = command;
         switch (command)
         {
             case "background":
@@ -64,6 +101,12 @@ public class PrtsPreloader
                 ProcessImageCommand(commandDict);
                 break;
             // Additional command processing as needed
+            case "backgroundtween":
+            case "imagetween":
+            case "largebgtween":
+            case "largeimgtween":
+                GetTweensToOverride(commandDict);
+                goto case "character";
             case "character":
             case "charactercutin":
             case "charslot":
@@ -85,6 +128,67 @@ public class PrtsPreloader
         }
     }
 
+    private void GetTweensToOverride(StringDict commandDict)
+    {
+        if (!isTweenNeedsOverride) return;
+        var isOverTweenExists = resources.DataOverrideDocument.RootElement.TryGetProperty("tween", out var tweens);
+        if (!isOverTweenExists) return;
+
+        var isOverPageTweenExists = tweens.TryGetProperty(page, out var pageTweens) && isOverTweenExists;
+        if (!isOverPageTweenExists)
+        {
+            isTweenNeedsOverride = false;
+            return;
+        }
+
+
+        var isTweenNeedOverride = pageTweens.TryGetProperty((counter + 1).ToString(), out JsonElement tweenOverrides) && isOverPageTweenExists;
+        if (!isTweenNeedOverride) return;
+        if (isTweenNeedOverride && tweenOverrides.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty property in tweenOverrides.EnumerateObject())
+            {
+                var itemToOverride = property.Name;
+                var originalValue = commandDict[itemToOverride];
+                commandDict[itemToOverride] = property.Value.GetString() ?? originalValue;
+            }
+
+            plotText[counter] = SerializeCommandDict(commandDict);
+        }
+    }
+
+    private void GetCharactersToOverride(StringDict commandDict)
+    {
+        if (!isCharacterNeedsOverride) return;
+        var isOverCharacterExists = resources.DataOverrideDocument.RootElement.TryGetProperty("char", out var tweens);
+        if (!isOverCharacterExists) return;
+
+        var isOverPageCharacterExists = tweens.TryGetProperty(page, out var pageCharacters) && isOverCharacterExists;
+        if (!isOverPageCharacterExists)
+        {
+            isCharacterNeedsOverride = false;
+            return;
+        }
+
+        var isCharacterNeedOverride = pageCharacters.TryGetProperty((counter + 1).ToString(), out JsonElement characterOverrides) && isOverPageCharacterExists;
+        if (!isCharacterNeedOverride) return;
+        if (isCharacterNeedOverride && characterOverrides.ValueKind == JsonValueKind.Object)
+        {
+            var originalValue = commandDict["name"];
+            var isName1Exists = characterOverrides.TryGetProperty("name", out var name1);
+            commandDict["name"] = isName1Exists ? name1.ToString() : originalValue;
+            if (commandDict["type"] == "character")
+            {
+                var originalValue2 = commandDict["name2"];
+                var isName2Exists = characterOverrides.TryGetProperty("name2", out var name2);
+                commandDict["name2"] = isName2Exists ? name2.ToString() : originalValue2;
+            }
+
+            plotText[counter] = SerializeCommandDict(commandDict);
+        }
+    }
+
+
     private void ProcessSoundsCommand(StringDict commandDict)
     {
         List<string> audioKeys = new();
@@ -103,8 +207,8 @@ public class PrtsPreloader
 
         foreach (var audioKey in audioKeys)
         {
-            // Placeholder for translating an audio identifier into a URL
-            string audioUrl = ResourceCsv.GetMusicUrl(audioKey); // Assume this method resolves the URL based on audioKey
+
+            string audioUrl = resources.GetRealAudioUrl(audioKey); 
             if (!string.IsNullOrWhiteSpace(audioUrl))
             {
                 assets.Add(new ResItem(audioKey, audioUrl));
@@ -134,7 +238,7 @@ public class PrtsPreloader
             // Checking if the key exists in the DataChar collection and adding it to assets if it does
             if (!string.IsNullOrWhiteSpace(key) && resources.DataChar.ContainsKey(key))
             {
-                var url = ResourceCsv.GetItemUrl(resources.DataChar[key]);
+                var url = resources.DataChar[key];
                 assets.Add(new ResItem(key, url));
             }
             else
@@ -147,33 +251,14 @@ public class PrtsPreloader
 
     private void ProcessPortraitCommand(StringDict commandDict)
     {
-        JsonElement? charOverrides = null;
-
-        if (resources.DataOverrideDocument.RootElement.TryGetProperty("char", out var chars) &&
-            chars.TryGetProperty(page, out var pageChars) &&
-            pageChars.TryGetProperty((counter + 1).ToString(), out var specificChar))
-        {
-            charOverrides = specificChar;
-        }
-
-        if (charOverrides.HasValue && charOverrides.Value.ValueKind == JsonValueKind.Object)
-        {
-            if (charOverrides.Value.TryGetProperty("name", out var nameOverride))
-            {
-                commandDict["name"] = nameOverride.GetString() ?? commandDict["name"];
-            }
-            if (commandDict.ContainsKey("type") && commandDict["type"] == "character" && charOverrides.Value.TryGetProperty("name2", out var name2Override))
-            {
-                commandDict["name2"] = name2Override.GetString() ?? commandDict["name2"];
-            }
-        }
+        GetCharactersToOverride(commandDict);
 
         List<string> names = new List<string>();
         if (commandDict.TryGetValue("name", out var name))
         {
             names.Add(name.ToLower());
         }
-        if (commandDict.ContainsKey("type") && commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
+        if (commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
         {
             names.Add(name2.ToLower());
         }
@@ -190,7 +275,7 @@ public class PrtsPreloader
                 continue;
             }
 
-            var url = ResourceCsv.GetItemUrl(resources.DataChar[key]);
+            var url = resources.DataChar[key];
             assets.Add(new ResItem(key, url));
         }
     }
@@ -199,42 +284,75 @@ public class PrtsPreloader
 
     private void ProcessImageCommand(StringDict commandDict)
     {
-        JsonElement imageOverrides;
-
-        // Check if overrides exist for the current page and counter
-        if (resources.DataOverrideDocument.RootElement.TryGetProperty("image", out var images) &&
-            images.TryGetProperty(page, out var pageImages) &&
-            pageImages.TryGetProperty((counter + 1).ToString(), out imageOverrides) &&
-            imageOverrides.ValueKind == JsonValueKind.Object)
-        {
-            foreach (JsonProperty property in imageOverrides.EnumerateObject())
-            {
-                commandDict[property.Name] = property.Value.GetString() ?? string.Empty;
-            }
-        }
+        GetImagesToOverride(commandDict);
 
         // Constructing the key for image lookup
-        string prefix = commandDict.ContainsKey("type") && commandDict["type"].Equals("background", StringComparison.OrdinalIgnoreCase) ? "bg_" : "";
+        bool isBg = commandDict.ContainsKey("type") && commandDict["type"].Equals("background", StringComparison.OrdinalIgnoreCase);
+        string prefix = isBg ? "bg_" : "";
         string key = commandDict.ContainsKey("image") ? prefix + commandDict["image"].ToLower() : string.Empty;
 
-        if (string.IsNullOrEmpty(key))
-        {
-            return; // Skip if key is not valid
-        }
+        if (string.IsNullOrEmpty(key)) return; // Skip if key is not valid
 
-        if (!resources.DataChar.ContainsKey(key))
+        if (!resources.DataImage.ContainsKey(key))
         {
             // Log or handle the error where the key does not exist
-            Console.WriteLine($"<character> Linked key [{key}] not exist.");
+            Console.WriteLine($"<image> Linked key [{key}] not exist.");
             return;
         }
 
         // Adding the resolved image asset to assets
-        var url = ResourceCsv.GetItemUrl(resources.DataImage[key]);
+        var url = resources.DataImage[key];
         assets.Add(new ResItem(key, url));
     }
 
+    private void GetImagesToOverride(StringDict commandDict)
+    {
+        if (!isImageNeedsOverride) return;
+        // 尝试获取'image'属性
+        var isOverImageExists = resources.DataOverrideDocument.RootElement.TryGetProperty("image", out var images);
+        // 如果'image'属性不存在，则立即返回
+        if (!isOverImageExists) return;
+
+        // 尝试获取对应页的'image'属性
+        var isOverPageImageExists = images.TryGetProperty(page, out var pageImages) && isOverImageExists;
+        // 如果对应页的'image'属性不存在，则立即返回
+        if (!isOverPageImageExists)
+        {
+            isImageNeedsOverride = false; 
+            return;
+        }
+
+
+        // 尝试获取需要覆盖的具体图片
+        var isImageNeedOverride = pageImages.TryGetProperty((counter + 1).ToString(), out JsonElement imageOverrides) && isOverPageImageExists;
+        // 如果需要覆盖的图片不存在，则立即返回
+        if (!isImageNeedOverride) return;
+        // Check if overrides exist for the current page and counter
+        if (isImageNeedOverride && imageOverrides.ValueKind == JsonValueKind.Object)
+        {
+            foreach (JsonProperty property in imageOverrides.EnumerateObject())
+            {
+                var itemToOverride = property.Name;
+                var originalValue = commandDict[itemToOverride];
+                // Deep copy the override property
+                commandDict[itemToOverride] = property.Value.GetString() ?? originalValue;
+            }
+
+            plotText[counter] = SerializeCommandDict(commandDict);
+        }
+    }
 
     // Additional helper methods for processing other commands
+    public static string SerializeCommandDict(Dictionary<string, string> cmds)
+    {
+        var res = new List<string>();
+        foreach (var cmd in cmds)
+        {
+            if (cmd.Value == null) // 检查null值，类似于JavaScript中的undefined检查
+                continue;
+            res.Add($"{cmd.Key}=\"{cmd.Value}\"");
+        }
+        return $"[{cmds["type"]}({string.Join(", ", res)})]";
+    }
 }
 

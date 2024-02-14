@@ -45,7 +45,7 @@ public partial class PlotRegs
         RegexAndMethods.Add(new SentenceMethod(SegmentRegex(), MakeLine));
         RegexAndMethods.Add(new SentenceMethod(SpecialTagRegex(), ProcessTag));
         RegexAndMethods.Add(new SentenceMethod(CommentRegex(), MakeComment));
-        tagList = JObject.Parse("[]");
+        tagList = JObject.Parse("{}");
     }
 
 
