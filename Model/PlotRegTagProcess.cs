@@ -29,12 +29,7 @@ public partial class PlotRegs
         if (mediaType == null) return null;
 
         string? url = null;
-        newValue = newValue.Trim().ToLower();
-        string newValueTrimed = "";
-        if (newValue.StartsWith('$') || newValue.StartsWith('@'))
-        {
-            newValueTrimed = newValue[1..];
-        }
+        var newValueTrimed = newValue.Trim().ToLower();
         try
         {
             switch (mediaType)
@@ -160,11 +155,16 @@ public partial class PlotRegs
         if (!res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
         {
             Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
-            return key;
+            return res.DataChar["char_293_thorns_1"];
         }
-        var newKey =  linkItem.GetProperty("array")[index]
+        var newKey = linkItem.GetProperty("array")[index]
             .GetProperty("name")
             .GetString();
+        if (newKey is null)
+        {
+            // Log error - character asset not found
+            Console.WriteLine($"<character> Linked key [{key}] not exist.");
+        }
         return res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
     }
 

@@ -54,7 +54,7 @@
   "palysound": "`音效`：",
   "palysound_reg": "(?<=name=\").*?(?=\")",
   "playmusic": "`音乐`：",
-  "playmusic_reg": "(?<=key=\"\\$).*?(?=\")",
+  "playmusic_reg": "(?<=key=\").*?(?=\")",
   "playsound": "`音效`：",
   "playsound_reg": "(?<=key=\").*?(?=\")",
   "popupdialog": "",

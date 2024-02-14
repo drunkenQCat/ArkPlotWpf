@@ -76,7 +76,6 @@ public partial class PlotRegs
             return line;
         }
         string newTag = GetNewTag(tag);
-        if (newTag == "`立绘`") Console.WriteLine();
         if (string.IsNullOrEmpty(newTag)) return string.Empty;
         // process the value
         string newValue = GetRetainKeyword(line, tag);

@@ -122,9 +122,6 @@ public class PrtsPreloader
             case "playsound":
                 ProcessSoundsCommand(commandDict);
                 break;
-
-
-
         }
     }
 
@@ -266,17 +263,8 @@ public class PrtsPreloader
         foreach (var characterName in names)
         {
             // Placeholder for character asset key retrieval or formatting logic
-            string key = portraitProcessor.GetPortraitUrl(characterName); // Assume this method resolves the asset key based on characterName
-
-            if (!resources.DataChar.ContainsKey(key))
-            {
-                // Log error - character asset not found
-                Console.WriteLine($"<character> Linked key [{key}] not exist.");
-                continue;
-            }
-
-            var url = resources.DataChar[key];
-            assets.Add(new ResItem(key, url));
+            string url = portraitProcessor.GetPortraitUrl(characterName); // Assume this method resolves the asset key based on characterName
+            assets.Add(new ResItem(characterName, url));
         }
     }
 
