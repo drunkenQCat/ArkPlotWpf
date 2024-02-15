@@ -2,12 +2,11 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 internal static class PlotRegsBasicHelper
 {
-
-    public static string ProcessMultiLine(string? newValue)
+    private static string ProcessMultiLine(string? newValue)
     {
         newValue = newValue!.Replace("\\n", "\n");
         newValue = newValue.Replace("\\t", "\t");
@@ -30,7 +29,7 @@ internal static class PlotRegsBasicHelper
         text = Regex.Replace(text, @"\$", "");
         return text;
     }
-    
+
     public static string MakeLine(string line)
     {
         return "---";
