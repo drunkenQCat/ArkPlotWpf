@@ -4,11 +4,11 @@ namespace ArkPlotWpf.Model;
 
 public class ActInfo
 {
-    public string Lang;
+    public readonly string Lang;
     public string ActType;
     // public string Id;
-    public string Name;
-    public JToken Tokens;
+    public readonly string Name;
+    public readonly JToken Tokens;
 
     public ActInfo(string lang, string actType, string name, JToken tokens)
     {

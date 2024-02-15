@@ -30,7 +30,7 @@ public partial class MainWindowViewModel : ObservableObject
     string outputPath = Environment.CurrentDirectory + @"\output";
 
     [ObservableProperty]
-    ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(new[]{ "加载中，请稍等..."});
+    ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(new[] { "加载中，请稍等..." });
 
     [ObservableProperty]
     int selectedIndex;
@@ -47,7 +47,7 @@ public partial class MainWindowViewModel : ObservableObject
     string storyType = "ACTIVITY_STORY";
 
     List<ActInfo> currentActInfos = new();
-    readonly ResourceCsv resourceCsv = ResourceCsv.Instance;
+    private readonly PrtsDataProcessor prts = new();
 
     [RelayCommand]
     async Task LoadMd()
@@ -60,6 +60,13 @@ public partial class MainWindowViewModel : ObservableObject
         //大工程，把所有的章节都下载下来
         await content.GetAllChapters();
         var allPlots = content.ContentTable;
+        notiBlock.RaiseCommonEvent("正在预加载资源....");
+        var resourceSets = allPlots.Select(c =>
+        {
+            var pl = new PrtsPreloader(c);
+            pl.ParseAndCollectAssets();
+            return pl;
+        }).ToList();
         notiBlock.RaiseCommonEvent("正在处理文本....");
         string exportMd = await ExportPlots(allPlots);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
@@ -170,7 +177,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-            await resourceCsv.GetAllCsv();
+            await prts.GetAllData();
             notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成\r\n】");
         }
         catch (Exception)

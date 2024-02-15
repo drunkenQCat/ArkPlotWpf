@@ -12,27 +12,38 @@ namespace ArkPlotWpf.Utilities;
 
 public class PrtsPreloader
 {
-    private readonly ResourceCsv resources;
+    private readonly PrtsDataProcessor prts = new();
     public readonly string Page;
     private int counter;
     private readonly TagProcessor portraitProcessor = new();
 
     public readonly PreloadSet Assets = new();
     public List<string> PlotText { get; private set; }
-    private  bool isImageNeedsOverride = true;
+    private bool isImageNeedsOverride = true;
     private bool isTextNeedsOverride = true;
     private bool isTweenNeedsOverride = true;
     private bool isCharacterNeedsOverride = true;
 
     public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
     {
-        resources = ResourceCsv.Instance;
         // 用来将章节名称替换成prts页面地址
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
             .Replace(" 幕间", "/NBT");
-            //.Replace(" ", "_");
+        //.Replace(" ", "_");
+        PlotText = dataTxt.ToList();
+    }
+    public PrtsPreloader(Plot plot)
+    {
+        string pageName = plot.Title;
+        IEnumerable<string> dataTxt = plot.Content.ToString().Split(Environment.NewLine);
+        // 用来将章节名称替换成prts页面地址
+        Page = pageName.Trim()
+            .Replace(" 行动后", "/END")
+            .Replace(" 行动前", "/BEG")
+            .Replace(" 幕间", "/NBT");
+        //.Replace(" ", "_");
         PlotText = dataTxt.ToList();
     }
 
@@ -48,8 +59,8 @@ public class PrtsPreloader
 
             // Assigning named results based on your description
             // var matchedWhole = match.Groups[0].Value; // The entire matched string
-            var matchedTag = match.Groups[1].Value; 
-            var matchedCommands = match.Groups[2].Value; 
+            var matchedTag = match.Groups[1].Value;
+            var matchedCommands = match.Groups[2].Value;
             // var matchedTagOnly = match.Groups[3].Value; 
             // var matchedDialog = match.Groups[4].Value; 
 
@@ -83,25 +94,25 @@ public class PrtsPreloader
             case "charactercutin":
             case "charslot":
                 ProcessPortraitCommand(commandDict);
-					break;
+                break;
             case "gridbg":
             case "verticalbg":
             case "largebg":
             case "largeimg":
                 ProcessLargeImageCommand(commandDict);
-					break;
+                break;
             case "playmusic":
             case "playsound":
                 ProcessSoundsCommand(commandDict);
                 break;
         }
     }
-    
+
     private void OverrideCurrentText()
     {
-        if (!isTextNeedsOverride)  return;
+        if (!isTextNeedsOverride) return;
         // 尝试获取'override'属性
-        var isOverrideExists = resources.DataOverrideDocument.RootElement.TryGetProperty("override", out var overrideLineList);
+        var isOverrideExists = prts.Res.DataOverrideDocument.RootElement.TryGetProperty("override", out var overrideLineList);
         // 如果'override'属性不存在，则立即返回
         if (!isOverrideExists) return;
 
@@ -110,7 +121,7 @@ public class PrtsPreloader
         // 如果对应页的'override'内容不存在，则立即返回
         if (!isOverPageImageExists)
         {
-            isTextNeedsOverride = false; 
+            isTextNeedsOverride = false;
             return;
         }
 
@@ -125,7 +136,7 @@ public class PrtsPreloader
             PlotText[counter] = lineOverrides.EnumerateObject().First().ToString();
         }
     }
-    
+
     private void ProcessImageCommand(StringDict commandDict)
     {
         GetImagesToOverride(commandDict);
@@ -137,7 +148,7 @@ public class PrtsPreloader
 
         if (string.IsNullOrEmpty(key)) return; // Skip if key is not valid
 
-        if (!resources.DataImage.ContainsKey(key))
+        if (!prts.Res.DataImage.ContainsKey(key))
         {
             // Log or handle the error where the key does not exist
             Console.WriteLine($"<image> Linked key [{key}] not exist.");
@@ -145,10 +156,10 @@ public class PrtsPreloader
         }
 
         // Adding the resolved image asset to assets
-        var url = resources.DataImage[key];
+        var url = prts.Res.DataImage[key];
         Assets.Add(new ResItem(key, url));
     }
-    
+
     private void ProcessPortraitCommand(StringDict commandDict)
     {
         GetCharactersToOverride(commandDict);
@@ -186,9 +197,9 @@ public class PrtsPreloader
             string key = commandDict["type"].EndsWith("bg", StringComparison.OrdinalIgnoreCase) ? "bg_" + img.ToLower() : img.ToLower();
 
             // Checking if the key exists in the DataChar collection and adding it to assets if it does
-            if (!string.IsNullOrWhiteSpace(key) && resources.DataChar.ContainsKey(key))
+            if (!string.IsNullOrWhiteSpace(key) && prts.Res.DataChar.ContainsKey(key))
             {
-                var url = resources.DataChar[key];
+                var url = prts.Res.DataChar[key];
                 Assets.Add(new ResItem(key, url));
             }
             else
@@ -202,7 +213,7 @@ public class PrtsPreloader
     private void GetTweensToOverride(StringDict commandDict)
     {
         if (!isTweenNeedsOverride) return;
-        var isOverTweenExists = resources.DataOverrideDocument.RootElement.TryGetProperty("tween", out var tweens);
+        var isOverTweenExists = prts.Res.DataOverrideDocument.RootElement.TryGetProperty("tween", out var tweens);
         if (!isOverTweenExists) return;
 
         var isOverPageTweenExists = tweens.TryGetProperty(Page, out var pageTweens) && isOverTweenExists;
@@ -247,7 +258,7 @@ public class PrtsPreloader
         foreach (var audioKey in audioKeys)
         {
 
-            string audioUrl = resources.GetRealAudioUrl(audioKey); 
+            string audioUrl = prts.GetRealAudioUrl(audioKey);
             if (!string.IsNullOrWhiteSpace(audioUrl))
             {
                 Assets.Add(new ResItem(audioKey, audioUrl));
@@ -259,11 +270,11 @@ public class PrtsPreloader
             }
         }
     }
-    
+
     private void GetCharactersToOverride(StringDict commandDict)
     {
         if (!isCharacterNeedsOverride) return;
-        var isOverCharacterExists = resources.DataOverrideDocument.RootElement.TryGetProperty("char", out var tweens);
+        var isOverCharacterExists = prts.Res.DataOverrideDocument.RootElement.TryGetProperty("char", out var tweens);
         if (!isOverCharacterExists) return;
 
         var isOverPageCharacterExists = tweens.TryGetProperty(Page, out var pageCharacters) && isOverCharacterExists;
@@ -295,7 +306,7 @@ public class PrtsPreloader
     {
         if (!isImageNeedsOverride) return;
         // 尝试获取'image'属性
-        var isOverImageExists = resources.DataOverrideDocument.RootElement.TryGetProperty("image", out var images);
+        var isOverImageExists = prts.Res.DataOverrideDocument.RootElement.TryGetProperty("image", out var images);
         // 如果'image'属性不存在，则立即返回
         if (!isOverImageExists) return;
 
@@ -304,7 +315,7 @@ public class PrtsPreloader
         // 如果对应页的'image'属性不存在，则立即返回
         if (!isOverPageImageExists)
         {
-            isImageNeedsOverride = false; 
+            isImageNeedsOverride = false;
             return;
         }
 

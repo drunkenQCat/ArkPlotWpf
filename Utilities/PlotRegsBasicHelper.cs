@@ -6,8 +6,7 @@ namespace ArkPlotWpf.Utilities;
 
 internal static class PlotRegsBasicHelper
 {
-
-    public static string ProcessMultiLine(string? newValue)
+    private static string ProcessMultiLine(string? newValue)
     {
         newValue = newValue!.Replace("\\n", "\n");
         newValue = newValue.Replace("\\t", "\t");

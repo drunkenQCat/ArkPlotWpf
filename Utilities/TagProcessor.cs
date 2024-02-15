@@ -9,15 +9,15 @@ namespace ArkPlotWpf.Utilities;
 
 public class TagProcessor
 {
-    public PlotRegs Regs = PlotRegs.Instance;
-    private readonly ResourceCsv res = ResourceCsv.Instance;
+    public readonly PlotRegs Regs = PlotRegs.Instance;
+    private readonly PrtsDataProcessor prts = new();
 
     public TagProcessor()
     {
         Regs.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
     }
 
-    public string ProcessTag(string line)
+    private string ProcessTag(string line)
     {
         string tag = GetTagOfLine(line);
         // process the tag
@@ -72,7 +72,7 @@ public class TagProcessor
                 case MediaType.Image:
                     // in csv, the background is bg_bg, fuck
                     if (newTag.Contains('景')) newValueTrimed = $"bg_{newValueTrimed}";
-                    url = res.DataImage[newValueTrimed];
+                    url = prts.Res.DataImage[newValueTrimed];
                     url = $"<img src=\"{url}\" alt=\"{newValueTrimed}\" loading=\"lazy\" style=\"max-height:350px\"/>";
                     break;
                 case MediaType.Portrait:
@@ -80,7 +80,7 @@ public class TagProcessor
                     url = $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValueTrimed}\" loading=\"lazy\" style=\"max-height:300px\"/>";
                     break;
                 case MediaType.Music:
-                    url = res.GetRealAudioUrl(newValue);
+                    url = prts.GetRealAudioUrl(newValue);
                     url = $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValueTrimed}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
                     if (newTag.Contains('乐'))
                     {
@@ -99,7 +99,7 @@ public class TagProcessor
         return url;
     }
 
-    public (string, int) FindPortraitInLinkData(string keyData)
+    private (string, int) FindPortraitInLinkData(string keyData)
     {
         if (string.IsNullOrWhiteSpace(keyData))
         {
@@ -115,12 +115,12 @@ public class TagProcessor
         }
 
         int? GetSubIndex(int index) => matchedCodeParts.Groups[index].Success ? int.Parse(matchedCodeParts.Groups[index].Value) : null;
- 
+
 
         string portraitNameGroup = matchedCodeParts.Groups[1].Value;
         var emotionIndex = GetSubIndex(3);
 
-        if (!res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
+        if (!prts.Res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
         {
             Console.WriteLine($"The appointed key [{portraitNameGroup}] not exist, has skipped the data.");
             return ("-1", -1);
@@ -151,7 +151,7 @@ public class TagProcessor
                     return ProcessDollarSymbol();
                 case "#":
                     int outputIndex = emotionIndex ?? 0;
-                    if(outputIndex >= linkItem.GetProperty("array").GetArrayLength())
+                    if (outputIndex >= linkItem.GetProperty("array").GetArrayLength())
                     {
                         Console.WriteLine($"The analyze key [{portraitNameGroup} : {outputIndex}] is out of range, use the default char to instead");
                         outputIndex = 0;
@@ -161,8 +161,8 @@ public class TagProcessor
         }
         (string portraitNameGroup, int) ProcessDollarSymbol()
         {
-            string subIndex = "$" + (groupSubIndex  ?? emotionIndex); // 组合group
-            emotionIndex = groupIndex != null ? groupIndex : emotionIndex;
+            string subIndex = "$" + (groupSubIndex ?? emotionIndex); // 组合group
+            emotionIndex = groupIndex ?? emotionIndex;
             var arrayElements = linkItem.GetProperty("array")
                 .EnumerateArray()
                 .Select((element, index) => new { Name = element.GetProperty("name").GetString(), Index = index })
@@ -174,7 +174,7 @@ public class TagProcessor
                 Console.WriteLine($"No elements ending with {subIndex}.");
                 return (portraitNameGroup, 0); // Using default index if no matching elements
             }
-            emotionIndex = Math.Min(emotionIndex??0, matchingElements.Count - 1);
+            emotionIndex = Math.Min(emotionIndex ?? 0, matchingElements.Count - 1);
             var targetElement = matchingElements.ElementAt((int)emotionIndex);
 
             // Return original name and adjusted index within the global array
@@ -187,10 +187,10 @@ public class TagProcessor
     public string GetPortraitUrl(string inputKey)
     {
         (string key, int index) = FindPortraitInLinkData(inputKey);
-        if (!res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
+        if (!prts.Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
         {
             Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
-            return res.DataChar["char_293_thorns_1"];
+            return prts.Res.DataChar["char_293_thorns_1"];
         }
         var newKey = linkItem.GetProperty("array")[index]
             .GetProperty("name")
@@ -200,7 +200,7 @@ public class TagProcessor
             // Log error - character asset not found
             Console.WriteLine($"<character> Linked key [{key}] not exist.");
         }
-        return res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
+        return prts.Res.DataChar[newKey is null ? "char_293_thorns_1" : newKey.ToLower()];
     }
 
     private MediaType? GetMediaType(string newTag)
@@ -232,8 +232,8 @@ public class TagProcessor
     {
         var newValue =
             (from word in value.Split("_")
-                orderby word.Length descending
-                select word).FirstOrDefault();
+             orderby word.Length descending
+             select word).FirstOrDefault();
         if (newValue == "path") Console.WriteLine();
         return newValue!;
     }
