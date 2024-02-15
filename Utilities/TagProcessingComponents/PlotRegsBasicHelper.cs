@@ -2,7 +2,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 internal static class PlotRegsBasicHelper
 {
@@ -29,7 +29,7 @@ internal static class PlotRegsBasicHelper
         text = Regex.Replace(text, @"\$", "");
         return text;
     }
-    
+
     public static string MakeLine(string line)
     {
         return "---";

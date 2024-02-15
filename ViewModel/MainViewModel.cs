@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using ArkPlotWpf.Utilities.PrtsComponents;
 using AkGetter = ArkPlotWpf.Utilities.AkpGetter;
 
 namespace ArkPlotWpf.ViewModel;

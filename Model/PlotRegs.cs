@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 using ArkPlotWpf.Data;
-using ArkPlotWpf.Utilities;
+using ArkPlotWpf.Utilities.TagProcessingComponents;
 
 namespace ArkPlotWpf.Model;
 

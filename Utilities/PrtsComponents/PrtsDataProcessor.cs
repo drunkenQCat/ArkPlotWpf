@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.PrtsComponents;
 
 internal class PrtsDataProcessor
 {

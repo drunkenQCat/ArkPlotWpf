@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Linq;
 using System.Text.Json;
-
-using ArkPlotWpf.Model;
 using ArkPlotWpf.Data;
+using ArkPlotWpf.Model;
 // Define the alias
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.PrtsComponents;
 
 public class PrtsPreloader
 {
     private readonly PrtsDataProcessor prts = new();
     public readonly string Page;
     private int counter;
-    private readonly TagProcessor portraitProcessor = new();
+    private readonly TagProcessingComponents.TagProcessor portraitProcessor = new();
 
     public readonly PreloadSet Assets = new();
     public List<string> PlotText { get; private set; }

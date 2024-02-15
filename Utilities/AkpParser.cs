@@ -6,7 +6,7 @@ namespace ArkPlotWpf.Utilities;
 internal class AkpParser
 {
 
-    private readonly TagProcessor tagProcessor;
+    private readonly TagProcessingComponents.TagProcessor tagProcessor;
 
     public AkpParser(string jsonPath)
     {
