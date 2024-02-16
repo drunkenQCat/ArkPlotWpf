@@ -7,7 +7,7 @@ namespace ArkPlotWpf.Utilities;
 
 public static class StringExtensions
 {
-    public static StringDict ToObject(this string input, string sep1 = ",", string sep2 = "=", bool isToLower = true)
+    public static StringDict ToCommandSet(this string input, string sep1 = ",", string sep2 = "=", bool isToLower = true)
     {
         // Prepare the regex pattern based on sep1 and sep2
         string commandPattern = $@"\s*(.*?)\s*{Regex.Escape(sep2)}\s*(?:['""](.*?)['""]|([\w.-]+))\s*{Regex.Escape(sep1)}?";

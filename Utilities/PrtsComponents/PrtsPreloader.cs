@@ -73,7 +73,7 @@ public class PrtsPreloader
 
     private void ProcessCommand(string command, string parameters)
     {
-        var commandDict = parameters.ToObject();
+        var commandDict = parameters.ToCommandSet();
         commandDict["type"] = command;
         switch (command)
         {
