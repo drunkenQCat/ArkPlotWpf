@@ -3,12 +3,12 @@ using System.Linq;
 using System.Text.Json;
 using ArkPlotWpf.Data;
 using ArkPlotWpf.Model;
-// Define the alias
+
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
 
+// Define the alias
 namespace ArkPlotWpf.Utilities.PrtsComponents;
-
 public class PrtsPreloader
 {
     private readonly PrtsDataProcessor prts = new();
@@ -22,10 +22,12 @@ public class PrtsPreloader
     private bool isTextNeedsOverride = true;
     private bool isTweenNeedsOverride = true;
     private bool isCharacterNeedsOverride = true;
+    private readonly PrtsResLoader prtsResLoader;
 
     public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
     {
         // 用来将章节名称替换成prts页面地址
+        prtsResLoader = new PrtsResLoader();
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
@@ -35,6 +37,7 @@ public class PrtsPreloader
     }
     public PrtsPreloader(Plot plot)
     {
+        prtsResLoader = new PrtsResLoader();
         string pageName = plot.Title;
         IEnumerable<string> dataTxt = plot.Content.ToString().Split(Environment.NewLine);
         // 用来将章节名称替换成prts页面地址
@@ -337,7 +340,6 @@ public class PrtsPreloader
             PlotText[counter] = SerializeCommandDict(commandDict);
         }
     }
-
     // Additional helper methods for processing other commands
     private static string SerializeCommandDict(Dictionary<string, string> commands)
     {
