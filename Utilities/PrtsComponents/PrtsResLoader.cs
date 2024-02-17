@@ -29,10 +29,17 @@ public class PrtsResLoader
     {
         var uri = new Uri(url);
         var localPath = Path.Combine(uri.Host, uri.AbsolutePath.TrimStart('/'));
-        return localPath;
+        return Path.Combine("output", localPath);
     }
 
-    public static void EnsureDirectoryExists(string directoryPath)
+    
+    public static string GetRelativePathFromUrl(string url)
+    {
+        var uri = new Uri(url);
+        var localPath = Path.Combine(uri.Host, uri.AbsolutePath.TrimStart('/'));
+        return localPath;
+    }
+    private static void EnsureDirectoryExists(string directoryPath)
     {
         if (!Directory.Exists(directoryPath))
         {
@@ -40,7 +47,7 @@ public class PrtsResLoader
         }
     }
 
-    public static async Task DownloadFileAsync(HttpClient httpClient, string url, string fullPath)
+    private static async Task DownloadFileAsync(HttpClient httpClient, string url, string fullPath)
     {
         var content = await httpClient.GetByteArrayAsync(url);
         await File.WriteAllBytesAsync(fullPath, content);
