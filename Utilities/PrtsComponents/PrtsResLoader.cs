@@ -21,7 +21,10 @@ public class PrtsResLoader
             var fullPath = GetLocalPathFromUrl(url);
             var directoryPath = Path.GetDirectoryName(fullPath);
             EnsureDirectoryExists(directoryPath!);
-            await DownloadFileAsync(httpClient, url, fullPath);
+            if (!File.Exists(fullPath))
+            {
+                await DownloadFileAsync(httpClient, url, fullPath);
+            }
         }
     }
 

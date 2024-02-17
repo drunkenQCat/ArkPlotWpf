@@ -27,18 +27,32 @@ internal abstract class AkpProcessor
 
     public static void WriteHtml(string path, Plot markdown)
     {
-        var htmlPath = path + "\\" + markdown.Title + ".html";
+        string htmlPath = path + "\\" + markdown.Title + ".html";
+        string htmlContent = GetHtmlContent(htmlPath, markdown);
+        string result = FormatHtmlBody(htmlContent, markdown.Title);
+        File.WriteAllText(htmlPath, result);
+    }
+
+    public static void WriteHtmlWithLocalRes(string path, Plot markdown)
+    {
+        string htmlPath = path + "\\" + markdown.Title + ".html";
+        string htmlContent = GetHtmlContent(htmlPath, markdown);
+        string htmlWithLocalRes = htmlContent.Replace("https://", "");
+        var result = FormatHtmlBody(htmlWithLocalRes, markdown.Title);
+        File.WriteAllText(htmlPath, result);
+    }
+
+    private static string GetHtmlContent(string path, Plot markdown)
+    {
         var pipeline = new MarkdownPipelineBuilder()
                           .UseAdvancedExtensions()
                           .Build();
         new MarkdownPipelineBuilder()
             .UseAdvancedExtensions() // Add most of all advanced extensions
             .Build();
-        var htmlBody = Markdown.ToHtml(markdown.Content.ToString(), pipeline);
-        string htmlContent = FormatHtmlBody(htmlBody, markdown.Title);
-        File.WriteAllText(htmlPath, htmlContent);
-
+        return Markdown.ToHtml(markdown.Content.ToString(), pipeline);
     }
+
     static string FormatHtmlBody(string body, string title)
     {
         body = $"<body>{body}</body>";

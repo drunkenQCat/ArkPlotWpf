@@ -55,7 +55,7 @@ internal class AkpGetter
         }).ToList();
     }
 
-    public async Task PreLoadForAllChapters()
+    public PreloadSet GetPreloadInfo()
     {
         var resourceSets = ContentTable.Select(c =>
         {
@@ -68,10 +68,15 @@ internal class AkpGetter
         {
             toPreLoad.UnionWith(res.Assets);
         }
-        // download all the assets
-        await PrtsResLoader.DownloadAssets(toPreLoad);
         // write all data into ResourceCsv.Instance.PreLoaded
         ResourceCsv.Instance.PreLoaded = StringDict.FromEnumerable(toPreLoad);
+        return toPreLoad;
+    }
+    public async Task PreLoadForAllChapters()
+    {
+        var toPreLoad = GetPreloadInfo();
+        // download all the assets
+        await PrtsResLoader.DownloadAssets(toPreLoad);
     }
 
     private Dictionary<string, string> GetChapterUrls()

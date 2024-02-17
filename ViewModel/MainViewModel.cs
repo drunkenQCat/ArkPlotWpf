@@ -22,10 +22,11 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     string jsonPath = Environment.CurrentDirectory + @"\tags.json";
     [ObservableProperty]
-    string consoleOutput = string.Format("这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项\n\n" +
-                                         "* 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；\n" +
-                                         "* 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；\n" +
-                                         "* 如果有任何改进意见，欢迎Pr。\n");
+    string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
+
+    - 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；
+    - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
+    - 如果有任何改进意见，欢迎Pr。";
 
     [ObservableProperty]
     string outputPath = Environment.CurrentDirectory + @"\output";
@@ -35,6 +36,9 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     int selectedIndex;
+
+    [ObservableProperty]
+    bool isLocalResChecked = false;
 
     [ObservableProperty]
     bool isInitialized;
@@ -62,7 +66,15 @@ public partial class MainWindowViewModel : ObservableObject
         await content.GetAllChapters();
         var allPlots = content.ContentTable;
         notiBlock.RaiseCommonEvent("正在预加载资源....");
-        await content.PreLoadForAllChapters();
+        if (IsLocalResChecked)
+        {
+            notiBlock.RaiseCommonEvent("正在下载资源....");
+            await content.PreLoadForAllChapters();
+        }
+        else{
+
+            await Task.Run(() => content.GetPreloadInfo());
+        }
         notiBlock.RaiseCommonEvent("正在处理文本....");
         string exportMd = await ExportPlots(allPlots);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
@@ -72,7 +84,14 @@ public partial class MainWindowViewModel : ObservableObject
         }
         var markdown = new Plot(activeTitle!, new(mdWithTitle));
         AkpProcessor.WriteMd(outputPath, markdown);
-        AkpProcessor.WriteHtml(outputPath, markdown);
+        if (IsLocalResChecked)
+        {
+            AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
+        }
+        else
+        {
+            AkpProcessor.WriteHtml(outputPath, markdown);
+        }
         var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
         if (result == MessageBoxResult.OK)
         {
@@ -174,7 +193,7 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             await prts.GetAllData();
-            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成\r\n】");
+            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
         }
         catch (Exception)
         {
