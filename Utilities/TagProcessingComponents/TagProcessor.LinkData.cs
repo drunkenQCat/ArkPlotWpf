@@ -4,17 +4,20 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Data;
 
-namespace ArkPlotWpf.Utilities.TagProcessingComponents;
+namespace ArkPlotWpf.Utilities.PrtsComponents;
 
-public partial class TagProcessor
+/// <summary>
+/// Partial class for processing portrait data in the PrtsDataProcessor.
+/// </summary>
+internal partial class PrtsDataProcessor
 {
     public string GetPortraitUrl(string inputKey)
     {
         (string key, int index) = FindPortraitInLinkData(inputKey);
-        if (!prts.Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
+        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
         {
             Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
-            return prts.Res.DataChar["char_293_thorns_1"];
+            return Res.DataChar["char_293_thorns_1"];
         }
 
         var newKey = linkItem.GetProperty("array")[index]
@@ -28,8 +31,8 @@ public partial class TagProcessor
 
         // if finally nothing found, return Thorn's head
         newKey = newKey is null ? "char_293_thorns_1" : newKey.ToLower();
-        var isPortraitExists = prts.Res.DataChar.TryGetValue(newKey, out var url);
-        return isPortraitExists ? url! : "https://prts.wiki/images/d/d0/Avg_char_293_thorns_1.png";
+        var isPortraitExists = Res.DataChar.TryGetValue(newKey, out var url);
+        return isPortraitExists ? url! : "https://wiki/images/d/d0/Avg_char_293_thorns_1.png";
     }
 
     private (string, int) FindPortraitInLinkData(string keyData)
@@ -55,7 +58,7 @@ public partial class TagProcessor
         string portraitNameGroup = matchedCodeParts.Groups[1].Value;
         var emotionIndex = GetSubIndex(3);
 
-        if (!prts.Res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
+        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
         {
             Console.WriteLine($"The appointed key [{portraitNameGroup}] not exist, has skipped the data.");
             return ("-1", -1);

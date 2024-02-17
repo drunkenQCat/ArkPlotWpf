@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace ArkPlotWpf.Model;
 
-class ResourceCsv
+public class ResourceCsv
 {
     private const string EmptyJson = "{ }";
     public const string AssetsUrl = "https://torappu.prts.wiki/assets/";
