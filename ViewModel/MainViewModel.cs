@@ -62,12 +62,7 @@ public partial class MainWindowViewModel : ObservableObject
         await content.GetAllChapters();
         var allPlots = content.ContentTable;
         notiBlock.RaiseCommonEvent("正在预加载资源....");
-        var resourceSets = allPlots.Select(c =>
-        {
-            var pl = new PrtsPreloader(c);
-            pl.ParseAndCollectAssets();
-            return pl;
-        }).ToList();
+        await content.PreLoadForAllChapters();
         notiBlock.RaiseCommonEvent("正在处理文本....");
         string exportMd = await ExportPlots(allPlots);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;

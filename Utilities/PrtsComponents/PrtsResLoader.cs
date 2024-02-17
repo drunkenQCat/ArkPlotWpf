@@ -35,6 +35,7 @@ public class PrtsResLoader
     
     public static string GetRelativePathFromUrl(string url)
     {
+        if(string.IsNullOrEmpty(url)) return "";
         var uri = new Uri(url);
         var localPath = Path.Combine(uri.Host, uri.AbsolutePath.TrimStart('/'));
         return localPath;

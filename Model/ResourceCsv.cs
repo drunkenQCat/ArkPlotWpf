@@ -13,6 +13,8 @@ class ResourceCsv
     public readonly StringDict DataChar = new();
     /// table of Sound Effects and Musics
     public readonly StringDict DataAudio = new();
+    /// set of preloaded resources
+    public StringDict PreLoaded = new();
     /// <summary>
     /// table of links in prts
     /// </summary>

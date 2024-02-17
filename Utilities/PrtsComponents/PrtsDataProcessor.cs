@@ -245,7 +245,7 @@ internal class PrtsDataProcessor
         var items = jsonItem.Replace("\"", "").Split(':');
         items =
             (from i in items
-             select i.Trim()).ToArray();
+            select i.Trim()).ToArray();
 
         return items;
     }

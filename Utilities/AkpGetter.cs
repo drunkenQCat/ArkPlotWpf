@@ -2,7 +2,9 @@ using ArkPlotWpf.Model;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Threading.Tasks;
+using ArkPlotWpf.Utilities.PrtsComponents;
 
+using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 namespace ArkPlotWpf.Utilities;
 
 internal class AkpGetter
@@ -51,6 +53,25 @@ internal class AkpGetter
             var index = chapterUrlTable.Keys.ToList().IndexOf(plot.Title);
             return index;
         }).ToList();
+    }
+
+    public async Task PreLoadForAllChapters()
+    {
+        var resourceSets = ContentTable.Select(c =>
+        {
+            var pl = new PrtsPreloader(c);
+            pl.ParseAndCollectAssets();
+            return pl;
+        }).ToList();
+        var toPreLoad = new PreloadSet();
+        foreach (var res in resourceSets)
+        {
+            toPreLoad.UnionWith(res.Assets);
+        }
+        // download all the assets
+        await PrtsResLoader.DownloadAssets(toPreLoad);
+        // write all data into ResourceCsv.Instance.PreLoaded
+        ResourceCsv.Instance.PreLoaded = StringDict.FromEnumerable(toPreLoad);
     }
 
     private Dictionary<string, string> GetChapterUrls()

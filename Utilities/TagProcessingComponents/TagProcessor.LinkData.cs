@@ -8,6 +8,30 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public partial class TagProcessor
 {
+    public string GetPortraitUrl(string inputKey)
+    {
+        (string key, int index) = FindPortraitInLinkData(inputKey);
+        if (!prts.Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
+        {
+            Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
+            return prts.Res.DataChar["char_293_thorns_1"];
+        }
+
+        var newKey = linkItem.GetProperty("array")[index]
+            .GetProperty("name")
+            .GetString();
+        if (newKey is null)
+        {
+            // Log error - character asset not found
+            Console.WriteLine($"<character> Linked key [{key}] not exist.");
+        }
+
+        // if finally nothing found, return Thorn's head
+        newKey = newKey is null ? "char_293_thorns_1" : newKey.ToLower();
+        var isPortraitExists = prts.Res.DataChar.TryGetValue(newKey, out var url);
+        return isPortraitExists ? url! : "https://prts.wiki/images/d/d0/Avg_char_293_thorns_1.png";
+    }
+
     private (string, int) FindPortraitInLinkData(string keyData)
     {
         if (string.IsNullOrWhiteSpace(keyData))

@@ -22,12 +22,10 @@ public class PrtsPreloader
     private bool isTextNeedsOverride = true;
     private bool isTweenNeedsOverride = true;
     private bool isCharacterNeedsOverride = true;
-    private readonly PrtsResLoader prtsResLoader;
 
     public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
     {
         // 用来将章节名称替换成prts页面地址
-        prtsResLoader = new PrtsResLoader();
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
@@ -37,9 +35,8 @@ public class PrtsPreloader
     }
     public PrtsPreloader(Plot plot)
     {
-        prtsResLoader = new PrtsResLoader();
         string pageName = plot.Title;
-        IEnumerable<string> dataTxt = plot.Content.ToString().Split(Environment.NewLine);
+        IEnumerable<string> dataTxt = plot.Content.ToString().Split("\n");
         // 用来将章节名称替换成prts页面地址
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")
