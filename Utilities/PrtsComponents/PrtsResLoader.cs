@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
@@ -21,10 +20,7 @@ public class PrtsResLoader
             var fullPath = GetLocalPathFromUrl(url);
             var directoryPath = Path.GetDirectoryName(fullPath);
             EnsureDirectoryExists(directoryPath!);
-            if (!File.Exists(fullPath))
-            {
-                await DownloadFileAsync(httpClient, url, fullPath);
-            }
+            if (!File.Exists(fullPath)) await DownloadFileAsync(httpClient, url, fullPath);
         }
     }
 
@@ -35,20 +31,18 @@ public class PrtsResLoader
         return Path.Combine("output", localPath);
     }
 
-    
+
     public static string GetRelativePathFromUrl(string url)
     {
-        if(string.IsNullOrEmpty(url)) return "";
+        if (string.IsNullOrEmpty(url)) return "";
         var uri = new Uri(url);
         var localPath = Path.Combine(uri.Host, uri.AbsolutePath.TrimStart('/'));
         return localPath;
     }
+
     private static void EnsureDirectoryExists(string directoryPath)
     {
-        if (!Directory.Exists(directoryPath))
-        {
-            _ = Directory.CreateDirectory(directoryPath);
-        }
+        if (!Directory.Exists(directoryPath)) _ = Directory.CreateDirectory(directoryPath);
     }
 
     private static async Task DownloadFileAsync(HttpClient httpClient, string url, string fullPath)
@@ -57,5 +51,4 @@ public class PrtsResLoader
         await File.WriteAllBytesAsync(fullPath, content);
         Console.WriteLine($"Downloaded: {url} to {fullPath}");
     }
-
 }

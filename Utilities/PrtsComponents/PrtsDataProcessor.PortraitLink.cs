@@ -1,25 +1,24 @@
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Data;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
 /// <summary>
-/// Partial class for processing portrait data in the PrtsDataProcessor.
+///     Partial class for processing portrait data in the PrtsDataProcessor.
 /// </summary>
 public partial class PrtsDataProcessor
 {
     /// <summary>
-    /// Retrieves the URL of a portrait based on the input key.
+    ///     Retrieves the URL of a portrait based on the input key.
     /// </summary>
     /// <param name="inputKey">The key used to search for the portrait.</param>
     /// <returns>The URL of the portrait if found, otherwise a default URL.</returns>
     public string GetPortraitUrl(string inputKey)
     {
-        (string key, int index) = FindPortraitInLinkData(inputKey);
-        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out JsonElement linkItem))
+        (var key, var index) = FindPortraitInLinkData(inputKey);
+        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out var linkItem))
         {
             Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
             return Res.DataChar["char_293_thorns_1"];
@@ -29,10 +28,8 @@ public partial class PrtsDataProcessor
             .GetProperty("name")
             .GetString();
         if (newKey is null)
-        {
             // Log error - character asset not found
             Console.WriteLine($"<character> Linked key [{key}] not exist.");
-        }
 
         // if finally nothing found, return Thorn's head
         newKey = newKey is null ? "char_293_thorns_1" : newKey.ToLower();
@@ -41,10 +38,13 @@ public partial class PrtsDataProcessor
     }
 
     /// <summary>
-    /// Finds the portrait in the link data based on the provided key data.
+    ///     Finds the portrait in the link data based on the provided key data.
     /// </summary>
     /// <param name="keyData">The key data used to find the portrait.</param>
-    /// <returns>A tuple containing the found portrait code and its index, or ("-1", -1) if the key data is empty or no key is found.</returns>
+    /// <returns>
+    ///     A tuple containing the found portrait code and its index, or ("-1", -1) if the key data is empty or no key is
+    ///     found.
+    /// </returns>
     private (string, int) FindPortraitInLinkData(string keyData)
     {
         if (string.IsNullOrWhiteSpace(keyData))
@@ -65,10 +65,10 @@ public partial class PrtsDataProcessor
 
     private (string, int) ProcessMatchedCodeParts(Match matchedCodeParts)
     {
-        string portraitNameGroup = matchedCodeParts.Groups[1].Value;
+        var portraitNameGroup = matchedCodeParts.Groups[1].Value;
         var emotionIndex = GetSubIndex(3);
 
-        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out JsonElement linkItem))
+        if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(portraitNameGroup, out var linkItem))
         {
             Console.WriteLine($"The appointed key [{portraitNameGroup}] not exist, has skipped the data.");
             return ("-1", -1);
@@ -89,18 +89,18 @@ public partial class PrtsDataProcessor
                 return ProcessDollarSymbol();
             case "#":
                 var outputIndex = ProcessHashSymbol();
-                return (portraitNameGroup, outputIndex); 
+                return (portraitNameGroup, outputIndex);
             default:
-                return (portraitNameGroup, Math.Max(emotionIndex ?? 1 - 1, 0)); // Adjusting because array index is zero-based
-                    
+                return (portraitNameGroup,
+                    Math.Max(emotionIndex ?? 1 - 1, 0)); // Adjusting because array index is zero-based
         }
-        
+
         /*
          * different conditions to process
          */
         (string portraitNameGroup, int) ProcessDollarSymbol()
         {
-            string subIndex = "$" + (groupSubIndex ?? emotionIndex); // 组合group
+            var subIndex = "$" + (groupSubIndex ?? emotionIndex); // 组合group
             emotionIndex = groupIndex ?? emotionIndex;
             var arrayElements = linkItem.GetProperty("array")
                 .EnumerateArray()
@@ -120,16 +120,14 @@ public partial class PrtsDataProcessor
             // Return original name and adjusted index within the global array
             return (portraitNameGroup, arrayElements.IndexOf(targetElement));
         }
-        
+
         (string, int) ProcessAtSymbol()
         {
-            for (int idx = 0; idx < linkItem.GetProperty("array").GetArrayLength(); idx++)
+            for (var idx = 0; idx < linkItem.GetProperty("array").GetArrayLength(); idx++)
             {
                 var currentElement = linkItem.GetProperty("array")[idx];
                 if (currentElement.GetProperty("alias").GetString() == emotionIndex.ToString())
-                {
                     return (portraitNameGroup, idx);
-                }
             }
 
             Console.WriteLine("Data analyze error, use the default char to instead.");
@@ -138,7 +136,7 @@ public partial class PrtsDataProcessor
 
         int ProcessHashSymbol()
         {
-            int outputIndex = emotionIndex ?? 0;
+            var outputIndex = emotionIndex ?? 0;
             if (outputIndex >= linkItem.GetProperty("array").GetArrayLength())
             {
                 Console.WriteLine(
@@ -148,13 +146,15 @@ public partial class PrtsDataProcessor
 
             return outputIndex;
         }
-        
+
         /*
          * A utility method 
          */
-        int? GetSubIndex(int index) =>
-            matchedCodeParts.Groups[index].Success
+        int? GetSubIndex(int index)
+        {
+            return matchedCodeParts.Groups[index].Success
                 ? int.Parse(matchedCodeParts.Groups[index].Value)
                 : null;
+        }
     }
 }

@@ -22,7 +22,6 @@ public static class NetworkUtility
 
             var fileContent = await response.Content.ReadAsStringAsync();
             return fileContent;
-
         }
         catch (Exception e)
         {

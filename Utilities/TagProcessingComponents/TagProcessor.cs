@@ -7,28 +7,28 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public partial class TagProcessor
 {
-    public readonly PlotRegs Regs = PlotRegs.Instance;
     private readonly PrtsDataProcessor prts = new();
+    public readonly PlotRules Rules = PlotRules.Instance;
 
     public TagProcessor()
     {
-        Regs.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
+        Rules.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
     }
 
     private string ProcessTag(string line)
     {
         //
         // Extract the tag from the line
-        string tag = ExtractTag(line);
+        var tag = ExtractTag(line);
         // Check if the tag exists; if not, log a notice and return the original line
         if (!IsValidTag(tag)) return NotifyInvalidTag(line, tag);
 
         // Attempt to replace the tag with a new one
-        string newTag = SubStituteTag(tag);
+        var newTag = SubStituteTag(tag);
         if (string.IsNullOrEmpty(newTag)) return string.Empty; // Early exit if no new tag
 
         // Extract and process the value associated with the tag
-        string newValue = ExtractValue(line, tag);
+        var newValue = ExtractValue(line, tag);
         if (string.IsNullOrEmpty(newValue)) return HandleEmptyValue(newTag); // Handle empty values separately
 
         return ConstructResult(newTag, newValue);
@@ -41,7 +41,10 @@ public partial class TagProcessor
         return tag;
     }
 
-    private bool IsValidTag(string tag) => Regs.TagList[tag] != null;
+    private bool IsValidTag(string tag)
+    {
+        return Rules.TagList[tag] != null;
+    }
 
     private string NotifyInvalidTag(string line, string tag)
     {
@@ -49,11 +52,14 @@ public partial class TagProcessor
         return line;
     }
 
-    private string SubStituteTag(string tag) => (string)Regs.TagList[tag]!;
+    private string SubStituteTag(string tag)
+    {
+        return (string)Rules.TagList[tag]!;
+    }
 
     private string ExtractValue(string line, string tag)
     {
-        var newValueReg = (string)Regs.TagList[tag + "_reg"]!;
+        var newValueReg = (string)Rules.TagList[tag + "_reg"]!;
         var newValue = Regex.Match(line, newValueReg).Value;
         return newValue;
     }
@@ -69,20 +75,21 @@ public partial class TagProcessor
             case "`图像`":
                 return "";
         }
+
         return newTag;
     }
 
     private string ConstructResult(string newTag, string newValue)
     {
         // Additional processing on the new value
-        string? mediaUrl = ConvertValueToHtmlTag(newTag, newValue); // Get any associated media URL
-        newValue = TagProcessor.FindTheLongestWord(newValue); // Simplify the value to its longest word
+        var mediaUrl = ConvertValueToHtmlTag(newTag, newValue); // Get any associated media URL
+        newValue = FindTheLongestWord(newValue); // Simplify the value to its longest word
         newValue = PlotRegsBasicHelper.RipDollar(newValue); // Remove any dollar signs
 
         // Construct the result line from the processed tag and value
         var resultLine = newTag + newValue;
-        resultLine = TagProcessor.ProcessFlashBack(resultLine, newTag, newValue); // Process any flashbacks
-        resultLine = TagProcessor.AttachToMediaUrl(resultLine, mediaUrl); // Attach media URL if present
+        resultLine = ProcessFlashBack(resultLine, newTag, newValue); // Process any flashbacks
+        resultLine = AttachToMediaUrl(resultLine, mediaUrl); // Attach media URL if present
 
         return resultLine; // Return the processed line
     }

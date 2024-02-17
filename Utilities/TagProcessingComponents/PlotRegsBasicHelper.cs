@@ -1,6 +1,6 @@
-﻿using ArkPlotWpf.Data;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
+using ArkPlotWpf.Data;
 
 namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
@@ -39,5 +39,4 @@ internal static class PlotRegsBasicHelper
     {
         return $"> {line}";
     }
-
 }

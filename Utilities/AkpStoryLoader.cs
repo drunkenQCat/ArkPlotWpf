@@ -1,38 +1,52 @@
-using ArkPlotWpf.Model;
-using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Threading.Tasks;
+using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities.PrtsComponents;
-
+using Newtonsoft.Json.Linq;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
+
 namespace ArkPlotWpf.Utilities;
 
-internal class AkpGetter
+/// <summary>
+/// 从GitHub获取明日方舟各个章节数据的类。
+/// </summary>
+internal class AkpStoryLoader
 {
+    private readonly string lang;
+
+    private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
+
     // 从GitHub拿到章节的文件名以及相应的所有内容
     private readonly JToken storyTokens;
-    private readonly string lang;
-    readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
     private readonly List<Task> tasks = new();
 
-    private string GetRawUrl()
-    {
-        if (lang == "zh_CN")
-        {
-            return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
-        }
-
-        return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/master/{lang}/gamedata/story/";
-    }
-
-    public List<Plot> ContentTable { get; private set; } = new();
-
-    public AkpGetter(ActInfo info)
+    public AkpStoryLoader(ActInfo info)
     {
         lang = info.Lang;
         storyTokens = info.Tokens;
     }
 
+    /// <summary>
+    /// 当前，活动内所有章节的内容。
+    /// </summary>
+    public List<Plot> ContentTable { get; private set; } = new();
+
+    /// <summary>
+    /// 获取GitHub 上对应本次活动的 RAW 数据URL的开头。
+    /// </summary>
+    /// <returns>GitHub 上的 RAW 数据 URL。</returns>
+    private string GetRawUrl()
+    {
+        if (lang == "zh_CN")
+            return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{lang}/gamedata/story/";
+
+        return $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/master/{lang}/gamedata/story/";
+    }
+
+    /// <summary>
+    /// 下载所有章节的文本。
+    /// </summary>
+    /// <returns>表示异步操作的任务。</returns>
     public async Task GetAllChapters()
     {
         var chapterUrlTable = GetChapterUrls();
@@ -42,11 +56,12 @@ internal class AkpGetter
             {
                 var content = await NetworkUtility.GetAsync(chapter.Value);
                 notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                ContentTable.Add(new(chapter.Key, new StringBuilder(content)));
+                ContentTable.Add(new Plot(chapter.Key, new StringBuilder(content)));
             }
 
             tasks.Add(GetSingleChapter());
         }
+
         await Task.WhenAll(tasks);
         ContentTable = ContentTable.OrderBy(plot =>
         {
@@ -55,6 +70,10 @@ internal class AkpGetter
         }).ToList();
     }
 
+    /// <summary>
+    /// 获取预加载信息。
+    /// </summary>
+    /// <returns>预加载信息。</returns>
     public PreloadSet GetPreloadInfo()
     {
         var resourceSets = ContentTable.Select(c =>
@@ -64,21 +83,27 @@ internal class AkpGetter
             return pl;
         }).ToList();
         var toPreLoad = new PreloadSet();
-        foreach (var res in resourceSets)
-        {
-            toPreLoad.UnionWith(res.Assets);
-        }
-        // write all data into ResourceCsv.Instance.PreLoaded
-        ResourceCsv.Instance.PreLoaded = StringDict.FromEnumerable(toPreLoad);
+        foreach (var res in resourceSets) toPreLoad.UnionWith(res.Assets);
+        // 将所有数据写入ResourceCsv.Instance.PreLoaded
+        PrtsAssets.Instance.PreLoaded = StringDict.FromEnumerable(toPreLoad);
         return toPreLoad;
     }
-    public async Task PreLoadForAllChapters()
+
+    /// <summary>
+    /// 预加载所有章节相关的资源。
+    /// </summary>
+    /// <returns>表示异步操作的任务。</returns>
+    public async Task PreloadAssetsForAllChapters()
     {
         var toPreLoad = GetPreloadInfo();
-        // download all the assets
+        // 下载所有资源
         await PrtsResLoader.DownloadAssets(toPreLoad);
     }
 
+    /// <summary>
+    /// 获取活动内每个章节URL。
+    /// </summary>
+    /// <returns>包含章节URL的字典。</returns>
     private Dictionary<string, string> GetChapterUrls()
     {
         var plots = storyTokens["infoUnlockDatas"]?.ToObject<JArray>();

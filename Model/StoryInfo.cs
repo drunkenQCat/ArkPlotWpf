@@ -2,14 +2,38 @@ using Newtonsoft.Json.Linq;
 
 namespace ArkPlotWpf.Model;
 
+/// <summary>
+/// 明日方舟每一次活动相关的信息。
+/// </summary>
 public class ActInfo
 {
+    /// <summary>
+    /// 活动的语言。
+    /// </summary>
     public readonly string Lang;
-    public string ActType;
-    // public string Id;
+
+    /// <summary>
+    /// 活动的名称。会依照所选语言而变化。
+    /// </summary>
     public readonly string Name;
+
+    /// <summary>
+    /// 活动的下拉菜单选项。同时也是这次活动包含的所有章节。
+    /// </summary>
     public readonly JToken Tokens;
 
+    /// <summary>
+    /// 活动的类型。有活动、故事集、主线3个类别。
+    /// </summary>
+    public string ActType;
+
+    /// <summary>
+    /// 初始化一个 ActInfo 类的新实例。
+    /// </summary>
+    /// <param name="lang">活动的语言。</param>
+    /// <param name="actType">活动的类型。有活动、故事集、主线3个类别。</param>
+    /// <param name="name">活动的名称。应当与活动的语言相对应。</param>
+    /// <param name="tokens">活动的下拉菜单选项。同时也是这次活动包含的所有章节。</param>
     public ActInfo(string lang, string actType, string name, JToken tokens)
     {
         Lang = lang;
@@ -18,13 +42,3 @@ public class ActInfo
         Tokens = tokens;
     }
 }
-
-// public class StoryInfo
-// {
-//     public string Lang;
-//     public string Name;
-//     public string AvgTag;
-//     public string StoryTxt;
-//     public string Url => $"https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/{Lang}/gamedata/story/{StoryTxt}.txt";
-//     public string Title => $"{Name} {AvgTag}";
-// }

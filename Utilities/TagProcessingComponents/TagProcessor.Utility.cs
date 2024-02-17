@@ -11,7 +11,7 @@ public partial class TagProcessor
         var mediaType = GetMediaType(newTag);
         if (mediaType == null) return null;
 
-        string htmlTaggedLine = "";
+        var htmlTaggedLine = "";
         newValue = newValue.Trim().ToLower();
         htmlTaggedLine = mediaType switch
         {
@@ -48,8 +48,8 @@ public partial class TagProcessor
     {
         var newValue =
             (from word in value.Split("_")
-             orderby word.Length descending
-             select word).FirstOrDefault();
+                orderby word.Length descending
+                select word).FirstOrDefault();
         if (newValue == "path") Console.WriteLine();
         return newValue!;
     }

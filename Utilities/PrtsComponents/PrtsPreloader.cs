@@ -3,24 +3,22 @@ using System.Linq;
 using System.Text.Json;
 using ArkPlotWpf.Data;
 using ArkPlotWpf.Model;
-
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
 
 // Define the alias
 namespace ArkPlotWpf.Utilities.PrtsComponents;
+
 public class PrtsPreloader
 {
-    private readonly PrtsDataProcessor prts = new();
-    public readonly string Page;
-    private int counter;
-
     public readonly PreloadSet Assets = new();
-    public List<string> PlotText { get; private set; }
+    public readonly string Page;
+    private readonly PrtsDataProcessor prts = new();
+    private int counter;
+    private bool isCharacterNeedsOverride = true;
     private bool isImageNeedsOverride = true;
     private bool isTextNeedsOverride = true;
     private bool isTweenNeedsOverride = true;
-    private bool isCharacterNeedsOverride = true;
 
     public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
     {
@@ -32,9 +30,10 @@ public class PrtsPreloader
         //.Replace(" ", "_");
         PlotText = dataTxt.ToList();
     }
+
     public PrtsPreloader(Plot plot)
     {
-        string pageName = plot.Title;
+        var pageName = plot.Title;
         IEnumerable<string> dataTxt = plot.Content.ToString().Split("\n");
         // 用来将章节名称替换成prts页面地址
         Page = pageName.Trim()
@@ -44,6 +43,8 @@ public class PrtsPreloader
         //.Replace(" ", "_");
         PlotText = dataTxt.ToList();
     }
+
+    public List<string> PlotText { get; }
 
     public void ParseAndCollectAssets()
     {
@@ -62,10 +63,7 @@ public class PrtsPreloader
             // var matchedTagOnly = match.Groups[3].Value; 
             // var matchedDialog = match.Groups[4].Value; 
 
-            if (!string.IsNullOrEmpty(matchedTag))
-            {
-                ProcessCommand(matchedTag.ToLower(), matchedCommands);
-            }
+            if (!string.IsNullOrEmpty(matchedTag)) ProcessCommand(matchedTag.ToLower(), matchedCommands);
             counter++;
         }
     }
@@ -110,12 +108,14 @@ public class PrtsPreloader
     {
         if (!isTextNeedsOverride) return;
         // 尝试获取'override'属性
-        var isOverrideExists = prts.Res.DataOverrideDocument.RootElement.TryGetProperty("override", out var overrideLineList);
+        var isOverrideExists =
+            prts.Res.DataOverrideDocument.RootElement.TryGetProperty("override", out var overrideLineList);
         // 如果'override'属性不存在，则立即返回
         if (!isOverrideExists) return;
 
         // 尝试获取对应页的'override'内容
-        var isOverPageImageExists = overrideLineList.TryGetProperty(Page, out var pageOverrideLineList) && isOverrideExists;
+        var isOverPageImageExists =
+            overrideLineList.TryGetProperty(Page, out var pageOverrideLineList) && isOverrideExists;
         // 如果对应页的'override'内容不存在，则立即返回
         if (!isOverPageImageExists)
         {
@@ -125,14 +125,14 @@ public class PrtsPreloader
 
 
         // 测试当前行是否需要覆盖？
-        var isCurrentTextNeedOverride = pageOverrideLineList.TryGetProperty((counter + 1).ToString(), out JsonElement lineOverrides) && isOverPageImageExists;
+        var isCurrentTextNeedOverride =
+            pageOverrideLineList.TryGetProperty((counter + 1).ToString(), out var lineOverrides) &&
+            isOverPageImageExists;
         // 如果不需要覆盖，则立即返回
         if (!isCurrentTextNeedOverride) return;
         // Check if overrides exist for the current page and counter
         if (isCurrentTextNeedOverride && lineOverrides.ValueKind == JsonValueKind.Object)
-        {
             PlotText[counter] = lineOverrides.EnumerateObject().First().ToString();
-        }
     }
 
     private void ProcessImageCommand(StringDict commandDict)
@@ -140,9 +140,10 @@ public class PrtsPreloader
         GetImagesToOverride(commandDict);
 
         // Constructing the key for image lookup
-        bool isBg = commandDict.ContainsKey("type") && commandDict["type"].Equals("background", StringComparison.OrdinalIgnoreCase);
-        string prefix = isBg ? "bg_" : "";
-        string key = commandDict.ContainsKey("image") ? prefix + commandDict["image"].ToLower() : string.Empty;
+        var isBg = commandDict.ContainsKey("type") &&
+                   commandDict["type"].Equals("background", StringComparison.OrdinalIgnoreCase);
+        var prefix = isBg ? "bg_" : "";
+        var key = commandDict.ContainsKey("image") ? prefix + commandDict["image"].ToLower() : string.Empty;
 
         if (string.IsNullOrEmpty(key)) return; // Skip if key is not valid
 
@@ -162,37 +163,33 @@ public class PrtsPreloader
     {
         GetCharactersToOverride(commandDict);
 
-        List<string> names = new List<string>();
-        if (commandDict.TryGetValue("name", out var name))
-        {
-            names.Add(name.ToLower());
-        }
+        var names = new List<string>();
+        if (commandDict.TryGetValue("name", out var name)) names.Add(name.ToLower());
         if (commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
-        {
             names.Add(name2.ToLower());
-        }
 
         foreach (var characterName in names)
         {
             // Placeholder for character asset key retrieval or formatting logic
-            string url = prts.GetPortraitUrl(characterName); // Assume this method resolves the asset key based on characterName
+            var url = prts.GetPortraitUrl(
+                characterName); // Assume this method resolves the asset key based on characterName
             Assets.Add(new ResItem(characterName, url));
         }
     }
 
     private void ProcessLargeImageCommand(StringDict commandDict)
     {
-        if (!commandDict.TryGetValue("imagegroup", out var imageGroupValue))
-        {
-            return; // No image group specified, nothing to process
-        }
+        if (!commandDict.TryGetValue("imagegroup",
+                out var imageGroupValue)) return; // No image group specified, nothing to process
 
         // Splitting the imageGroupValue into individual image keys
         var images = imageGroupValue.Split('/');
         foreach (var img in images)
         {
             // Constructing the key for each image
-            string key = commandDict["type"].EndsWith("bg", StringComparison.OrdinalIgnoreCase) ? "bg_" + img.ToLower() : img.ToLower();
+            var key = commandDict["type"].EndsWith("bg", StringComparison.OrdinalIgnoreCase)
+                ? "bg_" + img.ToLower()
+                : img.ToLower();
 
             // Checking if the key exists in the DataChar collection and adding it to assets if it does
             if (!string.IsNullOrWhiteSpace(key) && prts.Res.DataChar.ContainsKey(key))
@@ -222,11 +219,12 @@ public class PrtsPreloader
         }
 
 
-        var isTweenNeedOverride = pageTweens.TryGetProperty((counter + 1).ToString(), out JsonElement tweenOverrides) && isOverPageTweenExists;
+        var isTweenNeedOverride = pageTweens.TryGetProperty((counter + 1).ToString(), out var tweenOverrides) &&
+                                  isOverPageTweenExists;
         if (!isTweenNeedOverride) return;
         if (isTweenNeedOverride && tweenOverrides.ValueKind == JsonValueKind.Object)
         {
-            foreach (JsonProperty property in tweenOverrides.EnumerateObject())
+            foreach (var property in tweenOverrides.EnumerateObject())
             {
                 var itemToOverride = property.Name;
                 var originalValue = commandDict[itemToOverride];
@@ -242,30 +240,19 @@ public class PrtsPreloader
         List<string> audioKeys = new();
 
         // If the command is "playmusic" and an intro is specified, add it to the list
-        if (commandDict["type"] == "playmusic" && commandDict.TryGetValue("intro", out var intro))
-        {
-            audioKeys.Add(intro);
-        }
+        if (commandDict["type"] == "playmusic" && commandDict.TryGetValue("intro", out var intro)) audioKeys.Add(intro);
 
         // Always add the main key if it exists
-        if (commandDict.TryGetValue("key", out var key))
-        {
-            audioKeys.Add(key);
-        }
+        if (commandDict.TryGetValue("key", out var key)) audioKeys.Add(key);
 
         foreach (var audioKey in audioKeys)
         {
-
-            string audioUrl = prts.GetRealAudioUrl(audioKey);
+            var audioUrl = prts.GetRealAudioUrl(audioKey);
             if (!string.IsNullOrWhiteSpace(audioUrl))
-            {
                 Assets.Add(new ResItem(audioKey, audioUrl));
-            }
             else
-            {
                 // Log or handle the error where the audio URL does not exist
                 Console.WriteLine($"<audio> Linked key [{audioKey}] not exist.");
-            }
         }
     }
 
@@ -282,7 +269,9 @@ public class PrtsPreloader
             return;
         }
 
-        var isCharacterNeedOverride = pageCharacters.TryGetProperty((counter + 1).ToString(), out JsonElement characterOverrides) && isOverPageCharacterExists;
+        var isCharacterNeedOverride =
+            pageCharacters.TryGetProperty((counter + 1).ToString(), out var characterOverrides) &&
+            isOverPageCharacterExists;
         if (!isCharacterNeedOverride) return;
         if (isCharacterNeedOverride && characterOverrides.ValueKind == JsonValueKind.Object)
         {
@@ -319,13 +308,14 @@ public class PrtsPreloader
 
 
         // 尝试获取需要覆盖的具体图片
-        var isImageNeedOverride = pageImages.TryGetProperty((counter + 1).ToString(), out JsonElement imageOverrides) && isOverPageImageExists;
+        var isImageNeedOverride = pageImages.TryGetProperty((counter + 1).ToString(), out var imageOverrides) &&
+                                  isOverPageImageExists;
         // 如果需要覆盖的图片不存在，则立即返回
         if (!isImageNeedOverride) return;
         // Check if overrides exist for the current page and counter
         if (isImageNeedOverride && imageOverrides.ValueKind == JsonValueKind.Object)
         {
-            foreach (JsonProperty property in imageOverrides.EnumerateObject())
+            foreach (var property in imageOverrides.EnumerateObject())
             {
                 var itemToOverride = property.Name;
                 var originalValue = commandDict[itemToOverride];
@@ -336,15 +326,12 @@ public class PrtsPreloader
             PlotText[counter] = SerializeCommandDict(commandDict);
         }
     }
+
     // Additional helper methods for processing other commands
     private static string SerializeCommandDict(Dictionary<string, string> commands)
     {
         var res = new List<string>();
-        foreach (var cmd in commands)
-        {
-            res.Add($"{cmd.Key}=\"{cmd.Value}\"");
-        }
+        foreach (var cmd in commands) res.Add($"{cmd.Key}=\"{cmd.Value}\"");
         return $"[{commands["type"]}({string.Join(", ", res)})]";
     }
 }
-
