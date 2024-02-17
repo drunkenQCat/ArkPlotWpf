@@ -5,7 +5,7 @@ using ArkPlotWpf.Model;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
-internal class PrtsDataProcessor
+public partial class PrtsDataProcessor
 {
     public readonly ResourceCsv Res = ResourceCsv.Instance;
 
@@ -245,7 +245,7 @@ internal class PrtsDataProcessor
         var items = jsonItem.Replace("\"", "").Split(':');
         items =
             (from i in items
-             select i.Trim()).ToArray();
+            select i.Trim()).ToArray();
 
         return items;
     }
