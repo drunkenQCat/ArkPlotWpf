@@ -5,7 +5,7 @@ using ArkPlotWpf.Model;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
-internal partial class PrtsDataProcessor
+public partial class PrtsDataProcessor
 {
     public readonly ResourceCsv Res = ResourceCsv.Instance;
 

@@ -14,7 +14,6 @@ public class PrtsPreloader
     private readonly PrtsDataProcessor prts = new();
     public readonly string Page;
     private int counter;
-    private readonly TagProcessingComponents.TagProcessor portraitProcessor = new();
 
     public readonly PreloadSet Assets = new();
     public List<string> PlotText { get; private set; }
@@ -176,7 +175,7 @@ public class PrtsPreloader
         foreach (var characterName in names)
         {
             // Placeholder for character asset key retrieval or formatting logic
-            string url = portraitProcessor.GetPortraitUrl(characterName); // Assume this method resolves the asset key based on characterName
+            string url = prts.GetPortraitUrl(characterName); // Assume this method resolves the asset key based on characterName
             Assets.Add(new ResItem(characterName, url));
         }
     }

@@ -9,8 +9,13 @@ namespace ArkPlotWpf.Utilities.PrtsComponents;
 /// <summary>
 /// Partial class for processing portrait data in the PrtsDataProcessor.
 /// </summary>
-internal partial class PrtsDataProcessor
+public partial class PrtsDataProcessor
 {
+    /// <summary>
+    /// Retrieves the URL of a portrait based on the input key.
+    /// </summary>
+    /// <param name="inputKey">The key used to search for the portrait.</param>
+    /// <returns>The URL of the portrait if found, otherwise a default URL.</returns>
     public string GetPortraitUrl(string inputKey)
     {
         (string key, int index) = FindPortraitInLinkData(inputKey);
@@ -35,6 +40,11 @@ internal partial class PrtsDataProcessor
         return isPortraitExists ? url! : "https://wiki/images/d/d0/Avg_char_293_thorns_1.png";
     }
 
+    /// <summary>
+    /// Finds the portrait in the link data based on the provided key data.
+    /// </summary>
+    /// <param name="keyData">The key data used to find the portrait.</param>
+    /// <returns>A tuple containing the found portrait code and its index, or ("-1", -1) if the key data is empty or no key is found.</returns>
     private (string, int) FindPortraitInLinkData(string keyData)
     {
         if (string.IsNullOrWhiteSpace(keyData))
