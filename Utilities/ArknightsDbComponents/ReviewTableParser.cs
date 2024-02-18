@@ -1,7 +1,7 @@
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.ArknightsDbComponents;
 
 public class ReviewTableParser
 {

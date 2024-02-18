@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Data;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Services;
 using ArkPlotWpf.Utilities.PrtsComponents;
 
 namespace ArkPlotWpf.Utilities.TagProcessingComponents;

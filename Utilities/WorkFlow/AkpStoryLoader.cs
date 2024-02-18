@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Services;
 using ArkPlotWpf.Utilities.PrtsComponents;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 using Newtonsoft.Json.Linq;

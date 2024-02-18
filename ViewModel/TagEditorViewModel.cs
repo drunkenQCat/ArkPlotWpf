@@ -1,9 +1,10 @@
-using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Forms.VisualStyles;
 using ArkPlotWpf.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -18,31 +19,14 @@ public partial class TagEditorViewModel : ObservableObject
 
     [ObservableProperty] private int selectedIndex;
 
-    public TagEditorViewModel(string path, Action close)
+    public TagEditorViewModel(string path)
     {
         jsonPath = path;
-        CloseAction = close;
     }
 
     public TagEditorViewModel()
     {
         jsonPath = "tags.json";
-        CloseAction = LoadTagJson;
-    }
-
-    public Action CloseAction { get; internal set; }
-
-
-    [RelayCommand]
-    private void LoadTagJson()
-    {
-        var jsonContent = File.ReadAllText(jsonPath);
-        var data = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
-        var tagsAndRegs = from pair in data
-            where !pair.Key.EndsWith("_reg")
-            let reg = data![pair.Key + "_reg"]
-            select new TagReplacementRule(pair.Key, reg, pair.Value);
-        DataGrid = new ObservableCollection<TagReplacementRule>(tagsAndRegs);
     }
 
     [RelayCommand]
@@ -64,8 +48,21 @@ public partial class TagEditorViewModel : ObservableObject
 
         var jsonContent = JsonSerializer.Serialize(data, options);
         File.WriteAllText("tags.json", jsonContent);
-        CloseAction();
+        LoadTagJson();
     }
+    
+    [RelayCommand]
+    private void LoadTagJson()
+    {
+        var jsonContent = File.ReadAllText(jsonPath);
+        var data = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
+        var tagsAndRegs = from pair in data
+            where !pair.Key.EndsWith("_reg")
+            let reg = data![pair.Key + "_reg"]
+            select new TagReplacementRule(pair.Key, reg, pair.Value);
+        DataGrid = new ObservableCollection<TagReplacementRule>(tagsAndRegs);
+    }
+
 
     [RelayCommand]
     private void AddItem()
@@ -77,11 +74,11 @@ public partial class TagEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CloseWindow()
+    private void CloseWindow(Window window)
     {
-        CloseAction();
+        window?.Close();
     }
-
+    
     private int FindMaxIndexOfNewItem()
     {
         var maxItem =

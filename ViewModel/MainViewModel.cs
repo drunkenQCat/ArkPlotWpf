@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Services;
 using ArkPlotWpf.Utilities;
+using ArkPlotWpf.Utilities.ArknightsDbComponents;
 using ArkPlotWpf.Utilities.PrtsComponents;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 using ArkPlotWpf.Utilities.WorkFlow;
 using ArkPlotWpf.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 
 namespace ArkPlotWpf.ViewModel;
@@ -49,62 +52,163 @@ public partial class MainWindowViewModel : ObservableObject
     private ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(new[] { "加载中，请稍等..." });
 
     private string storyType = "ACTIVITY_STORY";
+    private string? activeTitle;
 
     private ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
     [RelayCommand]
+    private async Task LoadInitResource()
+    {
+        SubscribeAll();
+        await LoadResourceTable();
+        await LoadLangTable(language);
+        IsInitialized = true;
+    }
+
+    private void SubscribeAll()
+    {
+        SubscribeCommonNotification();
+        SubscribeChapterLoadedNotification();
+        SubscribeNetErrorNotification();
+        SubscribeLineNoMatchNotification();
+    }
+
+    private async Task LoadResourceTable()
+    {
+        try
+        {
+            await prts.GetAllData();
+            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
+        }
+        catch (Exception)
+        {
+            var s = "\r\n网络错误，无法加载资源文件。\r\n";
+            notiBlock.RaiseCommonEvent(s);
+            MessageBox.Show(s);
+        }
+    }
+
+    [RelayCommand]
+    private async Task LoadLangTable(string lang)
+    {
+        try
+        {
+            language = lang;
+            await Task.Run(() => actsTable.Lang = lang);
+            notiBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
+            LoadActs(storyType);
+        }
+        catch (Exception)
+        {
+            var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
+            notiBlock.RaiseCommonEvent(s);
+            MessageBox.Show(s);
+        }
+    }
+
+    [RelayCommand]
+    private void LoadActs(string type)
+    {
+        storyType = type;
+        var currentTokens = actsTable.GetStories(type);
+        currentActInfos =
+            (from act in currentTokens
+             let name = act["name"]!.ToString()
+             let info = new ActInfo(language, storyType, name, act)
+             select info
+            ).ToList();
+        StoriesNames = CollectionViewSource.GetDefaultView(
+            from info in currentActInfos
+            select info.Name
+        );
+        SelectedIndex = 0;
+    }
+
+    [RelayCommand]
     private async Task LoadMd()
+    {
+        PrepareLoading();
+        var content = new AkpStoryLoader(CurrentAct);
+        await LoadAllChapters(content);
+        await PreloadResources(content);
+        await ProcessTextAndExport(content);
+        CompleteLoading();
+    }
+
+    private void PrepareLoading()
     {
         IsInitialized = false;
         ClearConsoleOutput();
-        var content = new AkpStoryLoader(CurrentAct);
-        var activeTitle = CurrentAct.Tokens["name"]?.ToString();
+        notiBlock.RaiseCommonEvent("初始化加载...");
+    }
 
-        //大工程，把所有的章节都下载下来
-        await content.GetAllChapters();
-        var allPlots = content.ContentTable;
+    private async Task LoadAllChapters(AkpStoryLoader contentLoader)
+    {
+        activeTitle = CurrentAct.Tokens["name"]?.ToString();
+        await contentLoader.GetAllChapters();
+        notiBlock.RaiseCommonEvent("章节加载完成。");
+    }
+
+    private async Task PreloadResources(AkpStoryLoader contentLoader)
+    {
         notiBlock.RaiseCommonEvent("正在预加载资源....");
         if (IsLocalResChecked)
         {
             notiBlock.RaiseCommonEvent("正在下载资源....");
-            await content.PreloadAssetsForAllChapters();
+            await contentLoader.PreloadAssetsForAllChapters();
         }
         else
         {
-            await Task.Run(() => content.GetPreloadInfo());
+            await Task.Run(() => contentLoader.GetPreloadInfo());
         }
+    }
 
+    private async Task ProcessTextAndExport(AkpStoryLoader contentLoader)
+    {
         notiBlock.RaiseCommonEvent("正在处理文本....");
-        var exportMd = await ExportPlots(allPlots);
-        var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
-        if (Directory.Exists(outputPath) == false) Directory.CreateDirectory(outputPath);
-        var markdown = new PlotManager(activeTitle!, new StringBuilder(mdWithTitle));
+        var exportMd = await ExportPlots(contentLoader.ContentTable);
+        var mdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + exportMd;
+        SaveExportedContent(mdWithTitle);
+    }
+
+    private void SaveExportedContent(string mdWithTitle)
+    {
+        if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
+        var markdown = new PlotManager(activeTitle ?? "", new StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPath, markdown);
         if (IsLocalResChecked)
             AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
         else
             AkpProcessor.WriteHtml(outputPath, markdown);
+    }
+
+    private void CompleteLoading()
+    {
         var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
         if (result == MessageBoxResult.OK)
-            try
-            {
-                ProcessStartInfo startInfo = new()
-                {
-                    Arguments = outputPath,
-                    FileName = "explorer.exe",
-                    Verb = "runas"
-                };
-                Process.Start(startInfo);
-            }
-            catch (Win32Exception win32Exception)
-            {
-                //The system cannot find the file specified...
-                MessageBox.Show(win32Exception.Message);
-            }
-
+        {
+            OpenOutputFolder();
+        }
         IsInitialized = true;
     }
 
+    private void OpenOutputFolder()
+    {
+        try
+        {
+            ProcessStartInfo startInfo = new()
+            {
+                Arguments = outputPath,
+                FileName = "explorer.exe",
+                Verb = "runas"
+            };
+            Process.Start(startInfo);
+        }
+        catch (Win32Exception win32Exception)
+        {
+            MessageBox.Show(win32Exception.Message);
+        }
+    }
 
     public async Task<string> LoadSingleMd()
     {
@@ -144,81 +248,11 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
 
-    private void SubscribeAll()
-    {
-        SubscribeCommonNotification();
-        SubscribeChapterLoadedNotification();
-        SubscribeNetErrorNotification();
-        SubscribeLineNoMatchNotification();
-    }
-
-    [RelayCommand]
-    private void LoadActs(string type)
-    {
-        storyType = type;
-        var currentTokens = actsTable.GetStories(type);
-        currentActInfos =
-            (from act in currentTokens
-             let name = act["name"]!.ToString()
-             let info = new ActInfo(language, storyType, name, act)
-             select info
-            ).ToList();
-        StoriesNames = CollectionViewSource.GetDefaultView(
-            from info in currentActInfos
-            select info.Name
-        );
-        SelectedIndex = 0;
-    }
-
-    [RelayCommand]
-    private async Task LoadInitResource()
-    {
-        SubscribeAll();
-        await LoadResourceTable();
-        await LoadLangTable(language);
-        IsInitialized = true;
-    }
-
-    private async Task LoadResourceTable()
-    {
-        try
-        {
-            await prts.GetAllData();
-            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
-        }
-        catch (Exception)
-        {
-            var s = "\r\n网络错误，无法加载资源文件。\r\n";
-            notiBlock.RaiseCommonEvent(s);
-            MessageBox.Show(s);
-        }
-    }
-
-    [RelayCommand]
-    private async Task LoadLangTable(string lang)
-    {
-        try
-        {
-            language = lang;
-            await Task.Run(() => actsTable.Lang = lang);
-            notiBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
-            LoadActs(storyType);
-        }
-        catch (Exception)
-        {
-            var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
-            notiBlock.RaiseCommonEvent(s);
-            MessageBox.Show(s);
-        }
-    }
-
     [RelayCommand]
     private void OpenTagEditor()
     {
-        var editorView = new TagEditor();
-        var editorViewModel = new TagEditorViewModel(jsonPath, editorView.Close);
-        editorView.DataContext = editorViewModel;
-        editorView.Show();
+        var messenger = WeakReferenceMessenger.Default;
+        messenger.Send(new OpenWindowMessage("TagEditor", jsonPath));
     }
 
     private void SubscribeCommonNotification()

@@ -1,6 +1,6 @@
 using System;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Services;
 
 public class NotificationBlock
 {
