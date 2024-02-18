@@ -15,70 +15,78 @@ public class PrtsPreloader
     public readonly PreloadSet Assets = new();
     public readonly string Page;
     private readonly PrtsDataProcessor prts = new();
+    public readonly PlotManager Manager;
     private int counter;
     private bool isCharacterNeedsOverride = true;
     private bool isImageNeedsOverride = true;
     private bool isTextNeedsOverride = true;
     private bool isTweenNeedsOverride = true;
+    private List<FormattedTextEntry> textList;
 
-    public PrtsPreloader(string pageName, IEnumerable<string> dataTxt)
-    {
-        // 用来将章节名称替换成prts页面地址
-        Page = pageName.Trim()
-            .Replace(" 行动后", "/END")
-            .Replace(" 行动前", "/BEG")
-            .Replace(" 幕间", "/NBT");
-        //.Replace(" ", "_");
-        PlotText = dataTxt.ToList();
-    }
-
+    /* public PrtsPreloader(string pageName, IEnumerable<string> dataTxt) */
+    /* { */
+    /*     // 用来将章节名称替换成prts页面地址 */
+    /*     Page = pageName.Trim() */
+    /*         .Replace(" 行动后", "/END") */
+    /*         .Replace(" 行动前", "/BEG") */
+    /*         .Replace(" 幕间", "/NBT"); */
+    /*     //.Replace(" ", "_"); */
+    /*     PlotText = dataTxt.ToList(); */
+    /* } */
+    /**/
     public PrtsPreloader(PlotManager plotManager)
     {
+        Manager = plotManager;
         var pageName = plotManager.CurrentPlot.Title;
-        IEnumerable<string> dataTxt = plotManager.CurrentPlot.Content.ToString().Split("\n");
+        plotManager.CurrentPlot.Content.ToString().Split("\n");
         // 用来将章节名称替换成prts页面地址
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
             .Replace(" 幕间", "/NBT");
         //.Replace(" ", "_");
-        PlotText = dataTxt.ToList();
+        textList = Manager.CurrentPlot.TextVariants;
     }
-
-    public List<string> PlotText { get; }
 
     public void ParseAndCollectAssets()
     {
-        foreach (var txt in PlotText)
+        foreach (var entry in textList)
         {
-            if (string.IsNullOrWhiteSpace(txt) || txt.TrimStart().StartsWith("//")) continue;
+            if (string.IsNullOrWhiteSpace(entry.OriginalText) || entry.OriginalText.TrimStart().StartsWith("//")) continue;
 
             OverrideCurrentText();
-            var match = ArkPlotRegs.UniversalTagsRegex().Match(txt);
+            var match = ArkPlotRegs.UniversalTagsRegex().Match(entry.OriginalText);
             if (!match.Success) continue;
 
-            // Assigning named results based on your description
             // var matchedWhole = match.Groups[0].Value; // The entire matched string
             var matchedTag = match.Groups[1].Value;
+            entry.Type = matchedTag;
             var matchedCommands = match.Groups[2].Value;
-            // var matchedTagOnly = match.Groups[3].Value; 
-            // var matchedDialog = match.Groups[4].Value; 
+            var matchedTagOnly = match.Groups[3].Value;
+            entry.IsTagOnly = !string.IsNullOrEmpty(matchedTagOnly);
+            var matchedDialog = match.Groups[4].Value;
+            entry.Dialog = matchedDialog;
 
-            if (!string.IsNullOrEmpty(matchedTag)) ProcessCommand(matchedTag.ToLower(), matchedCommands);
+            if (!string.IsNullOrEmpty(matchedTag))
+            {
+                entry.CommandSet = ProcessCommand(matchedTag.ToLower(), matchedCommands, out List<string> urlList);
+                entry.Urls = urlList;
+            }
             counter++;
         }
     }
 
-    private void ProcessCommand(string command, string parameters)
+    private StringDict ProcessCommand(string command, string parameters, out List<string> urls)
     {
         var commandDict = parameters.ToCommandSet();
         commandDict["type"] = command;
+        urls = new();
         switch (command)
         {
             case "background":
             case "image":
             case "showitem":
-                ProcessImageCommand(commandDict);
+                urls =ProcessImageCommand(commandDict);
                 break;
             // Additional command processing as needed
             case "backgroundtween":
@@ -90,19 +98,20 @@ public class PrtsPreloader
             case "character":
             case "charactercutin":
             case "charslot":
-                ProcessPortraitCommand(commandDict);
+                urls = ProcessPortraitCommand(commandDict);
                 break;
             case "gridbg":
             case "verticalbg":
             case "largebg":
             case "largeimg":
-                ProcessLargeImageCommand(commandDict);
+                urls = ProcessLargeImageCommand(commandDict);
                 break;
             case "playmusic":
             case "playsound":
-                ProcessSoundsCommand(commandDict);
+                urls = ProcessSoundsCommand(commandDict);
                 break;
         }
+        return commandDict;
     }
 
     private void OverrideCurrentText()
@@ -133,10 +142,10 @@ public class PrtsPreloader
         if (!isCurrentTextNeedOverride) return;
         // Check if overrides exist for the current page and counter
         if (isCurrentTextNeedOverride && lineOverrides.ValueKind == JsonValueKind.Object)
-            PlotText[counter] = lineOverrides.EnumerateObject().First().ToString();
+            textList[counter].OriginalText = lineOverrides.EnumerateObject().First().ToString();
     }
 
-    private void ProcessImageCommand(StringDict commandDict)
+    private List<string> ProcessImageCommand(StringDict commandDict)
     {
         GetImagesToOverride(commandDict);
 
@@ -146,21 +155,22 @@ public class PrtsPreloader
         var prefix = isBg ? "bg_" : "";
         var key = commandDict.ContainsKey("image") ? prefix + commandDict["image"].ToLower() : string.Empty;
 
-        if (string.IsNullOrEmpty(key)) return; // Skip if key is not valid
+        if (string.IsNullOrEmpty(key)) return new List<string>(); // Skip if key is not valid
 
         if (!prts.Res.DataImage.ContainsKey(key))
         {
             // Log or handle the error where the key does not exist
             Console.WriteLine($"<image> Linked key [{key}] not exist.");
-            return;
+            return new List<string>();
         }
 
         // Adding the resolved image asset to assets
         var url = prts.Res.DataImage[key];
         Assets.Add(new ResItem(key, url));
+        return new List<string>{url};
     }
 
-    private void ProcessPortraitCommand(StringDict commandDict)
+    private List<string> ProcessPortraitCommand(StringDict commandDict)
     {
         GetCharactersToOverride(commandDict);
 
@@ -169,19 +179,24 @@ public class PrtsPreloader
         if (commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
             names.Add(name2.ToLower());
 
+        List<string> urls = new();
         foreach (var characterName in names)
         {
             // Placeholder for character asset key retrieval or formatting logic
             var url = prts.GetPortraitUrl(
                 characterName); // Assume this method resolves the asset key based on characterName
+            urls.Add(url);
             Assets.Add(new ResItem(characterName, url));
         }
+
+        return urls;
     }
 
-    private void ProcessLargeImageCommand(StringDict commandDict)
+    private List<string> ProcessLargeImageCommand(StringDict commandDict)
     {
+        List<string> urls = new();
         if (!commandDict.TryGetValue("imagegroup",
-                out var imageGroupValue)) return; // No image group specified, nothing to process
+                out var imageGroupValue)) return urls; // No image group specified, nothing to process
 
         // Splitting the imageGroupValue into individual image keys
         var images = imageGroupValue.Split('/');
@@ -204,6 +219,7 @@ public class PrtsPreloader
                 Console.WriteLine($"<{commandDict["type"]}> Linked key [{key}] not exist.");
             }
         }
+        return urls;
     }
 
     private void GetTweensToOverride(StringDict commandDict)
@@ -232,13 +248,14 @@ public class PrtsPreloader
                 commandDict[itemToOverride] = property.Value.GetString() ?? originalValue;
             }
 
-            PlotText[counter] = SerializeCommandDict(commandDict);
+            textList[counter].OriginalText = SerializeCommandDict(commandDict);
         }
     }
 
-    private void ProcessSoundsCommand(StringDict commandDict)
+    private List<string> ProcessSoundsCommand(StringDict commandDict)
     {
         List<string> audioKeys = new();
+        List<string> urls = new();
 
         // If the command is "playmusic" and an intro is specified, add it to the list
         if (commandDict["type"] == "playmusic" && commandDict.TryGetValue("intro", out var intro)) audioKeys.Add(intro);
@@ -250,11 +267,15 @@ public class PrtsPreloader
         {
             var audioUrl = prts.GetRealAudioUrl(audioKey);
             if (!string.IsNullOrWhiteSpace(audioUrl))
+            {
+                urls.Add(audioUrl);
                 Assets.Add(new ResItem(audioKey, audioUrl));
+            }
             else
                 // Log or handle the error where the audio URL does not exist
                 Console.WriteLine($"<audio> Linked key [{audioKey}] not exist.");
         }
+        return urls;
     }
 
     private void GetCharactersToOverride(StringDict commandDict)
@@ -286,7 +307,7 @@ public class PrtsPreloader
                 commandDict["name2"] = isName2Exists ? name2.ToString() : originalValue2;
             }
 
-            PlotText[counter] = SerializeCommandDict(commandDict);
+            textList[counter].OriginalText = SerializeCommandDict(commandDict);
         }
     }
 
@@ -324,7 +345,7 @@ public class PrtsPreloader
                 commandDict[itemToOverride] = property.Value.GetString() ?? originalValue;
             }
 
-            PlotText[counter] = SerializeCommandDict(commandDict);
+            textList[counter].OriginalText = SerializeCommandDict(commandDict);
         }
     }
 

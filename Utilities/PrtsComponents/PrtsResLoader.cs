@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArkPlotWpf.Services;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
@@ -47,8 +48,33 @@ public class PrtsResLoader
 
     private static async Task DownloadFileAsync(HttpClient httpClient, string url, string fullPath)
     {
-        var content = await httpClient.GetByteArrayAsync(url);
-        await File.WriteAllBytesAsync(fullPath, content);
-        Console.WriteLine($"Downloaded: {url} to {fullPath}");
+        var notice = NotificationBlock.Instance;
+        try
+        {
+            var content = await httpClient.GetByteArrayAsync(url);
+            await File.WriteAllBytesAsync(fullPath, content);
+            notice.RaiseCommonEvent($"Downloaded: {url} to {fullPath}");
+        }
+        catch (HttpRequestException httpEx)
+        {
+            // 处理网络请求相关的异常
+            notice.OnNetErrorHappen(new NetworkErrorEventArgs(
+                $"An error occurred while downloading {url}. Error: {httpEx.Message}" 
+            ));
+        }
+        catch (IOException ioEx)
+        {
+            // 处理文件写入相关的异常
+            notice.OnNetErrorHappen(new NetworkErrorEventArgs(
+                $"An error occurred while writing to {fullPath}. Error: {ioEx.Message}" 
+            ));
+        }
+        catch (Exception ex)
+        {
+            // 处理其他可能发生的异常
+            notice.OnNetErrorHappen(new NetworkErrorEventArgs(
+                $"An unexpected error occurred. Error: {ex.Message}" 
+            ));
+        }
     }
 }

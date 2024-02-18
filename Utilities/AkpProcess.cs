@@ -8,7 +8,7 @@ namespace ArkPlotWpf.Utilities;
 internal abstract class AkpProcessor
 {
     /// <summary>
-    /// 将一组剧情导出为 Markdown 文件。
+    /// 将一组剧情导出为 Markdown 文本。
     /// </summary>
     /// <param name="plotList">要导出的剧情列表。</param>
     /// <param name="jsonPath">包含替换规则的 json 文件。</param>

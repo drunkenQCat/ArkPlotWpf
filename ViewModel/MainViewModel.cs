@@ -13,7 +13,6 @@ using ArkPlotWpf.Utilities.ArknightsDbComponents;
 using ArkPlotWpf.Utilities.PrtsComponents;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 using ArkPlotWpf.Utilities.WorkFlow;
-using ArkPlotWpf.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -159,7 +158,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         else
         {
-            await Task.Run(() => contentLoader.GetPreloadInfo());
+            await Task.Run(contentLoader.GetPreloadInfo);
         }
     }
 

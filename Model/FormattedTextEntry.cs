@@ -8,4 +8,8 @@ public class FormattedTextEntry
     public string TypText = "";
     public string Type = "";
     public StringDict CommandSet = new();
+    public bool IsTagOnly { get; set; }
+    public List<string> Urls = new List<string>();
+
+    public string Dialog = "";
 }
