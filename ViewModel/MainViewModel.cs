@@ -9,6 +9,8 @@ using System.Windows.Data;
 using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities;
 using ArkPlotWpf.Utilities.PrtsComponents;
+using ArkPlotWpf.Utilities.TagProcessingComponents;
+using ArkPlotWpf.Utilities.WorkFlow;
 using ArkPlotWpf.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -76,7 +78,7 @@ public partial class MainWindowViewModel : ObservableObject
         var exportMd = await ExportPlots(allPlots);
         var mdWithTitle = "# " + activeTitle + "\r\n\r\n" + exportMd;
         if (Directory.Exists(outputPath) == false) Directory.CreateDirectory(outputPath);
-        var markdown = new Plot(activeTitle!, new StringBuilder(mdWithTitle));
+        var markdown = new PlotManager(activeTitle!, new StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPath, markdown);
         if (IsLocalResChecked)
             AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
@@ -106,7 +108,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     public async Task<string> LoadSingleMd()
     {
-        List<Plot> allPlots;
+        List<PlotManager> allPlots;
         var plotsJsonFile = new FileInfo("C:\\TechnicalProjects\\ArkPlot\\ArkPlotWpf\\all_plots.json");
         if (!plotsJsonFile.Exists)
         {
@@ -122,12 +124,12 @@ public partial class MainWindowViewModel : ObservableObject
         {
             // 从文件中读取JSON字符串并反序列化
             var plotJson = await File.ReadAllTextAsync(plotsJsonFile.FullName);
-            allPlots = JsonConvert.DeserializeObject<List<Plot>>(plotJson)!; // 使用Newtonsoft.Json进行反序列化
+            allPlots = JsonConvert.DeserializeObject<List<PlotManager>>(plotJson)!; // 使用Newtonsoft.Json进行反序列化
         }
 
         var testPlot = allPlots.First();
-        var title = testPlot.Title;
-        return title + "\n" + testPlot.Content;
+        var title = testPlot.CurrentPlot.Title;
+        return title + "\n" + testPlot.CurrentPlot.Content;
     }
 
     private void ClearConsoleOutput()
@@ -135,7 +137,7 @@ public partial class MainWindowViewModel : ObservableObject
         ConsoleOutput = ""; //先清空这片区域
     }
 
-    private async Task<string> ExportPlots(List<Plot> allPlots)
+    private async Task<string> ExportPlots(List<PlotManager> allPlots)
     {
         var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots, jsonPath));
         return output;
@@ -157,9 +159,9 @@ public partial class MainWindowViewModel : ObservableObject
         var currentTokens = actsTable.GetStories(type);
         currentActInfos =
             (from act in currentTokens
-                let name = act["name"]!.ToString()
-                let info = new ActInfo(language, storyType, name, act)
-                select info
+             let name = act["name"]!.ToString()
+             let info = new ActInfo(language, storyType, name, act)
+             select info
             ).ToList();
         StoriesNames = CollectionViewSource.GetDefaultView(
             from info in currentActInfos

@@ -11,17 +11,17 @@ public class TypstRenderer
     private TypstRenderer(string name, string code)
     {
         chapterName = name;
-        File.WriteAllText(typPath, code);
+        File.WriteAllText(TypPath, code);
     }
 
     private TypstRenderer(TypstTranslator trans)
     {
         chapterName = trans.ChapterName;
         // 在构造函数中将 typst 代码写入 output 文件夹。
-        File.WriteAllText(typPath, trans.TypCode);
+        File.WriteAllText(TypPath, trans.TypCode);
     }
 
-    private string typPath => $".\\output\\{chapterName}.typ";
+    private string TypPath => $".\\output\\{chapterName}.typ";
 
     // 这个方法用来渲染 typst 代码为图片。
     public void Render()
@@ -30,7 +30,7 @@ public class TypstRenderer
         var command = "typst";
 
         // 设置命令行参数
-        var args = $"c -f png --ppi 72 '{typPath}' \"pic{{n}}.png\"";
+        var args = $"c -f png --ppi 72 '{TypPath}' \"pic{{n}}.png\"";
 
         // 创建一个新的进程
         var startInfo = new ProcessStartInfo

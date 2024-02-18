@@ -2,10 +2,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities.PrtsComponents;
+using ArkPlotWpf.Utilities.TagProcessingComponents;
 using Newtonsoft.Json.Linq;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.WorkFlow;
 
 /// <summary>
 /// 从GitHub获取明日方舟各个章节数据的类。
@@ -29,7 +30,7 @@ internal class AkpStoryLoader
     /// <summary>
     /// 当前，活动内所有章节的内容。
     /// </summary>
-    public List<Plot> ContentTable { get; private set; } = new();
+    public List<PlotManager> ContentTable { get; private set; } = new();
 
     /// <summary>
     /// 获取GitHub 上对应本次活动的 RAW 数据URL的开头。
@@ -56,7 +57,9 @@ internal class AkpStoryLoader
             {
                 var content = await NetworkUtility.GetAsync(chapter.Value);
                 notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                ContentTable.Add(new Plot(chapter.Key, new StringBuilder(content)));
+                var plot = new PlotManager(chapter.Key, new StringBuilder(content));
+                plot.InitializePlot();
+                ContentTable.Add(plot);
             }
 
             tasks.Add(GetSingleChapter());
@@ -65,7 +68,7 @@ internal class AkpStoryLoader
         await Task.WhenAll(tasks);
         ContentTable = ContentTable.OrderBy(plot =>
         {
-            var index = chapterUrlTable.Keys.ToList().IndexOf(plot.Title);
+            var index = chapterUrlTable.Keys.ToList().IndexOf(plot.CurrentPlot.Title);
             return index;
         }).ToList();
     }

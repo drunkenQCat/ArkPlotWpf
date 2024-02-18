@@ -6,4 +6,6 @@ public class FormattedTextEntry
     public string OriginalText = "";
     public string MdText = "";
     public string TypText = "";
+    public string Type = "";
+    public StringDict CommandSet = new();
 }

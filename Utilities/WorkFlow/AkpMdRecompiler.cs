@@ -6,7 +6,7 @@ using CharPortrait = System.Collections.Generic.Dictionary<string, string>;
 using SList = System.Collections.Generic.List<string>;
 using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<string>>;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.WorkFlow;
 
 /// <summary>
 /// MdReconstructor 类用于构建和重构 Markdown 格式文档，通过解析原始文本、处理角色立绘标记、

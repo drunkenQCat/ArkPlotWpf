@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using ArkPlotWpf.Data;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Utilities.TagProcessingComponents;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
 using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
 
@@ -31,10 +32,10 @@ public class PrtsPreloader
         PlotText = dataTxt.ToList();
     }
 
-    public PrtsPreloader(Plot plot)
+    public PrtsPreloader(PlotManager plotManager)
     {
-        var pageName = plot.Title;
-        IEnumerable<string> dataTxt = plot.Content.ToString().Split("\n");
+        var pageName = plotManager.CurrentPlot.Title;
+        IEnumerable<string> dataTxt = plotManager.CurrentPlot.Content.ToString().Split("\n");
         // 用来将章节名称替换成prts页面地址
         Page = pageName.Trim()
             .Replace(" 行动后", "/END")

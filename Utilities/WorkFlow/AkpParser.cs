@@ -1,7 +1,7 @@
 using System.Linq;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Utilities.WorkFlow;
 
 /// <summary>
 /// AkpParser 类用于解析明日方舟剧情文本文件，并将其转换为 Markdown 文件。
