@@ -49,8 +49,9 @@ internal class AkpStoryLoader
     /// 下载所有章节的文本。
     /// </summary>
     /// <returns>表示异步操作的任务。</returns>
-    public async Task GetAllChapters()
+    public async Task GetAllChapters(string jsonPath)
     {
+        var parser = new AkpParser(jsonPath);
         var chapterUrlTable = GetChapterUrls();
         foreach (var chapter in chapterUrlTable)
         {
@@ -58,7 +59,7 @@ internal class AkpStoryLoader
             {
                 var content = await NetworkUtility.GetAsync(chapter.Value);
                 notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                var plot = new PlotManager(chapter.Key, new StringBuilder(content));
+                var plot = new PlotManager(chapter.Key, new StringBuilder(content), parser);
                 plot.InitializePlot();
                 ContentTable.Add(plot);
             }

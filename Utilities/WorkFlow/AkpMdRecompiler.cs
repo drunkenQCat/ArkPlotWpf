@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ public class MdReconstructor
     /// <param name="md">原始的 Markdown 文本。</param>
     public MdReconstructor(string md)
     {
-        lineList = new SList(md.Split("\r\n"));
+        lineList = new SList(md.Split(new []{"\r\n", "\n"}, StringSplitOptions.None));
         RemoveEmptyLines();
         GroupLinesBySegment();
         ProcessPortraits();

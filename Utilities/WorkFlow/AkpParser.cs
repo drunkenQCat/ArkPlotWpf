@@ -1,4 +1,5 @@
 using System.Linq;
+using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 
 namespace ArkPlotWpf.Utilities.WorkFlow;
@@ -6,15 +7,14 @@ namespace ArkPlotWpf.Utilities.WorkFlow;
 /// <summary>
 /// AkpParser 类用于解析明日方舟剧情文本文件，并将其转换为 Markdown 文件。
 /// </summary>
-internal class AkpParser
+public class AkpParser
 {
 
     private readonly TagProcessor tagProcessor;
-    StringBuilder plotBuilder = new();
-    DuplicateLineTracker prevLine = new(SeparateLine);
+    private List<FormattedTextEntry> allEntries;
     const string SeparateLine = "---";
-    private readonly List<DuplicateLineTracker> linesCollection = new();
 
+    DuplicateLineTracker prevLine = new(SeparateLine);
     public AkpParser(string jsonPath)
     {
         tagProcessor = new();
@@ -24,46 +24,33 @@ internal class AkpParser
     /// <summary>
     /// 根据输入的剧情文本构建 Markdown 文档。
     /// </summary>
-    /// <param name="inputBuilder">包含剧情文本的 StringBuilder 对象。</param>
-    public void BuildMarkdown(StringBuilder inputBuilder)
+    /// <param name="formattedTextEntries"></param>
+    /// <param name="lines">包含剧情文本的 StringBuilder 对象。</param>
+    public void InitializeParser(List<FormattedTextEntry> formattedTextEntries)
     {
-        var lines = inputBuilder.ToString().Split("\n");
+        allEntries = formattedTextEntries;
         // 每一章的第一个有效句一定是分隔线
         prevLine = new(SeparateLine);
-        InitializeBuilder(inputBuilder);
-
-        foreach (var line in lines)
-        {
-            ProcessSingleLine(line);
-        }
-
-        var output = from l in linesCollection
-                     select l.Line;
-        var reconstructor = new MdReconstructor(output);
-        reconstructor.AppendResultToBuilder(plotBuilder);
+        // foreach (var line in lines)
+        // {
+        //     line.MdText = ProcessSingleLine(line);
+        // }
     }
 
     /// <summary>
     /// 初始化 Markdown 构建器。会将 plot builder 的地址转移为 input builder 的地址, 并清空 plot builder。随后清空 lines need url。
     /// </summary>
     /// <param name="inputBuilder">输入的字符串构建器。</param>
-    private void InitializeBuilder(StringBuilder inputBuilder)
-    {
-        plotBuilder = inputBuilder;
-        plotBuilder.Clear();
-        linesCollection.Clear();
-    }
-
-    private void ProcessSingleLine(string line)
+    public string ProcessSingleLine(string line)
     {
         var classifiedLine = ClassifyAndProcess(line);
         DuplicateLineTracker currentLine = new(classifiedLine);
-        
-        if (IsDupOrEmptyLine(currentLine)) return;
-        
+
+        if (IsDupOrEmptyLine(currentLine)) return "";
+
         var newline = CombineDuplicateLines(currentLine);
         prevLine = currentLine;
-        AppendAndDetectLinesNeedUrl(newline);
+        return newline.Line;
     }
 
     /// <summary>
@@ -98,39 +85,6 @@ internal class AkpParser
         newLine.Line.TrimEnd();
         newLine.Line = prevLine.Line + " × " + newLine.Counter;
         return newLine;
-    }
-
-    /// <summary>
-    /// 将新行添加到集合中，并检测需要URL的行。
-    /// </summary>
-    /// <param name="newLine">要添加和处理的行。这是一个<see cref="DuplicateLineTracker"/>实例，
-    /// 用于跟踪潜在重复行的出现次数和内容。</param>
-    /// <remarks>
-    /// 此方法处理提供的<paramref name="newLine"/>，以确定它或其部分是否需要关联的URL。
-    /// 如果行不是以换行符('\n')开头，它将直接被添加到<c>linesCollection</c>集合中。
-    /// 如果行以换行符开头，则根据换行符将其分割成子行，并将每个子行作为新的<see cref="DuplicateLineTracker"/>实例
-    /// 添加到<c>linesCollection</c>集合中。
-    /// </remarks>
-    /// <example>
-    /// 这里是如何调用<c>AppendAndDetectLinesNeedUrl</c>的示例：
-    /// <code>
-    /// var tracker = new DuplicateLineTracker("示例行\n另一行");
-    /// AppendAndDetectLinesNeedUrl(tracker);
-    /// </code>
-    /// 这将把"示例行"和"另一行"添加到<c>linesCollection</c>集合中，假设这些行需要URL。
-    /// </example>
-    private void AppendAndDetectLinesNeedUrl(DuplicateLineTracker newLine)
-    {
-        if (newLine.Line[0] != '\n')
-        {
-            linesCollection.Add(newLine);
-            return;
-        }
-        var newLineSplited = newLine.Line.TrimStart().Split('\n');
-        foreach (string s in newLineSplited)
-        {
-            linesCollection.Add(new DuplicateLineTracker(s));
-        }
     }
 
     /// <summary>

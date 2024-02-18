@@ -5,6 +5,7 @@ public class FormattedTextEntry
     public int Index;
     public string OriginalText = "";
     public string MdText = "";
+    public int MdDuplicateCounter = 0;
     public string TypText = "";
     public string Type = "";
     public StringDict CommandSet = new();

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 using ArkPlotWpf.Utilities.WorkFlow;
 using Markdig;
@@ -11,17 +12,18 @@ internal abstract class AkpProcessor
     /// 将一组剧情导出为 Markdown 文本。
     /// </summary>
     /// <param name="plotList">要导出的剧情列表。</param>
-    /// <param name="jsonPath">包含替换规则的 json 文件。</param>
     /// <returns>表示导出的 Markdown 内容的字符串。</returns>
-    public static string ExportPlots(List<PlotManager> plotList, string jsonPath)
+    public static string ExportPlots(List<PlotManager> plotList)
     {
         var md = new StringBuilder();
-        var parser = new AkpParser(jsonPath);
         foreach (var chapter in plotList)
         {
-            md.AppendLine($"## {chapter.CurrentPlot.Title}");
-            parser.BuildMarkdown(chapter.CurrentPlot.Content);
-            md.Append(chapter.CurrentPlot.Content);
+            var textList = chapter.CurrentPlot.TextVariants;
+            var firstLine = textList[0].MdText;
+            textList[0].MdText = $"## {chapter.CurrentPlot.Title}\r\n\r\n" + firstLine;
+            var rawMd = chapter.ExportMd();
+            var reconstructor = new MdReconstructor(rawMd);
+            reconstructor.AppendResultToBuilder(md);
         }
 
         return md.ToString();
@@ -32,10 +34,10 @@ internal abstract class AkpProcessor
     /// </summary>
     /// <param name="path">要写入 Markdown 文件的路径。</param>
     /// <param name="markdown">要写入为 Markdown 的 Plot 对象。</param>
-    public static void WriteMd(string path, PlotManager markdown)
+    public static void WriteMd(string path, Plot markdown)
     {
-        var mdOutPath = path + "\\" + markdown.CurrentPlot.Title + ".md";
-        File.WriteAllText(mdOutPath, markdown.CurrentPlot.Content.ToString());
+        var mdOutPath = path + "\\" + markdown.Title + ".md";
+        File.WriteAllText(mdOutPath, markdown.Content.ToString());
     }
 
     /// <summary>
@@ -43,11 +45,11 @@ internal abstract class AkpProcessor
     /// </summary>
     /// <param name="path">保存 HTML 文件的路径。</param>
     /// <param name="markdown">包含 markdown 内容的 Plot 对象。</param>
-    public static void WriteHtml(string path, PlotManager markdown)
+    public static void WriteHtml(string path, Plot markdown)
     {
-        var htmlPath = path + "\\" + markdown.CurrentPlot.Title + ".html";
+        var htmlPath = path + "\\" + markdown.Title + ".html";
         var htmlContent = GetHtmlContent(markdown);
-        var result = FormatHtmlBody(htmlContent, markdown.CurrentPlot.Title);
+        var result = FormatHtmlBody(htmlContent, markdown.Title);
         File.WriteAllText(htmlPath, result);
     }
 
@@ -56,12 +58,12 @@ internal abstract class AkpProcessor
     /// </summary>
     /// <param name="path">html 文件路径。</param>
     /// <param name="markdown">要转换为HTML的Plot对象。</param>
-    public static void WriteHtmlWithLocalRes(string path, PlotManager markdown)
+    public static void WriteHtmlWithLocalRes(string path, Plot markdown)
     {
-        var htmlPath = path + "\\" + markdown.CurrentPlot.Title + ".html";
+        var htmlPath = path + "\\" + markdown.Title + ".html";
         var htmlContent = GetHtmlContent(markdown);
         var htmlWithLocalRes = htmlContent.Replace("https://", "");
-        var result = FormatHtmlBody(htmlWithLocalRes, markdown.CurrentPlot.Title);
+        var result = FormatHtmlBody(htmlWithLocalRes, markdown.Title);
         File.WriteAllText(htmlPath, result);
     }
 
@@ -70,7 +72,7 @@ internal abstract class AkpProcessor
     /// </summary>
     /// <param name="markdown">包含 Markdown 内容的 Plot 对象。</param>
     /// <returns>Markdown 内容的 HTML 表示。</returns>
-    private static string GetHtmlContent(PlotManager markdown)
+    private static string GetHtmlContent(Plot markdown)
     {
         var pipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
@@ -78,7 +80,7 @@ internal abstract class AkpProcessor
         new MarkdownPipelineBuilder()
             .UseAdvancedExtensions() // Add most of all advanced extensions
             .Build();
-        return Markdown.ToHtml(markdown.CurrentPlot.Content.ToString(), pipeline);
+        return Markdown.ToHtml(markdown.Content.ToString(), pipeline);
     }
 
     /// <summary>

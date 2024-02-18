@@ -24,7 +24,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly ReviewTableParser actsTable = new();
 
-    private readonly NotificationBlock notiBlock = NotificationBlock.Instance;
+    private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
 
     [ObservableProperty] private string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
@@ -77,12 +77,12 @@ public partial class MainWindowViewModel : ObservableObject
         try
         {
             await prts.GetAllData();
-            notiBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
+            noticeBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
         }
         catch (Exception)
         {
             var s = "\r\n网络错误，无法加载资源文件。\r\n";
-            notiBlock.RaiseCommonEvent(s);
+            noticeBlock.RaiseCommonEvent(s);
             MessageBox.Show(s);
         }
     }
@@ -94,13 +94,13 @@ public partial class MainWindowViewModel : ObservableObject
         {
             language = lang;
             await Task.Run(() => actsTable.Lang = lang);
-            notiBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
+            noticeBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
             LoadActs(storyType);
         }
         catch (Exception)
         {
             var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
-            notiBlock.RaiseCommonEvent(s);
+            noticeBlock.RaiseCommonEvent(s);
             MessageBox.Show(s);
         }
     }
@@ -138,22 +138,22 @@ public partial class MainWindowViewModel : ObservableObject
     {
         IsInitialized = false;
         ClearConsoleOutput();
-        notiBlock.RaiseCommonEvent("初始化加载...");
+        noticeBlock.RaiseCommonEvent("初始化加载...");
     }
 
     private async Task LoadAllChapters(AkpStoryLoader contentLoader)
     {
         activeTitle = CurrentAct.Tokens["name"]?.ToString();
-        await contentLoader.GetAllChapters();
-        notiBlock.RaiseCommonEvent("章节加载完成。");
+        await contentLoader.GetAllChapters(jsonPath);
+        noticeBlock.RaiseCommonEvent("章节加载完成。");
     }
 
     private async Task PreloadResources(AkpStoryLoader contentLoader)
     {
-        notiBlock.RaiseCommonEvent("正在预加载资源....");
+        noticeBlock.RaiseCommonEvent("正在预加载资源....");
         if (IsLocalResChecked)
         {
-            notiBlock.RaiseCommonEvent("正在下载资源....");
+            noticeBlock.RaiseCommonEvent("正在下载资源....");
             await contentLoader.PreloadAssetsForAllChapters();
         }
         else
@@ -164,7 +164,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async Task ProcessTextAndExport(AkpStoryLoader contentLoader)
     {
-        notiBlock.RaiseCommonEvent("正在处理文本....");
+        noticeBlock.RaiseCommonEvent("正在处理文本....");
         var exportMd = await ExportPlots(contentLoader.ContentTable);
         var mdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + exportMd;
         SaveExportedContent(mdWithTitle);
@@ -173,7 +173,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void SaveExportedContent(string mdWithTitle)
     {
         if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
-        var markdown = new PlotManager(activeTitle ?? "", new StringBuilder(mdWithTitle));
+        var markdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPath, markdown);
         if (IsLocalResChecked)
             AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
@@ -216,7 +216,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (!plotsJsonFile.Exists)
         {
             var content = new AkpStoryLoader(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
-            await content.GetAllChapters();
+            await content.GetAllChapters(jsonPath);
             allPlots = content.ContentTable;
             var plotJson = JsonConvert.SerializeObject(allPlots, Formatting.Indented); // 使用Newtonsoft.Json进行序列化
 
@@ -242,7 +242,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async Task<string> ExportPlots(List<PlotManager> allPlots)
     {
-        var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots, jsonPath));
+        var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots));
         return output;
     }
 
@@ -256,12 +256,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void SubscribeCommonNotification()
     {
-        notiBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\r\n{args}";
+        noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\r\n{args}";
     }
 
     private void SubscribeNetErrorNotification()
     {
-        notiBlock.NetErrorHappen += (_, args) =>
+        noticeBlock.NetErrorHappen += (_, args) =>
         {
             var s = $"\r\n网络错误：{args.Message}，请确认是否连接代理？";
             ConsoleOutput += s;
@@ -271,7 +271,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void SubscribeLineNoMatchNotification()
     {
-        notiBlock.LineNoMatch += (_, args) =>
+        noticeBlock.LineNoMatch += (_, args) =>
         {
             var s = $"\r\n警告：请检查tags.json中{args.Tag}是否存在？\r\n出错的句子：" + args.Line;
             ConsoleOutput += s;
@@ -280,7 +280,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void SubscribeChapterLoadedNotification()
     {
-        notiBlock.ChapterLoaded += (_, args) =>
+        noticeBlock.ChapterLoaded += (_, args) =>
         {
             var s = "\r\n" + args.Title.ToString() + "已加载";
             ConsoleOutput += s;
