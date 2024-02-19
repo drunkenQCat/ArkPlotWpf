@@ -14,7 +14,7 @@ public class StringDict : Dictionary<string, string>
     {
     }
 
-    private StringDict(Dictionary<string, string> dictionary) : base(dictionary)
+    public StringDict(IDictionary<string, string> dictionary) : base(dictionary)
     {
     }
 

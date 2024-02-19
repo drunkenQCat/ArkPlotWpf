@@ -13,4 +13,22 @@ public class FormattedTextEntry
     public List<string> Urls = new List<string>();
 
     public string Dialog = "";
+
+    public FormattedTextEntry(FormattedTextEntry entry)
+    {
+        Index = entry.Index;
+        OriginalText = entry.OriginalText;
+        MdText = entry.MdText;
+        MdDuplicateCounter = entry.MdDuplicateCounter;
+        TypText = entry.TypText;
+        Type = entry.Type;
+        CommandSet = new(entry.CommandSet);
+        IsTagOnly = entry.IsTagOnly;
+        Urls = new(entry.Urls);
+        Dialog = entry.Dialog;
+    }
+
+    public FormattedTextEntry()
+    {
+    }
 }

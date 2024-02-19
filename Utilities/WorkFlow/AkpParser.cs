@@ -11,10 +11,11 @@ public class AkpParser
 {
 
     private readonly TagProcessor tagProcessor;
-    private List<FormattedTextEntry> allEntries;
+    private List<FormattedTextEntry> allEntries = new();
     const string SeparateLine = "---";
+    public bool IsInitialized = false;
 
-    DuplicateLineTracker prevLine = new(SeparateLine);
+    FormattedTextEntry prevLine = new() { MdText = SeparateLine };
     public AkpParser(string jsonPath)
     {
         tagProcessor = new();
@@ -22,35 +23,35 @@ public class AkpParser
     }
 
     /// <summary>
-    /// 根据输入的剧情文本构建 Markdown 文档。
+    /// 在每一章开始解析之前，初始化解析器
     /// </summary>
-    /// <param name="formattedTextEntries"></param>
-    /// <param name="lines">包含剧情文本的 StringBuilder 对象。</param>
+    /// <param name="formattedTextEntries">包含剧情文本的 FormattedTextEntries 对象。</param>
     public void InitializeParser(List<FormattedTextEntry> formattedTextEntries)
     {
         allEntries = formattedTextEntries;
         // 每一章的第一个有效句一定是分隔线
-        prevLine = new(SeparateLine);
-        // foreach (var line in lines)
-        // {
-        //     line.MdText = ProcessSingleLine(line);
-        // }
+        prevLine = new FormattedTextEntry { MdText = SeparateLine };
+        IsInitialized = true;
     }
 
     /// <summary>
     /// 初始化 Markdown 构建器。会将 plot builder 的地址转移为 input builder 的地址, 并清空 plot builder。随后清空 lines need url。
     /// </summary>
     /// <param name="inputBuilder">输入的字符串构建器。</param>
-    public string ProcessSingleLine(string line)
+    public string ProcessSingleLine(FormattedTextEntry line)
     {
-        var classifiedLine = ClassifyAndProcess(line);
-        DuplicateLineTracker currentLine = new(classifiedLine);
+        var classifiedLine = ClassifyAndProcess(line.OriginalText);
+        /* FormattedTextEntry currentLine = new(classifiedLine); */
+        FormattedTextEntry currentLine = new(line)
+        {
+            MdText = classifiedLine
+        };
 
         if (IsDupOrEmptyLine(currentLine)) return "";
 
         var newline = CombineDuplicateLines(currentLine);
         prevLine = currentLine;
-        return newline.Line;
+        return newline.MdText;
     }
 
     /// <summary>
@@ -67,48 +68,26 @@ public class AkpParser
         return result;
     }
 
-    bool IsDupOrEmptyLine(DuplicateLineTracker newLine)
+    bool IsDupOrEmptyLine(FormattedTextEntry newLine)
     {
-        if (newLine.Line == "") return true;
-        if (newLine.Line != prevLine.Line) return false;
-        newLine.Counter++;
+        if (newLine.MdText == "") return true;
+        if (newLine.MdText != prevLine.MdText) return false;
+        newLine.MdDuplicateCounter++;
         return true;
     }
 
-    DuplicateLineTracker CombineDuplicateLines(DuplicateLineTracker currentLine)
+    FormattedTextEntry CombineDuplicateLines(FormattedTextEntry currentLine)
     {
-        if (currentLine.Counter <= 1 || prevLine.Line == SeparateLine) return currentLine;
+        if (currentLine.MdDuplicateCounter <= 1 || prevLine.MdText == SeparateLine) return currentLine;
         // 先对输入量深拷贝。
-        DuplicateLineTracker newLine = new(currentLine.Line);
-        newLine.Counter = currentLine.Counter;
-        // 合并重复的行数，比如: 音效：sword x 5
-        newLine.Line.TrimEnd();
-        newLine.Line = prevLine.Line + " × " + newLine.Counter;
-        return newLine;
-    }
-
-    /// <summary>
-    /// Represents a tracker for duplicate lines.
-    /// </summary>
-    private class DuplicateLineTracker
-    {
-        /// <summary>
-        /// Gets or sets the line being tracked.
-        /// </summary>
-        public string Line;
-
-        /// <summary>
-        /// Gets or sets the counter for the number of duplicates.
-        /// </summary>
-        public int Counter = 1;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DuplicateLineTracker"/> class with the specified line.
-        /// </summary>
-        /// <param name="line">The line to be tracked.</param>
-        public DuplicateLineTracker(string line)
+        /* FormattedTextEntry newLine = new(currentLine.MdText); */
+        FormattedTextEntry newLine = new(currentLine)
         {
-            Line = line;
-        }
+            MdDuplicateCounter = currentLine.MdDuplicateCounter
+        };
+        // 合并重复的行数，比如: 音效：sword x 5
+        newLine.MdText.TrimEnd();
+        newLine.MdText = prevLine.MdText + " × " + newLine.MdDuplicateCounter;
+        return newLine;
     }
 }

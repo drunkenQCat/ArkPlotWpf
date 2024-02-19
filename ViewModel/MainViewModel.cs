@@ -130,7 +130,8 @@ public partial class MainWindowViewModel : ObservableObject
         var content = new AkpStoryLoader(CurrentAct);
         await LoadAllChapters(content);
         await PreloadResources(content);
-        await ProcessTextAndExport(content);
+        await StartParseDocuments(content);
+        await ExportDocuments(content);
         CompleteLoading();
     }
 
@@ -144,7 +145,7 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task LoadAllChapters(AkpStoryLoader contentLoader)
     {
         activeTitle = CurrentAct.Tokens["name"]?.ToString();
-        await contentLoader.GetAllChapters(jsonPath);
+        await contentLoader.GetAllChapters();
         noticeBlock.RaiseCommonEvent("章节加载完成。");
     }
 
@@ -161,10 +162,17 @@ public partial class MainWindowViewModel : ObservableObject
             await Task.Run(contentLoader.GetPreloadInfo);
         }
     }
-
-    private async Task ProcessTextAndExport(AkpStoryLoader contentLoader)
+    
+    private async Task StartParseDocuments(AkpStoryLoader content)
     {
-        noticeBlock.RaiseCommonEvent("正在处理文本....");
+        noticeBlock.RaiseCommonEvent("正在解析文档....");
+        await Task.Run(() => content.ParseAllDocuments(jsonPath));
+    }
+
+
+    private async Task ExportDocuments(AkpStoryLoader contentLoader)
+    {
+        noticeBlock.RaiseCommonEvent("正在导出文档....");
         var exportMd = await ExportPlots(contentLoader.ContentTable);
         var mdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + exportMd;
         SaveExportedContent(mdWithTitle);
@@ -216,7 +224,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (!plotsJsonFile.Exists)
         {
             var content = new AkpStoryLoader(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
-            await content.GetAllChapters(jsonPath);
+            await content.GetAllChapters();
             allPlots = content.ContentTable;
             var plotJson = JsonConvert.SerializeObject(allPlots, Formatting.Indented); // 使用Newtonsoft.Json进行序列化
 

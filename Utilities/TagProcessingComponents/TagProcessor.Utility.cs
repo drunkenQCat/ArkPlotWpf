@@ -34,7 +34,7 @@ public partial class TagProcessor
 
     private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
-        if (mediaUrl != null) line = $"\n{mediaUrl}\n{line}";
+        if (mediaUrl != null) line = $"{mediaUrl}\r\n\r\n{line}";
         return line;
     }
 
@@ -48,8 +48,8 @@ public partial class TagProcessor
     {
         var newValue =
             (from word in value.Split("_")
-                orderby word.Length descending
-                select word).FirstOrDefault();
+             orderby word.Length descending
+             select word).FirstOrDefault();
         if (newValue == "path") Console.WriteLine();
         return newValue!;
     }

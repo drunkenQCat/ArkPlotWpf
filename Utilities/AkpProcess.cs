@@ -19,10 +19,8 @@ internal abstract class AkpProcessor
         foreach (var chapter in plotList)
         {
             var textList = chapter.CurrentPlot.TextVariants;
-            var firstLine = textList[0].MdText;
-            textList[0].MdText = $"## {chapter.CurrentPlot.Title}\r\n\r\n" + firstLine;
-            var rawMd = chapter.ExportMd();
-            var reconstructor = new MdReconstructor(rawMd);
+            var reconstructor = new MdReconstructor(textList);
+            md.Append($"## {chapter.CurrentPlot.Title}\r\n\r\n---\r\n\r\n");
             reconstructor.AppendResultToBuilder(md);
         }
 

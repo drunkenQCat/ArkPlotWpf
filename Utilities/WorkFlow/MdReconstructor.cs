@@ -1,11 +1,11 @@
-using System;
+using ArkPlotWpf.Model;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 // the character name and character portrait pair
 using CharPortrait = System.Collections.Generic.Dictionary<string, string>;
-using SList = System.Collections.Generic.List<string>;
-using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<string>>;
+using SList = System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>;
+using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>>;
 
 namespace ArkPlotWpf.Utilities.WorkFlow;
 
@@ -30,24 +30,11 @@ public class MdReconstructor
     /// 此构造函数将原始 Markdown 文本分割成单独的行，进行初步清洗以移除空行，然后根据
     /// 段落分组文本并处理包含角色立绘信息的段落。
     /// </summary>
-    /// <param name="md">原始的 Markdown 文本。</param>
-    public MdReconstructor(string md)
+    /// <param name="entries">原始的 Markdown 文本。</param>
+    public MdReconstructor(SList entries)
     {
-        lineList = new SList(md.Split(new []{"\r\n", "\n"}, StringSplitOptions.None));
+        lineList = new(entries);
         RemoveEmptyLines();
-        GroupLinesBySegment();
-        ProcessPortraits();
-    }
-
-    /// <summary>
-    /// 初始化 MdReconstructor 类的新实例，接受一个字符串集合作为输入，代表Markdown文本的各个行。
-    /// 此构造函数直接使用提供的文本行进行处理，不需要进行初步的文本分割。它会按段落分组这些行，并对
-    /// 包含角色立绘信息的段落进行特殊处理。
-    /// </summary>
-    /// <param name="lines">表示Markdown文本行的字符串集合。</param>
-    public MdReconstructor(IEnumerable<string> lines)
-    {
-        lineList = lines.ToList();
         GroupLinesBySegment();
         ProcessPortraits();
     }
@@ -60,20 +47,21 @@ public class MdReconstructor
     {
         var linesWithoutEmptyLine =
             from line in lineList
-            where !string.IsNullOrEmpty(line)
+            where !string.IsNullOrEmpty(line.MdText)
             select line;
         lineList = linesWithoutEmptyLine.ToList();
     }
 
     private void GroupLinesBySegment()
     {
+
         SList temp = new();
         var isPortraitGroup = false;
         var grpIndex = 0;
         foreach (var item in lineList)
         {
             temp = EvaluateAndGroupTextItem(item);
-
+            //
             // <img class="portrait"
             //             ^         it's 13th alphabet
             if (IsPortrait(item)) isPortraitGroup = true;
@@ -81,16 +69,36 @@ public class MdReconstructor
             temp.Add(item);
         }
 
-        SList EvaluateAndGroupTextItem(string item)
+        SList EvaluateAndGroupTextItem(FormattedTextEntry item)
         {
-            if (!item.StartsWith('-') || temp.Count < 16) return temp;
+            if (ShouldBeGroupedDirectly(item))
+            {
+                return temp;
+            }
 
-            temp.RemoveAll(line => line.StartsWith('-'));
-            LineGroups.Add(new SList(temp));
-            if (isPortraitGroup) AppendPortrait(grpIndex, temp);
+            RemoveLeadingDashes();
+            GroupRemainingText();
             PrepareForNextGroup();
+
             return temp;
         }
+
+        bool ShouldBeGroupedDirectly(FormattedTextEntry item)
+        {
+            return !item.MdText.StartsWith('-') || temp.Count < 16;
+        }
+
+        void RemoveLeadingDashes()
+        {
+            temp.RemoveAll(line => line.MdText.StartsWith('-'));
+        }
+
+        void GroupRemainingText()
+        {
+            LineGroups.Add(new SList(temp));
+            if (isPortraitGroup) AppendPortrait(grpIndex, temp);
+        }
+
         void PrepareForNextGroup()
         {
             temp.Clear();
@@ -99,9 +107,9 @@ public class MdReconstructor
         }
     }
 
-    private static bool IsPortrait(string item)
+    private static bool IsPortrait(FormattedTextEntry item)
     {
-        return item.Length > 12 && item[12] == 'p';
+        return item.MdText.Length > 12 && item.MdText[12] == 'p';
     }
 
     private void AppendPortrait(int grpIndex, SList temp)
@@ -132,7 +140,7 @@ public class MdReconstructor
     /// </code>
     /// 调用 ExtractCharacterInfo 方法后，将返回一个包含单个 IndexedCharacter 实例的数组，该实例表示识别到的角色1及其立绘信息。
     /// </example>
-    private IEnumerable<IndexedCharacter> ExtractCharacterInfo(IEnumerable<string> paragraphLines)
+    private IEnumerable<IndexedCharacter> ExtractCharacterInfo(SList paragraphLines)
     {
         var characters = new List<IndexedCharacter>();
         int index = 0;
@@ -148,7 +156,7 @@ public class MdReconstructor
 
             var characterName = ExtractCharacterNameFromLines(index, lines);
             characters.Add(!string.IsNullOrWhiteSpace(characterName)
-                ? new IndexedCharacter(index, characterName, line)
+                ? new IndexedCharacter(index, characterName, line.MdText)
                 // 标记为异常或未识别的角色
                 : new IndexedCharacter(index, "Unknown", string.Empty));
             index++;
@@ -157,11 +165,13 @@ public class MdReconstructor
         return characters;
     }
 
-    private string ExtractCharacterNameFromLines(int idx, IEnumerable<string> lines)
+    // TODO:使用 entry 的字段来处理这个函数。
+    private string ExtractCharacterNameFromLines(int idx, SList lines)
     {
         // 实现提取角色名称的逻辑，根据实际的标记格式进行调整
         // 角色名一般在链接后面第二行。
-        var nameLine = lines.ElementAtOrDefault(idx + 2);
+        var nameEntry = lines.ElementAtOrDefault(idx + 2);
+        var nameLine = nameEntry is null ? "" : nameEntry.MdText;
         if (string.IsNullOrEmpty(nameLine)) return "";
         var match = Regex.Match(nameLine, @"\*\*(.+?)\*\*.*");
         if (match.Success)
@@ -244,7 +254,7 @@ public class MdReconstructor
         //  
         //  
         for (var i = group.SList.Count - 1; i >= 0; i--)
-            if (group.SList[i].Contains("立绘"))
+            if (group.SList[i].MdText.Contains("立绘"))
                 group.SList.RemoveAt(i);
     }
 
@@ -296,7 +306,7 @@ public class MdReconstructor
         var chartSeg = string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count));
         chartSeg = $"|{chartSeg}";
         var chartBody = $"{chartHead}\r\n{chartSeg}\r\n\r\n";
-        group.SList.Insert(0, chartBody);
+        group.SList.First().MdText.Insert(0, chartBody);
     }
 
     /// <summary>
@@ -330,9 +340,16 @@ public class MdReconstructor
         foreach (var group in LineGroups)
         {
             builder.Append("\r\n\r\n---\r\n\r\n");
-            builder.AppendJoin("\r\n\r\n", group);
+            builder.AppendJoin("\r\n\r\n", GetRawMdLines(group));
         }
         builder.AppendLine();
+    }
+
+
+    List<string> GetRawMdLines(SList grp)
+    {
+        var mdList = grp.Select(p => p.MdText);
+        return mdList.ToList();
     }
 
     public record PortraitGrp(int Index, SList SList, IndexedCharacter[] PortraitMarks);
