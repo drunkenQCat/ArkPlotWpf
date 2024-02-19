@@ -12,6 +12,7 @@
 *.sln.docstates
 *.ipynb
 all_plots.json
+*.csx
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

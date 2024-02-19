@@ -67,7 +67,7 @@
   "popupdialog_reg": "",
   "predicate": "`选项`",
   "predicate_reg": "(?<=references=\").*?(?=\")",
-  "showitem": "`展示物品:`",
+  "showitem": "`展示物品图:`",
   "showitem_reg": "(?<=image=\").*?(?=\")",
   "skipnode": "",
   "skipnode_reg": "",

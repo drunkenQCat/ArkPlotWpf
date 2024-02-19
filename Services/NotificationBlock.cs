@@ -1,11 +1,10 @@
 using System;
 
-namespace ArkPlotWpf.Utilities;
+namespace ArkPlotWpf.Services;
 
 public class NotificationBlock
 {
-    private static readonly Lazy<NotificationBlock> InstanceLazy =
-        new Lazy<NotificationBlock>(() => new NotificationBlock());
+    private static readonly Lazy<NotificationBlock> InstanceLazy = new(() => new NotificationBlock());
 
     public static NotificationBlock Instance => InstanceLazy.Value;
 
@@ -14,6 +13,10 @@ public class NotificationBlock
     public event EventHandler<LineNoMatchEventArgs>? LineNoMatch;
     public event EventHandler<NetworkErrorEventArgs>? NetErrorHappen;
 
+    /// <summary>
+    /// 触发一个事件，并传递指定的消息。消息会显示在界面上。
+    /// </summary>
+    /// <param name="message">要传递给事件处理程序的消息。</param>
     public void RaiseCommonEvent(string message)
     {
         CommonEventHandler?.Invoke(this, message);
@@ -56,7 +59,6 @@ public class LineNoMatchEventArgs : EventArgs
 
     public string Line { get; }
     public string Tag { get; }
-
 }
 
 public class ChapterLoadedEventArgs : EventArgs

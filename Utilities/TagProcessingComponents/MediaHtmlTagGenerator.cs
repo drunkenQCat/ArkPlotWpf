@@ -1,7 +1,3 @@
-using System;
-using System.Text.Json;
-using ArkPlotWpf.Utilities.PrtsComponents;
-
 namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public partial class TagProcessor
@@ -10,9 +6,8 @@ public partial class TagProcessor
     {
         var isKeyExists = prts.Res.PreLoaded.TryGetValue(key, out var url);
         return isKeyExists ? url! : "";
-        
     }
-    
+
     private string GetImageUrl(string newTag, string newValueTrimed)
     {
         // in csv, the background is bg_bg, fuck
@@ -28,20 +23,23 @@ public partial class TagProcessor
 
     private string ConvertToAudioTag(string newTag, string newValue)
     {
-        string url = GetUrlFromPreloaded(newValue);
-        url = $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
+        var url = GetUrlFromPreloaded(newValue);
+        url =
+            $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
         if (newTag.Contains('乐'))
         {
             var urlParts = url.Split(" ");
             urlParts[0] += " class=\"music\"";
             url = string.Join(" ", urlParts);
         }
+
         return url;
     }
 
     private string ConvertToPortraitTag(string newValue)
     {
-        string url = GetUrlFromPreloaded(newValue);
-        return $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:300px\"/>";
+        var url = GetUrlFromPreloaded(newValue);
+        return
+            $"<img class=\"portrait\" src=\"{url}\" alt=\"{newValue}\" loading=\"lazy\" style=\"max-height:300px\"/>";
     }
 }

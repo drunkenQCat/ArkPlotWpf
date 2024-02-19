@@ -7,19 +7,19 @@ namespace ArkPlotWpf.Utilities.PrtsComponents;
 
 public partial class PrtsDataProcessor
 {
-    public readonly ResourceCsv Res = ResourceCsv.Instance;
+    public readonly PrtsAssets Res = PrtsAssets.Instance;
 
     public async Task GetAllData()
     {
         var tasks = Res.AllData.Select(GetSingleData).ToList();
         await Task.WhenAll(tasks);
-
     }
 
     private async Task GetSingleData(PrtsData singleData)
     {
         // 所有csv都是从Prts的模板里扒下来的
-        var prtsTemplateUrl = "https://prts.wiki/api.php?action=expandtemplates&format=json&text={{Widget:" + singleData.Tag + "}}";
+        var prtsTemplateUrl = "https://prts.wiki/api.php?action=expandtemplates&format=json&text={{Widget:" +
+                              singleData.Tag + "}}";
         var query = await NetworkUtility.GetAsync(prtsTemplateUrl);
         var csv = ProcessQuery(query);
         if (csv is null) return;
@@ -28,6 +28,7 @@ public partial class PrtsDataProcessor
             Res.PortraitLinkDocument = GetPortraitLinkDocument(csv);
             return;
         }
+
         if (singleData.Tag == "Data_Override")
         {
             var overrideTxt = csv;
@@ -35,13 +36,14 @@ public partial class PrtsDataProcessor
             Res.DataOverrideDocument = ParseOverrideList(overrideItems);
             return;
         }
+
         var csvItems = LinesSplitter(csv);
         ParseItemList(singleData, csvItems);
     }
 
     private JsonDocument ParseOverrideList(IEnumerable<string> lines)
     {
-        bool publicDisabled = false; // Assuming this is a flag you need to track
+        var publicDisabled = false; // Assuming this is a flag you need to track
 
         foreach (var line in lines)
         {
@@ -140,14 +142,19 @@ public partial class PrtsDataProcessor
                 {
                     case "prefix":
                     case "title":
-                        if (!Res.RideItems.ContainsKey("disable")) Res.RideItems["disable"] = new Dictionary<string, object>();
-                        if (!Res.RideItems["disable"].ContainsKey(kv[0])) Res.RideItems["disable"][kv[0]] = new Dictionary<string, object>();
-                        ((Dictionary<string, object>)Res.RideItems["disable"][kv[0]])[kv[1]] = ""; // Assuming empty value signifies disabled
+                        if (!Res.RideItems.ContainsKey("disable"))
+                            Res.RideItems["disable"] = new Dictionary<string, object>();
+                        if (!Res.RideItems["disable"].ContainsKey(kv[0]))
+                            Res.RideItems["disable"][kv[0]] = new Dictionary<string, object>();
+                        ((Dictionary<string, object>)Res.RideItems["disable"][kv[0]])[kv[1]] =
+                            ""; // Assuming empty value signifies disabled
                         break;
                     case "note":
                         // Inline handling for "note" case
-                        if (!Res.RideItems.ContainsKey("disable")) Res.RideItems["disable"] = new Dictionary<string, object>();
-                        if (!Res.RideItems["disable"].ContainsKey("note")) Res.RideItems["disable"]["note"] = new Dictionary<string, string>();
+                        if (!Res.RideItems.ContainsKey("disable"))
+                            Res.RideItems["disable"] = new Dictionary<string, object>();
+                        if (!Res.RideItems["disable"].ContainsKey("note"))
+                            Res.RideItems["disable"]["note"] = new Dictionary<string, string>();
                         // Assuming each note should be tied to a specific prefix or title, but since those aren't specified here,
                         // you might need to adjust how notes are associated or stored based on your application's logic.
                         ((Dictionary<string, string>)Res.RideItems["disable"]["note"])[parts[0]] = kv[1];
@@ -178,14 +185,13 @@ public partial class PrtsDataProcessor
                 if (jsonItems == null) continue;
                 keyValue = jsonItems;
             }
+
             // filter the non-csv items
             if (keyValue.Length != 2) continue;
 
             if (prts.Tag == "Data_Audio") csvDict[keyValue[0]] = GetAudioLink(keyValue[1]);
             else
-            {
                 csvDict[title] = GetItemUrl(keyValue[1]);
-            }
         }
     }
 
@@ -209,7 +215,7 @@ public partial class PrtsDataProcessor
         var urlToken = url.Split('/');
         // [0] is "sound_beta_2"
         urlToken[0] = "audio";
-        return ResourceCsv.AssetsUrl + string.Join("/", urlToken) + ".mp3";
+        return PrtsAssets.AssetsUrl + string.Join("/", urlToken) + ".mp3";
     }
 
     public string GetRealAudioUrl(string audioKey)
@@ -217,19 +223,14 @@ public partial class PrtsDataProcessor
         if (string.IsNullOrEmpty(audioKey))
             return "";
 
-        string audioKeyLower = audioKey.ToLower();
+        var audioKeyLower = audioKey.ToLower();
 
         if (audioKey.StartsWith("$"))
-        {
             // 假设data.Audio是一个Dictionary<string, string>类型的字段或属性
             return Res.DataAudio.ContainsKey(audioKeyLower[1..]) ? Res.DataAudio[audioKeyLower[1..]] : "";
-        }
 
-        if (audioKey.StartsWith("@"))
-        {
-            return string.Concat(ResourceCsv.AssetsUrl, audioKeyLower[1..]);
-        }
-        return ResourceCsv.AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
+        if (audioKey.StartsWith("@")) return string.Concat(PrtsAssets.AssetsUrl, audioKeyLower[1..]);
+        return PrtsAssets.AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
     }
 
     private static string[]? ParseSingleJsonItem(string jsonItem)
@@ -245,7 +246,7 @@ public partial class PrtsDataProcessor
         var items = jsonItem.Replace("\"", "").Split(':');
         items =
             (from i in items
-            select i.Trim()).ToArray();
+                select i.Trim()).ToArray();
 
         return items;
     }

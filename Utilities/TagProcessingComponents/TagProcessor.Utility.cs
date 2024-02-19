@@ -11,7 +11,7 @@ public partial class TagProcessor
         var mediaType = GetMediaType(newTag);
         if (mediaType == null) return null;
 
-        string htmlTaggedLine = "";
+        var htmlTaggedLine = "";
         newValue = newValue.Trim().ToLower();
         htmlTaggedLine = mediaType switch
         {
@@ -34,7 +34,7 @@ public partial class TagProcessor
 
     private static string AttachToMediaUrl(string line, string? mediaUrl)
     {
-        if (mediaUrl != null) line = $"\n{mediaUrl}\n{line}";
+        if (mediaUrl != null) line = $"{mediaUrl}\r\n\r\n{line}";
         return line;
     }
 
