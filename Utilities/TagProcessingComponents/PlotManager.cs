@@ -30,10 +30,11 @@ public class PlotManager
         {
             var entry = new FormattedTextEntry
             {
-                Index = index++,
+                Index = index,
                 OriginalText = line,
             };
             textVariants.Add(entry);
+            index++;
         }
         CurrentPlot.TextVariants = textVariants;
     }

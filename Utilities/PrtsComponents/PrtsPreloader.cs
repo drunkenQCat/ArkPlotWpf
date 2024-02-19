@@ -23,17 +23,6 @@ public class PrtsPreloader
     private bool isTweenNeedsOverride = true;
     private List<FormattedTextEntry> textList;
 
-    /* public PrtsPreloader(string pageName, IEnumerable<string> dataTxt) */
-    /* { */
-    /*     // 用来将章节名称替换成prts页面地址 */
-    /*     Page = pageName.Trim() */
-    /*         .Replace(" 行动后", "/END") */
-    /*         .Replace(" 行动前", "/BEG") */
-    /*         .Replace(" 幕间", "/NBT"); */
-    /*     //.Replace(" ", "_"); */
-    /*     PlotText = dataTxt.ToList(); */
-    /* } */
-    /**/
     public PrtsPreloader(PlotManager plotManager)
     {
         Manager = plotManager;
@@ -60,16 +49,18 @@ public class PrtsPreloader
 
             // var matchedWhole = match.Groups[0].Value; // The entire matched string
             var matchedTag = match.Groups[1].Value;
-            entry.Type = matchedTag;
             var matchedCommands = match.Groups[2].Value;
             var matchedTagOnly = match.Groups[3].Value;
             entry.IsTagOnly = !string.IsNullOrEmpty(matchedTagOnly);
-            var matchedDialog = match.Groups[4].Value;
+            var matchedCharName = match.Groups[4].Value;
+            entry.CharacterName = matchedCharName;
+            var matchedDialog = match.Groups[5].Value;
             entry.Dialog = matchedDialog;
 
             if (!string.IsNullOrEmpty(matchedTag))
             {
                 entry.CommandSet = ProcessCommand(matchedTag.ToLower(), matchedCommands, out List<string> urlList);
+                entry.Type = entry.CommandSet["type"];
                 entry.Urls = urlList;
             }
             counter++;

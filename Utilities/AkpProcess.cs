@@ -20,7 +20,7 @@ internal abstract class AkpProcessor
         {
             var textList = chapter.CurrentPlot.TextVariants;
             var reconstructor = new MdReconstructor(textList);
-            md.Append($"## {chapter.CurrentPlot.Title}\r\n\r\n---\r\n\r\n");
+            md.Append($"## {chapter.CurrentPlot.Title}\r\n\r\n");
             reconstructor.AppendResultToBuilder(md);
         }
 

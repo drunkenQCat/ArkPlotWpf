@@ -5,14 +5,16 @@ public class FormattedTextEntry
     public int Index;
     public string OriginalText = "";
     public string MdText = "";
-    public int MdDuplicateCounter = 0;
+    public int MdDuplicateCounter;
     public string TypText = "";
     public string Type = "";
     public StringDict CommandSet = new();
     public bool IsTagOnly { get; set; }
+    public string Dialog { get; set; } = "";
+
     public List<string> Urls = new List<string>();
 
-    public string Dialog = "";
+    public string CharacterName = "";
 
     public FormattedTextEntry(FormattedTextEntry entry)
     {
@@ -25,7 +27,8 @@ public class FormattedTextEntry
         CommandSet = new(entry.CommandSet);
         IsTagOnly = entry.IsTagOnly;
         Urls = new(entry.Urls);
-        Dialog = entry.Dialog;
+        CharacterName = entry.CharacterName;
+        Dialog = entry.CharacterName;
     }
 
     public FormattedTextEntry()

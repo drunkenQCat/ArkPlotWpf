@@ -1,11 +1,10 @@
 using ArkPlotWpf.Model;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 // the character name and character portrait pair
-using CharPortrait = System.Collections.Generic.Dictionary<string, string>;
-using SList = System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>;
-using SListGroup = System.Collections.Generic.List<System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>>;
+using CharacterChart = System.Collections.Generic.Dictionary<string, string>;
+using EntryList = System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>;
+using EntryGroups = System.Collections.Generic.List<System.Collections.Generic.List<ArkPlotWpf.Model.FormattedTextEntry>>;
 
 namespace ArkPlotWpf.Utilities.WorkFlow;
 
@@ -21,9 +20,10 @@ namespace ArkPlotWpf.Utilities.WorkFlow;
 /// </remarks>
 public class MdReconstructor
 {
-    public readonly SListGroup LineGroups = new();
-    public readonly List<PortraitGrp> PortraitGrps = new();
-    private SList lineList;
+    private readonly EntryGroups lineGroups = new();
+    private readonly List<PortraitGrp> portraitGroups = new();
+    private EntryList lineList;
+    private readonly List<int> portraitIndexes = new();
 
     /// <summary>
     /// 初始化 MdReconstructor 类的新实例，接受一个字符串参数作为 Markdown 文本输入。
@@ -31,12 +31,13 @@ public class MdReconstructor
     /// 段落分组文本并处理包含角色立绘信息的段落。
     /// </summary>
     /// <param name="entries">原始的 Markdown 文本。</param>
-    public MdReconstructor(SList entries)
+    public MdReconstructor(EntryList entries)
     {
         lineList = new(entries);
         RemoveEmptyLines();
         GroupLinesBySegment();
         ProcessPortraits();
+        RemovePortraitLines();
     }
 
     /// <summary>
@@ -47,76 +48,73 @@ public class MdReconstructor
     {
         var linesWithoutEmptyLine =
             from line in lineList
-            where !string.IsNullOrEmpty(line.MdText)
+            where !string.IsNullOrWhiteSpace(line.MdText)
             select line;
         lineList = linesWithoutEmptyLine.ToList();
+        int idx = 0;
+        lineList.ForEach(line =>
+        {
+            line.Index = idx;
+            idx++;
+        });
     }
 
     private void GroupLinesBySegment()
     {
+        EntryList temp = new();
+        bool isPortraitGroup = false;
 
-        SList temp = new();
-        var isPortraitGroup = false;
-        var grpIndex = 0;
         foreach (var item in lineList)
         {
-            temp = EvaluateAndGroupTextItem(item);
-            //
-            // <img class="portrait"
-            //             ^         it's 13th alphabet
-            if (IsPortrait(item)) isPortraitGroup = true;
-
-            temp.Add(item);
-        }
-
-        SList EvaluateAndGroupTextItem(FormattedTextEntry item)
-        {
-            if (ShouldBeGroupedDirectly(item))
+            if (IsItemOnlyDashes(item) || temp.Count < 16)
             {
-                return temp;
+                if (IsPortrait(item)) isPortraitGroup = true;
+                temp.Add(item);
+                continue;
             }
 
-            RemoveLeadingDashes();
-            GroupRemainingText();
-            PrepareForNextGroup();
-
-            return temp;
-        }
-
-        bool ShouldBeGroupedDirectly(FormattedTextEntry item)
-        {
-            return !item.MdText.StartsWith('-') || temp.Count < 16;
-        }
-
-        void RemoveLeadingDashes()
-        {
-            temp.RemoveAll(line => line.MdText.StartsWith('-'));
-        }
-
-        void GroupRemainingText()
-        {
-            LineGroups.Add(new SList(temp));
-            if (isPortraitGroup) AppendPortrait(grpIndex, temp);
-        }
-
-        void PrepareForNextGroup()
-        {
-            temp.Clear();
-            grpIndex++;
+            // 如果上面的代码没有 continue，那就说明凑成一组，可以写了。
+            RemoveLeadingDashes(temp);
+            GroupRemainingText(temp, isPortraitGroup);
+            // 为下一组做准备。
+            temp = new EntryList();
             isPortraitGroup = false;
+            temp.Add(item);
+        }
+    }
+    
+    bool IsItemOnlyDashes(FormattedTextEntry item)
+    {
+        return !item.MdText.StartsWith('-');
+    }
+        
+    private void RemoveLeadingDashes(EntryList entries)
+    {
+        entries.ForEach(item =>
+        {
+            if (item.MdText.StartsWith('-')) item.MdText = "";
+        });
+    }
+
+    private void GroupRemainingText(EntryList entries, bool isPortraitGroup)
+    {
+        if (entries.Count > 0)
+        {
+            var newGroup = new EntryList(entries);
+            lineGroups.Add(newGroup);
+            if (isPortraitGroup) AppendPortrait(newGroup);
         }
     }
 
     private static bool IsPortrait(FormattedTextEntry item)
     {
-        return item.MdText.Length > 12 && item.MdText[12] == 'p';
+        return item.Type.Contains("Char") || item.Type.Contains("char");
     }
 
-    private void AppendPortrait(int grpIndex, SList temp)
+    private void AppendPortrait(EntryList grp)
     {
-        SList deepCopy = new(temp);
-        var characters = ExtractCharacterInfo(temp);
-        PortraitGrps.Add(new PortraitGrp(grpIndex, deepCopy, characters.ToArray()));
+        var characters = ExtractCharacterInfo(grp);
+        portraitGroups.Add(new PortraitGrp(grp, characters));
     }
 
     /// <summary>
@@ -124,7 +122,7 @@ public class MdReconstructor
     /// </summary>
     /// <param name="paragraphLines">一个段落，由一系列文本行组成，其中可能包含角色立绘信息。</param>
     /// <returns>
-    /// 一个 <see cref="IndexedCharacter"/> 数组，每个元素代表段落中识别到的一个角色及其立绘信息。
+    /// 一个 <see cref="CharacterInfo"/> 数组，每个元素代表段落中识别到的一个角色及其立绘信息。
     /// </returns>
     /// <remarks>
     /// ExtractCharacterInfo 方法遍历段落中的每一行，识别包含立绘信息的行及其对应的角色名称。对于每个识别到的角色立绘，
@@ -140,45 +138,39 @@ public class MdReconstructor
     /// </code>
     /// 调用 ExtractCharacterInfo 方法后，将返回一个包含单个 IndexedCharacter 实例的数组，该实例表示识别到的角色1及其立绘信息。
     /// </example>
-    private IEnumerable<IndexedCharacter> ExtractCharacterInfo(SList paragraphLines)
+    private List<CharacterInfo> ExtractCharacterInfo(EntryList paragraphLines)
     {
-        var characters = new List<IndexedCharacter>();
-        int index = 0;
+        var characters = new List<CharacterInfo>();
 
-        var lines = paragraphLines.ToList();
+        var lines = paragraphLines;
         foreach (var line in lines)
         {
-            if (!IsPortrait(line))
-            {
-                index++;
-                continue;
-            }
+            if (!IsPortrait(line)) continue;
 
-            var characterName = ExtractCharacterNameFromLines(index, lines);
+            portraitIndexes.Add(line.Index);
+            var characterName = ExtractCharacterNameFromLines(line);
+
+            // 所有的 url 标签都附加两个换行符,一个描述。
+            var url = line.MdText.Split("\r\n")[0];
             characters.Add(!string.IsNullOrWhiteSpace(characterName)
-                ? new IndexedCharacter(index, characterName, line.MdText)
+                ? new CharacterInfo(line, characterName, url)
                 // 标记为异常或未识别的角色
-                : new IndexedCharacter(index, "Unknown", string.Empty));
-            index++;
+                : new CharacterInfo(line, "Unknown", string.Empty));
         }
-
         return characters;
     }
 
-    // TODO:使用 entry 的字段来处理这个函数。
-    private string ExtractCharacterNameFromLines(int idx, SList lines)
+    private string ExtractCharacterNameFromLines(FormattedTextEntry line)
     {
         // 实现提取角色名称的逻辑，根据实际的标记格式进行调整
         // 角色名一般在链接后面第二行。
-        var nameEntry = lines.ElementAtOrDefault(idx + 2);
-        var nameLine = nameEntry is null ? "" : nameEntry.MdText;
-        if (string.IsNullOrEmpty(nameLine)) return "";
-        var match = Regex.Match(nameLine, @"\*\*(.+?)\*\*.*");
-        if (match.Success)
-        {
-            return match.Groups[1].Value;
-        }
-        return string.Empty;
+        var nameEntry = lineList.ElementAtOrDefault(line.Index + 1);
+        var canReadName = nameEntry is not null && !string.IsNullOrEmpty(nameEntry.CharacterName);
+        if (!canReadName) return "";
+        // example: 
+        // name="可萝尔"
+        var name = nameEntry!.CharacterName.Split('"')[1];
+        return name;
     }
 
     /// <summary>
@@ -186,21 +178,19 @@ public class MdReconstructor
     /// 对每个组执行清理和立绘图表的插入操作。
     /// </summary>
     /// <remarks>
-    /// 对于每个包含角色立绘标记的段落组，此方法首先调用 <see cref="CleanPortraitLines"/> 方法来移除立绘标记行，
+    /// 对于每个包含角色立绘标记的段落组，此方法首先调用 <see cref="RemovePortraitLines"/> 方法来移除立绘标记行，
     /// 然后使用 <see cref="MakePortraitChart"/> 方法根据段落中的角色立绘标记生成立绘图表，并插入到相应的位置。
     /// 此过程确保了每个角色的立绘在最终的 Markdown 文档中被正确展示，同时保持了文档内容的整洁和组织性。
     /// </remarks>
     private void ProcessPortraits()
     {
         var tasks = new List<Task>();
-        foreach (var group in PortraitGrps)
+        foreach (var group in portraitGroups)
         {
             Task ProcessSingleGroup()
             {
-                CleanPortraitLines(group);
-                CharPortrait portraitLinks = GenerateChartMap(group.PortraitMarks);
+                CharacterChart portraitLinks = GenerateChartDict(group.PortraitMarks);
                 MakePortraitChart(group, portraitLinks);
-                LineGroups[group.Index] = group.SList;
                 return Task.CompletedTask;
             }
 
@@ -210,87 +200,57 @@ public class MdReconstructor
     }
 
     /// <summary>
-    /// 清除指定段落组中的所有角色立绘标记行。对于每个标记行，此方法将移除立绘本身以及相关的标记行，
-    /// 以便在段落中只保留文本内容。
-    /// </summary>
-    /// <param name="group">包含立绘标记的段落组，是一个 <see cref="PortraitGrp"/> 实例。</param>
-    /// <remarks>
-    /// 此方法首先遍历段落组 <paramref name="group"/> 中的立绘标记，并针对每个立绘标记执行清理操作。
-    /// 清理操作包括移除表示立绘的 HTML 标签行以及立即跟随的标记行（如角色名称）。此外，如果在清理后仍存在
-    /// 以“立绘”开头的行，这些行也会被移除，确保最终的段落文本中不包含任何立绘相关的标记或残留文本。
-    /// </remarks>
-    /// <example>
-    /// 下面的例子展示了在处理段落中的立绘信息时，如何识别并清理相关的标记行。假设我们有以下包含立绘标记的文本段落：
-    /// 
-    /// <code>
-    /// // 示例文本包含立绘标记和角色说话的文本
-    /// &lt;img class="portrait"...
-    /// `立绘`name
-    /// **Name**`说道：`....
-    /// </code>
-    /// 
-    /// 在这种正常情况下，我们会移除与立绘直接相关的两行（即包含 `&lt;img class="portrait"...` 和 ``立绘`name`` 的行），
-    /// 以便在最终的 Markdown 文档中只保留角色的对话文本（如 **Name**`说道：`....`）。
-    /// </example>
-    private void CleanPortraitLines(PortraitGrp group)
-    {
-        var portraitMark = group.PortraitMarks;
-        foreach (var mark in portraitMark.Reverse())
-        {
-            var portraitIndex = mark.Index;
-            group.SList.RemoveRange(portraitIndex, 2);
-        }
-
-        RemoveLiHui(group);
-    }
-
-    /// <summary>
-    /// 移除指定段落组中所有“立绘”标记行。此方法用于最后一步清理，确保段落文本中不包含任何残留的“立绘”标记。
-    /// </summary>
-    /// <param name="group">一个 <see cref="PortraitGrp"/> 实例，表示需要处理的段落组。</param>
-    private static void RemoveLiHui(PortraitGrp group)
-    {
-        // `立绘`grani#1 
-        //  
-        //  
-        for (var i = group.SList.Count - 1; i >= 0; i--)
-            if (group.SList[i].MdText.Contains("立绘"))
-                group.SList.RemoveAt(i);
-    }
-
-    /// <summary>
     /// 根据提供的角色数组生成一个包含角色名称和对应立绘链接的字典。
     /// </summary>
-    /// <param name="characters">一个 <see cref="IndexedCharacter"/> 数组，包含需要处理的角色信息。</param>
+    /// <param name="characters">一个 <see cref="CharacterInfo"/> 数组，包含需要处理的角色信息。</param>
     /// <returns>
-    /// 一个 <see cref="CharPortrait"/> 字典，键为角色名称，值为角色立绘的HTML标记。
+    /// 一个 <see cref="CharacterChart"/> 字典，键为角色名称，值为角色立绘的HTML标记。
     /// </returns>
     /// <remarks>
     /// 此方法遍历 <paramref name="characters"/> 数组中的每个角色，为每个角色创建一个带有标题的立绘链接HTML标记。
     /// 如果角色名称为"Unknown"，则跳过该角色，不将其添加到字典中。这样处理是为了排除异常或未标记的角色。
     /// </remarks>
-    private CharPortrait GenerateChartMap(IndexedCharacter[] characters)
+    private CharacterChart GenerateChartDict(List<CharacterInfo> characters)
     {
-        var charaDict = new CharPortrait();
-        foreach (var character in characters.Reverse())
+        var charaDict = new CharacterChart();
+        foreach (var character in characters)
         {
             if (character.Name == "Unknown") continue;
-            charaDict[character.Name] = EmbedTitleInPortraitHtml(character.Name, character.PortraitHtml);
+            charaDict[character.Name] = EmbedTitleInPortraitHtml(character);
         }
         return charaDict;
     }
 
-    private string EmbedTitleInPortraitHtml(string title, string portrait)
+    private string EmbedTitleInPortraitHtml(CharacterInfo character)
     {
         // Assuming the portrait string is an HTML image tag, find the position to insert the title attribute
-        int insertPosition = portrait.IndexOf(' ') + 1; // Find the first space, which should be right after the tag name
-        string titleAttribute = $"title=\"{title}\" ";
-
-        // Insert the title attribute into the portrait string
-        string enhancedPortrait = portrait.Insert(insertPosition, titleAttribute);
-
+        // example:
+        // <img class="portrait" src="https://prts.wiki/images/e/e0/Avg_char_220_grani_3.png" alt="char_220_grani#5" loading="lazy" style="max-height:300px">
+        var htmlTag = new HtmlTagParser(character.PortraitHtml)
+        {
+            Attributes =
+            {
+                ["title"] = character.Name
+            }
+        };
+        var portraitUrl = GetPortraitUrl(character.OriginalEntry);
+        if (!string.IsNullOrEmpty(portraitUrl)) htmlTag.Attributes["src"] = portraitUrl;
+        var enhancedPortrait = htmlTag.ReconstructHtml();
         // Wrap the enhanced portrait in a div with a "crop" class
         return $"<div class=\"crop\">{enhancedPortrait}</div>";
+    }
+
+    private string GetPortraitUrl(FormattedTextEntry characterOriginalEntry)
+    {
+        var url = "";
+        // 如果带有 focus 的话，就说明有两个或以上的立绘。
+        // [Character(name=\"avg_npc_003\",name2=\"char_220_grani#3\",focus=2)]
+        _ = characterOriginalEntry.CommandSet.TryGetValue("focus", out string? focusIndex);
+        if (int.TryParse(focusIndex, out var focusIdx))
+        {
+            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.Urls.Count)  return characterOriginalEntry.Urls[focusIdx - 1];
+        }
+        return url;
     }
 
     /// <summary>
@@ -298,7 +258,7 @@ public class MdReconstructor
     /// </summary>
     /// <param name="group">立绘组。</param>
     /// <param name="portraitLinks">角色立绘链接。</param>
-    private void MakePortraitChart(PortraitGrp group, CharPortrait portraitLinks)
+    private void MakePortraitChart(PortraitGrp group, CharacterChart portraitLinks)
     {
         if (portraitLinks.Count == 0) return;
         var chartItems = string.Join("|", portraitLinks.Values);
@@ -306,7 +266,19 @@ public class MdReconstructor
         var chartSeg = string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count));
         chartSeg = $"|{chartSeg}";
         var chartBody = $"{chartHead}\r\n{chartSeg}\r\n\r\n";
-        group.SList.First().MdText.Insert(0, chartBody);
+            var firstLine = group.SList.First();
+        firstLine.MdText = firstLine.MdText.Insert(0, chartBody);
+    }
+
+    /// <summary>
+    /// 在制作完成表格之后，原本的立绘便要删除。
+    /// </summary>
+    private void RemovePortraitLines()
+    {
+        foreach (var digit in portraitIndexes)
+        {
+            lineList[digit].MdText = "";
+        }
     }
 
     /// <summary>
@@ -325,7 +297,7 @@ public class MdReconstructor
     {
         get
         {
-            var lines = LineGroups.Select(grp => string.Join("\r\n\r\n", grp));
+            var lines = lineGroups.Select(grp => string.Join("\r\n\r\n", grp));
             return "\r\n" + string.Join("\r\n\r\n---\r\n\r\n", lines) + "\r\n";
         }
     }
@@ -337,7 +309,7 @@ public class MdReconstructor
     public void AppendResultToBuilder(StringBuilder builder)
     {
         builder.AppendLine();
-        foreach (var group in LineGroups)
+        foreach (var group in lineGroups)
         {
             builder.Append("\r\n\r\n---\r\n\r\n");
             builder.AppendJoin("\r\n\r\n", GetRawMdLines(group));
@@ -346,13 +318,15 @@ public class MdReconstructor
     }
 
 
-    List<string> GetRawMdLines(SList grp)
+    List<string> GetRawMdLines(EntryList grp)
     {
-        var mdList = grp.Select(p => p.MdText);
+        var mdList = grp.
+            Where(p => !string.IsNullOrWhiteSpace(p.MdText)).
+            Select(p => p.MdText);
         return mdList.ToList();
     }
 
-    public record PortraitGrp(int Index, SList SList, IndexedCharacter[] PortraitMarks);
+    private record PortraitGrp(EntryList SList, List<CharacterInfo> PortraitMarks);
 
-    public record IndexedCharacter(int Index, string Name, string PortraitHtml);
+    private record CharacterInfo(FormattedTextEntry OriginalEntry, string Name, string PortraitHtml);
 }
