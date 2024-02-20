@@ -167,7 +167,7 @@
                     Content="生成时使用本地资源"
                     ToolTip="选中之后,会自动将图片和音乐下载到本地。如果不勾选，生成文件默认使用 prts 上的链接。"
                     IsChecked="{Binding IsLocalResChecked}"
-                    Margin="0 -6 16 11"
+                    Margin="0 3 16 11"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
             </StackPanel>

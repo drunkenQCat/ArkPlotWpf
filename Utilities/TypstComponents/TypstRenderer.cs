@@ -14,11 +14,11 @@ public class TypstRenderer
         File.WriteAllText(TypPath, code);
     }
 
-    private TypstRenderer(TypstTranslator trans)
+    private TypstRenderer(string chapter, TypstTranslator trans)
     {
-        chapterName = trans.ChapterName;
+        chapterName = chapter;
         // 在构造函数中将 typst 代码写入 output 文件夹。
-        File.WriteAllText(TypPath, trans.TypCode);
+        File.WriteAllText(TypPath, trans.TypCode.ToString());
     }
 
     private string TypPath => $".\\output\\{chapterName}.typ";
