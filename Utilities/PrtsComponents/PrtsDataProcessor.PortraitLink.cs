@@ -21,6 +21,7 @@ public partial class PrtsDataProcessor
         if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out var linkItem))
         {
             Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
+            // fall to thorns' portrait
             return Res.DataChar["char_293_thorns_1"];
         }
 

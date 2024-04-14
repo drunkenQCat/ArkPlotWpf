@@ -5,7 +5,7 @@ namespace ArkPlotWpf.Model;
 public class PrtsAssets
 {
     private const string EmptyJson = "{ }";
-    public const string AssetsUrl = "https://torappu.prts.wiki/assets/";
+    public const string AudioAssetsUrl = "https://torappu.prts.wiki/assets/";
 
     private static PrtsAssets? _instance;
 

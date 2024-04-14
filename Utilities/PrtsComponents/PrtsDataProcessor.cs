@@ -170,39 +170,46 @@ public partial class PrtsDataProcessor
         return jsonElement;
     }
 
-    private static void ParseItemList(PrtsData prts, IEnumerable<string> csvItems)
+    private static void ParseItemList(PrtsData prts, IEnumerable<string> itemList)
     {
         var csvDict = prts.Data;
-        foreach (var item in csvItems)
+        if (prts.Tag == "Data_Audio")
         {
-            var keyValue = item.Split(",");
-            // for music, the data have to reprocess because it's fucking json
-            var isJsonItem = JudgeJsonItemAndTrimKey(keyValue);
-            var title = keyValue[0];
-            if (isJsonItem)
-            {
-                var jsonItems = ParseSingleJsonItem(title);
-                if (jsonItems == null) continue;
-                keyValue = jsonItems;
-            }
-
-            // filter the non-csv items
-            if (keyValue.Length != 2) continue;
-
-            if (prts.Tag == "Data_Audio") csvDict[keyValue[0]] = GetAudioLink(keyValue[1]);
-            else
-                csvDict[title] = GetItemUrl(keyValue[1]);
+            ParseAudioJson(itemList);
         }
-    }
-
-    private static bool JudgeJsonItemAndTrimKey(string[] keyValue)
-    {
-        if (keyValue.Length < 2) return false;
-        keyValue[1] = keyValue[1].Trim();
-        // if value is empty string, it's json dictionary item
-        //   "axia_name": "小小小天使"
-        var isJsonItem = keyValue is [_, ""];
-        return isJsonItem;
+        else
+        {
+            ParseNormalCsv(itemList);
+        }
+        /*
+         * Separated function to parse the Data_Audio json
+         */
+        void ParseAudioJson(IEnumerable<string> jsonItems)
+        {
+            foreach (var item in jsonItems)
+            {
+                // remove the useless spaces
+                var keyValue = item.Trim();
+                var audioJsonItem = ParseAudioJsonItem(keyValue);
+                if (audioJsonItem == null) continue;
+                csvDict[audioJsonItem[0]] = GetAudioLink(audioJsonItem[1]);
+            }
+        }
+        /*
+         * Separated function to parse csv data
+         */
+        void ParseNormalCsv(IEnumerable<string> csvItems)
+        {
+            foreach (var item in csvItems)
+            {
+                var keyValue = item.Trim().Split(",");
+                // filter the non-csv items
+                if (keyValue.Length != 2) continue;
+                var title = keyValue[0];
+                var url = keyValue[1];
+                csvDict[title] = url;
+            }
+        }
     }
 
     private static string GetAudioLink(string url)
@@ -215,7 +222,7 @@ public partial class PrtsDataProcessor
         var urlToken = url.Split('/');
         // [0] is "sound_beta_2"
         urlToken[0] = "audio";
-        return PrtsAssets.AssetsUrl + string.Join("/", urlToken) + ".mp3";
+        return PrtsAssets.AudioAssetsUrl + string.Join("/", urlToken) + ".mp3";
     }
 
     public string GetRealAudioUrl(string audioKey)
@@ -229,31 +236,30 @@ public partial class PrtsDataProcessor
             // 假设data.Audio是一个Dictionary<string, string>类型的字段或属性
             return Res.DataAudio.ContainsKey(audioKeyLower[1..]) ? Res.DataAudio[audioKeyLower[1..]] : "";
 
-        if (audioKey.StartsWith("@")) return string.Concat(PrtsAssets.AssetsUrl, audioKeyLower[1..]);
-        return PrtsAssets.AssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
+        if (audioKey.StartsWith("@")) return string.Concat(PrtsAssets.AudioAssetsUrl, audioKeyLower[1..]);
+        return PrtsAssets.AudioAssetsUrl + audioKeyLower.Replace("sound_beta_2", "audio") + ".mp3";
     }
 
-    private static string[]? ParseSingleJsonItem(string jsonItem)
+    private static string[]? ParseAudioJsonItem(string jsonItem)
     {
-        // for some history reason, the json contains some strange items, like:
+        // for some historical reason, the json contains some strange items, like:
         /*
          ```
          \"axia_name\": \"小小小天使\",\n  \"bg_width\": 0.5,\n  ...
          ```
          */
-        // so we have to skip these useless items.
+        // so we have to skip these useless items by the code below, to skip the non-sound items.
         if (!jsonItem.Contains("Sound")) return null;
-        var items = jsonItem.Replace("\"", "").Split(':');
+        /*
+         * the json item line is just like:
+         * \"kingmouse_intro\": \"Sound_Beta_2/Music/act5d0/m_bat_kingmouse_intro\" (Audio Item)
+         */
+        var items = jsonItem.Replace("\"", "").Replace(",", "").Split(':');
         items =
             (from i in items
                 select i.Trim()).ToArray();
 
         return items;
-    }
-
-    private static string GetItemUrl(string v)
-    {
-        return $"https://prts.wiki{v}";
     }
 
     private static string? ProcessQuery(string inputQuery)

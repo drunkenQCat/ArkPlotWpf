@@ -51,6 +51,8 @@
   "imagerotate_reg": "",
   "imagetween": "`图像平移`",
   "imagetween_reg": "",
+  "interlude": "",
+  "interlude_reg": "",
   "largebg": "`背景`：",
   "largebg_reg": "((?<=imagegroup=\").*?(?=\"))|((?<=fadetime=).*?)",
   "largebgtween": "`背景平移`",
