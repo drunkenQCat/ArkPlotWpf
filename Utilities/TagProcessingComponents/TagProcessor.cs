@@ -9,6 +9,7 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 public partial class TagProcessor
 {
     private readonly PrtsDataProcessor prts = new();
+    private readonly Dictionary<string, Regex> regexCache = new();
     public readonly PlotRules Rules = PlotRules.Instance;
 
     public TagProcessor()
@@ -60,9 +61,15 @@ public partial class TagProcessor
 
     private string ExtractValue(string line, string tag)
     {
-        var newValueReg = (string)Rules.TagList[tag + "_reg"]!;
-        var newValue = Regex.Match(line, newValueReg).Value;
-        return newValue;
+        if (!regexCache.TryGetValue(tag, out var regex))
+        {
+            var newValueReg = (string)Rules.TagList[tag + "_reg"]!;
+            regex = new Regex(newValueReg);
+            regexCache[tag] = regex;
+        }
+
+        var match = regex.Match(line);
+        return match.Success ? match.Value : string.Empty;
     }
 
     private string HandleEmptyValue(string newTag)
