@@ -167,10 +167,7 @@ public class MdReconstructor
         var nameEntry = lineList.ElementAtOrDefault(line.Index + 1);
         var canReadName = nameEntry is not null && !string.IsNullOrEmpty(nameEntry.CharacterName);
         if (!canReadName) return "";
-        // example: 
-        // name="可萝尔"
-        var name = nameEntry!.CharacterName.Split('"')[1];
-        return name;
+        return nameEntry!.CharacterName;
     }
 
     /// <summary>

@@ -31,7 +31,7 @@ public class PlotRules
     /// </summary>
     private PlotRules()
     {
-        RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.NameRegex(), PlotRegsBasicHelper.ProcessName));
+        RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.NameRegex(), PlotRegsBasicHelper.ProcessDialog));
         RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SegmentRegex(), PlotRegsBasicHelper.MakeLine));
         RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.CommentRegex(), PlotRegsBasicHelper.MakeComment));
         TagList = JObject.Parse("{}");

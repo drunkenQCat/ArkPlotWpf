@@ -1,27 +1,27 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using ArkPlotWpf.Data;
+﻿using System.Text.RegularExpressions;
+using ArkPlotWpf.Model;
 
 namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 internal static class PlotRegsBasicHelper
 {
-    private static string ProcessMultiLine(string? newValue)
+    private static string GetMultiLineName(FormattedTextEntry entry)
     {
-        newValue = newValue!.Replace("\\n", "\n");
-        newValue = newValue.Replace("\\t", "\t");
-        return newValue;
+        if (!entry.CommandSet.TryGetValue("name", out var name)) name = "";
+        return name;
     }
 
 
-    public static string ProcessName(string line)
+    public static string ProcessDialog(FormattedTextEntry entry)
     {
-        var name = ArkPlotRegs.NameRegex().Match(line).Value;
+        var name = entry.CharacterName;
         if (name == "？？？") name = "神秘人士";
-        var nameLine = ArkPlotRegs.RegexToSubName().Replace(line, $"**{name}**`讲道：`");
-        if (line.Contains("multiline"))
-            return ProcessMultiLine(nameLine) + Environment.NewLine;
-        return nameLine;
+        if (entry.Type == "multiline")
+            name = GetMultiLineName(entry);
+        var dialog = entry.Dialog;
+        var dialogWithName = $"**{name}**`讲道：`{dialog}";
+        if (dialog == "......") dialogWithName = $"**{name}**`陷入了沉默`";
+        return dialogWithName;
     }
 
     public static string RipDollar(string text)
@@ -30,13 +30,13 @@ internal static class PlotRegsBasicHelper
         return text;
     }
 
-    public static string MakeLine(string line)
+    public static string MakeLine(FormattedTextEntry line)
     {
         return "---";
     }
 
-    public static string MakeComment(string line)
+    public static string MakeComment(FormattedTextEntry line)
     {
-        return $"> {line}";
+        return $"> {line.OriginalText}";
     }
 }

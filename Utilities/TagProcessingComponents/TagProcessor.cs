@@ -17,11 +17,12 @@ public partial class TagProcessor
         Rules.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
     }
 
-    private string ProcessTag(string line)
+    // TODO:按照FormattedTextEntry的方法来改造tag.json以及整个函数
+    private string ProcessTag(FormattedTextEntry entry)
     {
-        //
+        var line = entry.OriginalText;
         // Extract the tag from the line
-        var tag = ExtractTag(line);
+        var tag = ExtractTag(entry);
         // Check if the tag exists; if not, log a notice and return the original line
         if (!IsValidTag(tag)) return NotifyInvalidTag(line, tag);
 
@@ -30,15 +31,15 @@ public partial class TagProcessor
         if (string.IsNullOrEmpty(newTag)) return string.Empty; // Early exit if no new tag
 
         // Extract and process the value associated with the tag
-        var newValue = ExtractValue(line, tag);
+        var newValue = ExtractValue(entry, tag);
         if (string.IsNullOrEmpty(newValue)) return HandleEmptyValue(newTag); // Handle empty values separately
 
         return ConstructResult(newTag, newValue);
     }
 
-    private static string ExtractTag(string line)
+    private static string ExtractTag(FormattedTextEntry line)
     {
-        var tag = ArkPlotRegs.SpecialTagRegex().Match(line).Value;
+        var tag = line.Type;
         tag = tag.ToLower();
         return tag;
     }
@@ -59,8 +60,9 @@ public partial class TagProcessor
         return (string)Rules.TagList[tag]!;
     }
 
-    private string ExtractValue(string line, string tag)
+    private string ExtractValue(FormattedTextEntry line, string tag)
     {
+        if (tag == "sticker") return GetStickerText(line);
         if (!regexCache.TryGetValue(tag, out var regex))
         {
             var newValueReg = (string)Rules.TagList[tag + "_reg"]!;
@@ -68,8 +70,19 @@ public partial class TagProcessor
             regexCache[tag] = regex;
         }
 
-        var match = regex.Match(line);
+        var match = regex.Match(line.OriginalText);
         return match.Success ? match.Value : string.Empty;
+    }
+
+    private string GetStickerText(FormattedTextEntry line)
+    {
+        if (!line.CommandSet.TryGetValue("text", out var text) || string.IsNullOrEmpty(text)) return "";
+        var textWithoutSlashN = text.Replace(@"\n", "");
+        if (!textWithoutSlashN.StartsWith("<")) return textWithoutSlashN;
+        // if start with "<", it just like:
+        // <i>《艾芙斯浪漫故事》（划掉）（就说我忘了）</i>
+        // then just replace the tag with empty
+        return Regex.Replace(textWithoutSlashN, "<.*?>", "");
     }
 
     private string HandleEmptyValue(string newTag)

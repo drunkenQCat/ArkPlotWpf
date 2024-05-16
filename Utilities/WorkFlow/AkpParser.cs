@@ -40,7 +40,7 @@ public class AkpParser
     /// <param name="inputBuilder">输入的字符串构建器。</param>
     public string ProcessSingleLine(FormattedTextEntry line)
     {
-        var classifiedLine = ClassifyAndProcess(line.OriginalText);
+        var classifiedLine = ClassifyAndProcess(line);
         /* FormattedTextEntry currentLine = new(classifiedLine); */
         FormattedTextEntry currentLine = new(line)
         {
@@ -59,11 +59,11 @@ public class AkpParser
     /// </summary>
     /// <param name="line">要处理的行。</param>
     /// <returns>处理后的行。</returns>
-    private string ClassifyAndProcess(string line)
+    private string ClassifyAndProcess(FormattedTextEntry line)
     {
         var sentenceProcessor = tagProcessor.Rules.RegexAndMethods
-            .FirstOrDefault(proc => proc.Regex.Match(line).Success);
-        if (sentenceProcessor == null) return line;
+            .FirstOrDefault(proc => proc.Regex.Match(line.OriginalText).Success);
+        if (sentenceProcessor == null) return line.OriginalText;
         var result = sentenceProcessor.Method(line);
         return result;
     }

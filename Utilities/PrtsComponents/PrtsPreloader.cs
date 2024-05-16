@@ -53,7 +53,10 @@ public class PrtsPreloader
             var matchedTagOnly = match.Groups[3].Value;
             entry.IsTagOnly = !string.IsNullOrEmpty(matchedTagOnly);
             var matchedCharName = match.Groups[4].Value;
-            entry.CharacterName = matchedCharName;
+            if (!string.IsNullOrEmpty(matchedCharName) && matchedCharName.StartsWith("name="))
+            {
+                entry.CharacterName = matchedCharName.Split('"')[1];
+            }
             var matchedDialog = match.Groups[5].Value;
             entry.Dialog = matchedDialog;
 
