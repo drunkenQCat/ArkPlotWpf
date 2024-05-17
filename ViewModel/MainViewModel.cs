@@ -17,6 +17,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
+// ReSharper disable InconsistentNaming
 
 namespace ArkPlotWpf.ViewModel;
 
@@ -112,9 +113,9 @@ public partial class MainWindowViewModel : ObservableObject
         var currentTokens = actsTable.GetStories(type);
         currentActInfos =
             (from act in currentTokens
-             let name = act["name"]!.ToString()
-             let info = new ActInfo(language, storyType, name, act)
-             select info
+                let name = act["name"]!.ToString()
+                let info = new ActInfo(language, storyType, name, act)
+                select info
             ).ToList();
         StoriesNames = CollectionViewSource.GetDefaultView(
             from info in currentActInfos
@@ -175,16 +176,19 @@ public partial class MainWindowViewModel : ObservableObject
         noticeBlock.RaiseCommonEvent("正在导出文档....");
         var exportMd = await ExportPlots(contentLoader.ContentTable);
         var mdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + exportMd;
-        SaveExportedContent(mdWithTitle);
+        SaveExportedContent(mdWithTitle, contentLoader.ContentTable);
     }
 
-    private void SaveExportedContent(string mdWithTitle)
+    private void SaveExportedContent(string mdWithTitle, List<PlotManager> contentLoaderContentTable)
     {
         if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
         var markdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPath, markdown);
         if (IsLocalResChecked)
+        {
             AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
+            AkpProcessor.WriteTyp(outputPath, contentLoaderContentTable, activeTitle);
+        }
         else
             AkpProcessor.WriteHtml(outputPath, markdown);
     }

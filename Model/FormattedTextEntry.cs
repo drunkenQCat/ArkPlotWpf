@@ -10,11 +10,12 @@ public class FormattedTextEntry
     public string Type = "";
     public StringDict CommandSet = new();
     public bool IsTagOnly { get; set; }
+    public string CharacterName = "";
     public string Dialog { get; set; } = "";
 
-    public List<string> Urls = new List<string>();
-
-    public string CharacterName = "";
+    public List<string> ResourceUrls = new();
+    public PortraitInfo PortraitsInfo = new(new List<string>(), 0);
+    public string Bg = "";
 
     public FormattedTextEntry(FormattedTextEntry entry)
     {
@@ -26,9 +27,11 @@ public class FormattedTextEntry
         Type = entry.Type;
         CommandSet = new(entry.CommandSet);
         IsTagOnly = entry.IsTagOnly;
-        Urls = new(entry.Urls);
+        ResourceUrls = new(entry.ResourceUrls);
         CharacterName = entry.CharacterName;
         Dialog = entry.CharacterName;
+        Bg = entry.Bg;
+        PortraitsInfo = entry.PortraitsInfo;
     }
 
     public FormattedTextEntry()

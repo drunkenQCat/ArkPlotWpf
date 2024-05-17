@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using ArkPlotWpf.Model;
 using ArkPlotWpf.Utilities.TagProcessingComponents;
 using ArkPlotWpf.Utilities.WorkFlow;
@@ -51,6 +52,24 @@ internal abstract class AkpProcessor
         File.WriteAllText(htmlPath, result);
     }
 
+    /// <summary>
+    /// 将 html 文本中的链接替换为本地相对地址。
+    /// </summary>
+    /// <param name="path">html 文件路径。</param>
+    /// <param name="markdown">要转换为typst的Plot对象。</param>
+    /// <param name="activeTitle"></param>
+    public static void WriteTyp(string path, List<PlotManager> markdown, string? activeTitle)
+    {
+        var typPath = path + "\\" + activeTitle + ".typ";
+        var result = "#import \"./template.typ\": arknights_sim, arknights_sim_2p\n";
+        foreach (var plot in markdown)
+        {
+            var content = string.Join("\n", plot.CurrentPlot.TextVariants.Select(x => x.TypText).ToList());
+            result += content;
+        }
+        File.WriteAllText(typPath, result);
+    }
+    
     /// <summary>
     /// 将 html 文本中的链接替换为本地相对地址。
     /// </summary>

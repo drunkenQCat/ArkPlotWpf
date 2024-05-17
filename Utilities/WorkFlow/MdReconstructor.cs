@@ -245,7 +245,7 @@ public class MdReconstructor
         _ = characterOriginalEntry.CommandSet.TryGetValue("focus", out string? focusIndex);
         if (int.TryParse(focusIndex, out var focusIdx))
         {
-            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.Urls.Count)  return characterOriginalEntry.Urls[focusIdx - 1];
+            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.ResourceUrls.Count)  return characterOriginalEntry.ResourceUrls[focusIdx - 1];
         }
         return url;
     }

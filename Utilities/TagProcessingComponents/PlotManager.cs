@@ -8,10 +8,10 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public class PlotManager
 {
-    public Plot CurrentPlot { get; private set; }
+    public Plot CurrentPlot { get; }
     private AkpParser? Parser { get; set; }
 
-    private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
+    private readonly NotificationBlock _noticeBlock = NotificationBlock.Instance;
 
     public PlotManager(string title, StringBuilder content)
     {
@@ -42,23 +42,20 @@ public class PlotManager
     public void StartParseLines(AkpParser akpParser)
     {
         Parser = akpParser;
-        // 假设这里填充了TextVariants的初始值
-        List<FormattedTextEntry> textVariants = new List<FormattedTextEntry>();
         // 示例：假设每个文本段落是原始内容按行分割的结果
-        var lines = CurrentPlot.Content.ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
         switch (Parser)
         {
             case { IsInitialized: false }:
-                Parser.InitializeParser(textVariants);
+                Parser.InitializeParser();
                 break;
             default:
-                noticeBlock.RaiseCommonEvent("【警告!解析器未配置!】\r\n");
+                _noticeBlock.RaiseCommonEvent("【警告!解析器未配置!】\r\n");
                 return;
         }
         foreach (var entry in CurrentPlot.TextVariants)
         {
             entry.MdText = ConvertToMarkdown(entry);
-            entry.TypText = ConvertToTypewriterText(entry.OriginalText);
+            entry.TypText = ConvertToTypstCode(entry);
         }
 
         Parser.IsInitialized = false;
@@ -69,11 +66,31 @@ public class PlotManager
         return Parser!.ProcessSingleLine(line);
     }
 
-    private string ConvertToTypewriterText(string line)
+    private string ConvertToTypstCode(FormattedTextEntry line)
     {
-        // 实现转换为打字机风格文本的逻辑
-        return ""; // 仅为示例，实际逻辑可能更复杂
+        if (string.IsNullOrEmpty(line.Dialog)) return "";
+
+        string characterName = line.CharacterName;
+        string dialog = line.Dialog;
+        string bgImage = $"image(\"{line.Bg.Replace("https://", "")}\", width: 1440pt)";
+        List<string> portraits = line.PortraitsInfo.Portraits;
+        int focus = line.PortraitsInfo.FocusOn;
+
+        string FormatSinglePortrait(string portrait) => 
+            $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"{portrait.Replace("https://", "")}\", height: 80%), {bgImage}, focus: {focus})";
+    
+        string FormatTwoPortraits(string portrait1, string portrait2) =>
+            $"#arknights_sim_2p(\"{characterName}\", \"{dialog}\", image(\"{portrait1.Replace("https://", "")}\", height: 80%), image(\"{portrait2.Replace("https://", "")}\", height: 80%), {bgImage}, focus: {focus})";
+
+        return portraits.Count switch
+        {
+            0 => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"\"), {bgImage})",
+            1 => FormatSinglePortrait(portraits[0]),
+            2 => FormatTwoPortraits(portraits[0], portraits[1]),
+            _ => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"\"), {bgImage})"
+        };
     }
+
 
     public string ExportMd()
     {
