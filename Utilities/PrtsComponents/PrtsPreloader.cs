@@ -84,7 +84,7 @@ public class PrtsPreloader
             case "image":
             case "showitem":
                 urls =ProcessImageCommand(commandDict);
-                _currentBg = urls[0];
+                if(urls.Count != 0) _currentBg = urls[0];
                 break;
             // Additional command processing as needed
             case "backgroundtween":
@@ -110,7 +110,7 @@ public class PrtsPreloader
             case "largebg":
             case "largeimg":
                 urls = ProcessLargeImageCommand(commandDict);
-                _currentBg = urls[0];
+                if(urls.Count != 0) _currentBg = urls[0];
                 break;
             case "playmusic":
             case "playsound":
