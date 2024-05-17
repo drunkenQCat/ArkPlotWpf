@@ -77,10 +77,10 @@ public class PlotManager
         int focus = line.PortraitsInfo.FocusOn;
 
         string FormatSinglePortrait(string portrait) => 
-            $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"{portrait.Replace("https://", "")}\", height: 80%), {bgImage}, focus: {focus})";
+            $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"{portrait.Replace("https://", "")}\", height: 135%), {bgImage}, focus: {focus})";
     
         string FormatTwoPortraits(string portrait1, string portrait2) =>
-            $"#arknights_sim_2p(\"{characterName}\", \"{dialog}\", image(\"{portrait1.Replace("https://", "")}\", height: 80%), image(\"{portrait2.Replace("https://", "")}\", height: 80%), {bgImage}, focus: {focus})";
+            $"#arknights_sim_2p(\"{characterName}\", \"{dialog}\", image(\"{portrait1.Replace("https://", "")}\", height: 135%), image(\"{portrait2.Replace("https://", "")}\", height: 135%), {bgImage}, focus: {focus})";
 
         return portraits.Count switch
         {
