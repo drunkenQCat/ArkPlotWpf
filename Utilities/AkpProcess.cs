@@ -51,24 +51,6 @@ internal abstract class AkpProcessor
         var result = FormatHtmlBody(htmlContent, markdown.Title);
         File.WriteAllText(htmlPath, result);
     }
-
-    /// <summary>
-    /// 将 html 文本中的链接替换为本地相对地址。
-    /// </summary>
-    /// <param name="path">html 文件路径。</param>
-    /// <param name="markdown">要转换为typst的Plot对象。</param>
-    /// <param name="activeTitle"></param>
-    public static void WriteTyp(string path, List<PlotManager> markdown, string? activeTitle)
-    {
-        var typPath = path + "\\" + activeTitle + ".typ";
-        var result = "#import \"./template.typ\": arknights_sim, arknights_sim_2p\n";
-        foreach (var plot in markdown)
-        {
-            var content = string.Join("\n", plot.CurrentPlot.TextVariants.Select(x => x.TypText).ToList());
-            result += content;
-        }
-        File.WriteAllText(typPath, result);
-    }
     
     /// <summary>
     /// 将 html 文本中的链接替换为本地相对地址。
@@ -118,5 +100,47 @@ internal abstract class AkpProcessor
         var tail = File.ReadAllText("assets/tail.html");
         html += tail;
         return html;
+    }
+
+    public static void WriteTyp(string outputPath, AkpStoryLoader contentLoader)
+    {
+        List<PlotManager> plotList = contentLoader.ContentTable;
+        var typFolder = outputPath;
+        // 把模板复制过来
+        string templateFolder = Path.Join(Directory.GetCurrentDirectory(), "typst-template");
+        CopyDirectory(templateFolder, typFolder);
+
+        int fileIndex = 1;
+        foreach (var plot in plotList)
+        {
+            var result = "#import \"./template.typ\": arknights_sim, arknights_sim_2p\n";
+            var content = string.Join("\n", plot.CurrentPlot.TextVariants.Select(x => x.TypText).ToList());
+            result += content;
+            var currentTyp = Path.Join(typFolder, $"{fileIndex}_{plot.CurrentPlot.Title}.typ");
+            File.WriteAllText(currentTyp, result);
+            fileIndex++;
+        }
+    }
+    
+    private static void CopyDirectory(string sourceDir, string destinationDir)
+    {
+        // Ensure the source directory exists
+        if (!Directory.Exists(sourceDir))
+        {
+            throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
+        }
+
+        // Create all directories in the destination
+        foreach (var dir in Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
+        {
+            Directory.CreateDirectory(dir.Replace(sourceDir, destinationDir));
+        }
+
+        // Copy all files to the destination
+        foreach (var file in Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
+        {
+            string destFile = file.Replace(sourceDir, destinationDir);
+            File.Copy(file, destFile, true);
+        }
     }
 }

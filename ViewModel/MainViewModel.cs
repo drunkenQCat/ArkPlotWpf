@@ -46,6 +46,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty] private string outputPath = Environment.CurrentDirectory + @"\output";
 
+    private string outputPathOfCurrentStory => outputPath + @"\" + activeTitle;
+
     [ObservableProperty] private int selectedIndex;
 
     [ObservableProperty]
@@ -174,23 +176,26 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task ExportDocuments(AkpStoryLoader contentLoader)
     {
         noticeBlock.RaiseCommonEvent("正在导出文档....");
-        var exportMd = await ExportPlots(contentLoader.ContentTable);
-        var mdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + exportMd;
-        SaveExportedContent(mdWithTitle, contentLoader.ContentTable);
+        var rawMd = await ExportPlots(contentLoader.ContentTable);
+        var rawMdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + rawMd;
+        ExportMdAndHtmlFiles(rawMdWithTitle);
+        if(IsLocalResChecked)
+        {         
+            AkpProcessor.WriteTyp(outputPathOfCurrentStory, contentLoader);
+        }
     }
 
-    private void SaveExportedContent(string mdWithTitle, List<PlotManager> contentLoaderContentTable)
+    private void ExportMdAndHtmlFiles(string mdWithTitle)
     {
-        if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
-        var markdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
-        AkpProcessor.WriteMd(outputPath, markdown);
+        if (!Directory.Exists(outputPathOfCurrentStory)) Directory.CreateDirectory(outputPathOfCurrentStory);
+        var rawMarkdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
+        AkpProcessor.WriteMd(outputPathOfCurrentStory, rawMarkdown);
         if (IsLocalResChecked)
         {
-            AkpProcessor.WriteHtmlWithLocalRes(outputPath, markdown);
-            AkpProcessor.WriteTyp(outputPath, contentLoaderContentTable, activeTitle);
+            AkpProcessor.WriteHtmlWithLocalRes(outputPathOfCurrentStory, rawMarkdown);
         }
         else
-            AkpProcessor.WriteHtml(outputPath, markdown);
+            AkpProcessor.WriteHtml(outputPathOfCurrentStory, rawMarkdown);
     }
 
     private void CompleteLoading()

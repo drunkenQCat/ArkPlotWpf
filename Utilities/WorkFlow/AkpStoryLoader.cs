@@ -15,6 +15,7 @@ namespace ArkPlotWpf.Utilities.WorkFlow;
 /// </summary>
 internal class AkpStoryLoader
 {
+    public string StoryName { get; }
     private readonly string lang;
 
     private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
@@ -25,6 +26,7 @@ internal class AkpStoryLoader
 
     public AkpStoryLoader(ActInfo info)
     {
+        StoryName = info.Name;
         lang = info.Lang;
         storyTokens = info.Tokens;
     }
@@ -102,7 +104,7 @@ internal class AkpStoryLoader
     {
         var toPreLoad = GetPreloadInfo();
         // 下载所有资源
-        await PrtsResLoader.DownloadAssets(toPreLoad);
+        await PrtsResLoader.DownloadAssets(StoryName, toPreLoad);
     }
     
     public void ParseAllDocuments(string jsonPath)

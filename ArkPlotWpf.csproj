@@ -46,7 +46,7 @@
     <ItemGroup>
       <SourceFiles Include="typst arknights simulator\**\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(OutDir)output\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(OutDir)typst-template\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="CopyFilesAfterBuild" AfterTargets="Build">
     <Copy SourceFiles="tags.json" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
