@@ -4,7 +4,7 @@ public partial class TagProcessor
 {
     private string GetUrlFromPreloaded(string key)
     {
-        var isKeyExists = prts.Res.PreLoaded.TryGetValue(key, out var url);
+        var isKeyExists = _prts.Res.PreLoaded.TryGetValue(key, out var url);
         return isKeyExists ? url! : "";
     }
 

@@ -22,8 +22,10 @@ public class PrtsPreloader
     private bool _isTweenNeedsOverride = true;
     private readonly List<FormattedTextEntry> _textList;
 
-    private PortraitInfo _currentPortraits = new(new List<string>(){"https://pics/transparent.png"}, 0);
-    private string _currentBg = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png";
+    private static PortraitInfo CreateDefaultPortraitInfo() => new(new List<string>(){"https://pics/transparent.png"}, 0);
+    private PortraitInfo _currentPortraits = CreateDefaultPortraitInfo();
+    private const string DefaultBg = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png";
+    private string _currentBg = DefaultBg;
 
     public PrtsPreloader(PlotManager plotManager)
     {
@@ -46,7 +48,13 @@ public class PrtsPreloader
 
             OverrideCurrentText();
             var match = ArkPlotRegs.UniversalTagsRegex().Match(entry.OriginalText);
-            if (!match.Success) continue;
+            if (!match.Success)
+            {
+                entry.Dialog = entry.OriginalText;
+                entry.PortraitsInfo = _currentPortraits;
+                entry.Bg = _currentBg;
+                continue;
+            };
 
             // var matchedWhole = match.Groups[0].Value; // The entire matched string
             var matchedTag = match.Groups[1].Value;
@@ -65,6 +73,11 @@ public class PrtsPreloader
             {
                 entry.CommandSet = ProcessCommand(matchedTag.ToLower(), matchedCommands, out List<string> urlList);
                 entry.Type = entry.CommandSet["type"];
+                if (entry.Type == "sticker") entry.Dialog = GetStickerText(entry);
+                if (entry.Type == "subtitle" && entry.CommandSet.TryGetValue("text", out var subtitle)) 
+                {
+                    entry.Dialog = subtitle??"";
+                }
                 entry.ResourceUrls = urlList;
             }
             entry.PortraitsInfo = _currentPortraits;
@@ -84,7 +97,10 @@ public class PrtsPreloader
             case "image":
             case "showitem":
                 urls =ProcessImageCommand(commandDict);
-                if(urls.Count != 0) _currentBg = urls[0];
+                if (urls.Count != 0 && !string.IsNullOrEmpty(urls[0]))
+                    _currentBg = urls[0];
+                else
+                    _currentBg = DefaultBg;
                 break;
             // Additional command processing as needed
             case "backgroundtween":
@@ -119,6 +135,18 @@ public class PrtsPreloader
         }
         return commandDict;
     }
+    
+    private string GetStickerText(FormattedTextEntry line)
+    {
+        if (!line.CommandSet.TryGetValue("text", out var text) || string.IsNullOrEmpty(text)) return "";
+        var textWithoutSlashN = text.Replace(@"\n", "");
+        if (!textWithoutSlashN.StartsWith("<")) return textWithoutSlashN;
+        // if start with "<", it just like:
+        // <i>《艾芙斯浪漫故事》（划掉）（就说我忘了）</i>
+        // then just replace the tag with empty
+        return System.Text.RegularExpressions.Regex.Replace(textWithoutSlashN, "<.*?>", "");
+    }
+
 
     private PortraitInfo GetCurrentPortraitsFromCutin(StringDict commandDict, List<string> urls)
     {
@@ -128,20 +156,16 @@ public class PrtsPreloader
     private PortraitInfo GetCurrentPortraitsFromCharacter(StringDict commandDict, List<string> inputUrls)
     {
         List<string> urls = new(inputUrls);
-        if(urls.Count == 0) return new PortraitInfo(new List<string>(){"https://pics/transparent.png"}, 0);
+        if (urls.Count == 0) return CreateDefaultPortraitInfo();
         if (commandDict.TryGetValue("focus", out string? position))
         {
-            switch (position)
+            return position switch
             {
-                case "-1":
-                    return new PortraitInfo(urls, -1);
-                case "1":
-                    return new PortraitInfo(urls, 1);
-                case "2":
-                    return new PortraitInfo(urls, 2);
-                default:
-                    return new PortraitInfo(urls, 0);
-            }
+                "-1" => new PortraitInfo(urls, -1),
+                "1" => new PortraitInfo(urls, 1),
+                "2" => new PortraitInfo(urls, 2),
+                _ => new PortraitInfo(urls, 0)
+            };
         }
         return new PortraitInfo(urls, 0);
     }

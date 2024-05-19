@@ -12,6 +12,7 @@ public class FormattedTextEntry
     public bool IsTagOnly { get; set; }
     public string CharacterName = "";
     public string Dialog { get; set; } = "";
+    public int PngIndex { get; set; }
 
     public List<string> ResourceUrls = new();
     public PortraitInfo PortraitsInfo = new(new List<string>(), 0);

@@ -52,10 +52,15 @@ public class PlotManager
                 _noticeBlock.RaiseCommonEvent("【警告!解析器未配置!】\r\n");
                 return;
         }
+
+        int pngIndex = 1;
         foreach (var entry in CurrentPlot.TextVariants)
         {
             entry.MdText = ConvertToMarkdown(entry);
             entry.TypText = ConvertToTypstCode(entry);
+            if(string.IsNullOrEmpty(entry.TypText)) continue;
+            entry.PngIndex = pngIndex;
+            pngIndex++;
         }
 
         Parser.IsInitialized = false;
@@ -84,10 +89,10 @@ public class PlotManager
 
         return portraits.Count switch
         {
-            0 => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"\"), {bgImage})",
+            0 => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"pics/transparent.png\"), {bgImage})",
             1 => FormatSinglePortrait(portraits[0]),
             2 => FormatTwoPortraits(portraits[0], portraits[1]),
-            _ => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"\"), {bgImage})"
+            _ => $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"pics/transparent.png\"), {bgImage})"
         };
     }
 

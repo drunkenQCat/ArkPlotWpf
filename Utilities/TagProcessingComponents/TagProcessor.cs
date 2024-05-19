@@ -8,8 +8,8 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public partial class TagProcessor
 {
-    private readonly PrtsDataProcessor prts = new();
-    private readonly Dictionary<string, Regex> regexCache = new();
+    private readonly PrtsDataProcessor _prts = new();
+    private readonly Dictionary<string, Regex> _regexCache = new();
     public readonly PlotRules Rules = PlotRules.Instance;
 
     public TagProcessor()
@@ -62,27 +62,16 @@ public partial class TagProcessor
 
     private string ExtractValue(FormattedTextEntry line, string tag)
     {
-        if (tag == "sticker") return GetStickerText(line);
-        if (!regexCache.TryGetValue(tag, out var regex))
+        if (tag == "sticker") return line.Dialog;
+        if (!_regexCache.TryGetValue(tag, out var regex))
         {
             var newValueReg = (string)Rules.TagList[tag + "_reg"]!;
             regex = new Regex(newValueReg);
-            regexCache[tag] = regex;
+            _regexCache[tag] = regex;
         }
 
         var match = regex.Match(line.OriginalText);
         return match.Success ? match.Value : string.Empty;
-    }
-
-    private string GetStickerText(FormattedTextEntry line)
-    {
-        if (!line.CommandSet.TryGetValue("text", out var text) || string.IsNullOrEmpty(text)) return "";
-        var textWithoutSlashN = text.Replace(@"\n", "");
-        if (!textWithoutSlashN.StartsWith("<")) return textWithoutSlashN;
-        // if start with "<", it just like:
-        // <i>《艾芙斯浪漫故事》（划掉）（就说我忘了）</i>
-        // then just replace the tag with empty
-        return Regex.Replace(textWithoutSlashN, "<.*?>", "");
     }
 
     private string HandleEmptyValue(string newTag)

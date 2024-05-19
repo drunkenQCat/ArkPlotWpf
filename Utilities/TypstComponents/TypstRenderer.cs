@@ -22,8 +22,25 @@ public class TypstRenderer
     }
 
     private string TypPath => $".\\output\\{chapterName}.typ";
+    public string GetPngByIndex(int index) => $".\\output\\{chapterName}_Seq\\" + $"pic{index}.typ";
 
     // 这个方法用来渲染 typst 代码为图片。
+    private void ExportPngSequence()
+    {
+        string ExportPngPath(string chapter) => $".\\output\\{chapter}_Seq\\" + "pic{n}.typ";
+
+        string ExportCommand() => "typst c -f png --ppi 72 "
+                                             + $"'{TypPath}' "
+                                             + $"'{ExportPngPath(chapterName)}'";
+        using var process = new Process();
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = @"powershell.exe",
+            Arguments = ExportCommand()
+        };
+        Process.Start(startInfo);
+        process.WaitForExit();
+    }
     public void Render()
     {
         // 设置命令行程序的名称或路径
