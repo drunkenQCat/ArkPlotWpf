@@ -21,6 +21,7 @@ public class TypstRenderer
         File.WriteAllText(TypPath, trans.TypCode);
     }
 
+    // TODO:根据当前输出文件结构，修改渲染图片路径
     private string TypPath => $".\\output\\{chapterName}.typ";
     public string GetPngByIndex(int index) => $".\\output\\{chapterName}_Seq\\" + $"pic{index}.typ";
 

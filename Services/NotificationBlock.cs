@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 
 namespace ArkPlotWpf.Services;
 
@@ -40,12 +41,17 @@ public class NotificationBlock
 
 public class NetworkErrorEventArgs : EventArgs
 {
-    public NetworkErrorEventArgs(string message)
+    public NetworkErrorEventArgs(string? message)
     {
         Message = message;
     }
 
-    public string Message { get; }
+    public NetworkErrorEventArgs(HttpResponseMessage response)
+    {
+        Message = response.ReasonPhrase + $"\n请求内容：{response.RequestMessage}";
+    }
+
+    public string? Message { get; }
 }
 
 public class LineNoMatchEventArgs : EventArgs

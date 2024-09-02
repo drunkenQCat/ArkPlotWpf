@@ -17,7 +17,7 @@ public static class NetworkUtility
             if (!response.IsSuccessStatusCode)
             {
                 if (response.ReasonPhrase != null)
-                    NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response.ReasonPhrase));
+                    NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs(response));
                 return "";
             }
 
