@@ -12,7 +12,7 @@
     <Title>ArkPlot</Title>
     <Authors>QuantumCat</Authors>
     <NeutralLanguage>zh-CN</NeutralLanguage>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <VersionPrefix>$(Version)</VersionPrefix>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
