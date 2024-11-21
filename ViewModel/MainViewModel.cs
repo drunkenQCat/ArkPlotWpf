@@ -115,9 +115,9 @@ public partial class MainWindowViewModel : ObservableObject
         var currentTokens = actsTable.GetStories(type);
         currentActInfos =
             (from act in currentTokens
-                let name = act["name"]!.ToString()
-                let info = new ActInfo(language, storyType, name, act)
-                select info
+             let name = act["name"]!.ToString()
+             let info = new ActInfo(language, storyType, name, act)
+             select info
             ).ToList();
         StoriesNames = CollectionViewSource.GetDefaultView(
             from info in currentActInfos
@@ -165,7 +165,7 @@ public partial class MainWindowViewModel : ObservableObject
             await Task.Run(contentLoader.GetPreloadInfo);
         }
     }
-    
+
     private async Task StartParseDocuments(AkpStoryLoader content)
     {
         noticeBlock.RaiseCommonEvent("正在解析文档....");
@@ -179,8 +179,8 @@ public partial class MainWindowViewModel : ObservableObject
         var rawMd = await ExportPlots(contentLoader.ContentTable);
         var rawMdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + rawMd;
         ExportMdAndHtmlFiles(rawMdWithTitle);
-        if(IsLocalResChecked)
-        {         
+        if (IsLocalResChecked)
+        {
             AkpProcessor.WriteTyp(outputPathOfCurrentStory, contentLoader);
         }
     }

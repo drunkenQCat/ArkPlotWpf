@@ -27,25 +27,23 @@
     }); 
 </script>
 <script>
-    // JavaScript 部分
     document.addEventListener('DOMContentLoaded', function () {
         var lazyAudios = document.querySelectorAll('.lazy-audio');
 
         var lazyLoadAudio = function () {
             lazyAudios.forEach(function (audio) {
-                var src = audio.getAttribute('data-src');
-                if (audio.getBoundingClientRect().top < window.innerHeight && !audio.src) {
-                    audio.src = src;
-                    audio.load();
+                var source = audio.querySelector('source'); // get <source> element
+                if (source && source.src && audio.getBoundingClientRect().top < window.innerHeight && !audio.hasAttribute('src')) {
+                    audio.src = source.src; // from <source> get src
+                    audio.load();           // load the audio
                 }
             });
         };
 
-        lazyLoadAudio(); // 初始调用
+        lazyLoadAudio();
 
         document.addEventListener('scroll', lazyLoadAudio);
         window.addEventListener('resize', lazyLoadAudio);
         window.addEventListener('orientationchange', lazyLoadAudio);
     });
-
 </script>
