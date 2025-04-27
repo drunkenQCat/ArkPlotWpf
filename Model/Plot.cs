@@ -22,5 +22,6 @@ public class Plot
     /// <summary>类的内容。</summary>
     public StringBuilder Content { get; init; }
 
+    /// <summary>每一行文字</summary>
     public List<FormattedTextEntry> TextVariants = new();
 }

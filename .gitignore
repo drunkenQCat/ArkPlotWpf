@@ -481,7 +481,5 @@ $RECYCLE.BIN/
 *.lnk
 
 # Spawned Markdown and Html files
-*.html
-*.md
 /.idea/
 /.vscode/

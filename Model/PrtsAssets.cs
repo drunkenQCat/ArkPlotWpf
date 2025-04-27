@@ -2,13 +2,26 @@ using System.Text.Json;
 
 namespace ArkPlotWpf.Model;
 
+/// <summary>
+/// 管理PRTS资源数据的单例类，包含音频、角色图片、背景图片等资源数据
+/// </summary>
 public class PrtsAssets
 {
+    /// <summary>
+    /// 空JSON文档常量
+    /// </summary>
     private const string EmptyJson = "{ }";
+
+    /// <summary>
+    /// PRTS音频资源的基础URL
+    /// </summary>
     public const string AudioAssetsUrl = "https://torappu.prts.wiki/assets/";
 
     private static PrtsAssets? _instance;
 
+    /// <summary>
+    /// 所有PRTS数据集合，包含图片、角色、音频等资源数据
+    /// </summary>
     public readonly List<PrtsData> AllData;
 
     /// table of Sound Effects and Musics
@@ -20,16 +33,25 @@ public class PrtsAssets
     /// table of Background Images
     public readonly StringDict DataImage = new();
 
+    /// <summary>
+    /// 覆盖数据字典，包含多层嵌套的配置数据
+    /// </summary>
     public readonly Dictionary<string, Dictionary<string, object>> RideItems = new();
 
     /// <summary>
-    ///     prts 的补丁数据。
+    /// PRTS补丁数据文档，用于覆盖默认配置
     /// </summary>
     public JsonDocument DataOverrideDocument = JsonDocument.Parse(EmptyJson);
 
+    /// <summary>
+    /// 角色立绘链接数据文档
+    /// </summary>
     public JsonDocument PortraitLinkDocument = JsonDocument.Parse(EmptyJson);
 
     /// set of preloaded resources
+    /// <summary>
+    /// 预加载资源集合，用于快速访问常用资源
+    /// </summary>
     public StringDict PreLoaded = new();
 
     private PrtsAssets()
@@ -46,5 +68,8 @@ public class PrtsAssets
         };
     }
 
+    /// <summary>
+    /// 获取PrtsAssets单例实例
+    /// </summary>
     public static PrtsAssets Instance => _instance ??= new PrtsAssets();
 }

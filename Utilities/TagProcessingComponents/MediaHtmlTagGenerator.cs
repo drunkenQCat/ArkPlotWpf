@@ -2,6 +2,11 @@ namespace ArkPlotWpf.Utilities.TagProcessingComponents;
 
 public partial class TagProcessor
 {
+    /// <summary>
+    /// 从预加载资源获取 URL
+    /// </summary>
+    /// <param name="key">资源键名</param>
+    /// <returns>资源 URL，如果键不存在则返回空字符串</returns>
     private string GetUrlFromPreloaded(string key)
     {
         var isKeyExists = _prts.Res.PreLoaded.TryGetValue(key, out var url);

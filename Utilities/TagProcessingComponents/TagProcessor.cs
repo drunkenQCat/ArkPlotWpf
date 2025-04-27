@@ -17,7 +17,6 @@ public partial class TagProcessor
         Rules.RegexAndMethods.Add(new SentenceMethod(ArkPlotRegs.SpecialTagRegex(), ProcessTag));
     }
 
-    // TODO:按照FormattedTextEntry的方法来改造tag.json以及整个函数
     private string ProcessTag(FormattedTextEntry entry)
     {
         var line = entry.OriginalText;
