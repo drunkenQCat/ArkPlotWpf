@@ -15,7 +15,7 @@ internal static class PlotRegsBasicHelper
     public static string ProcessDialog(FormattedTextEntry entry)
     {
         var name = entry.CharacterName;
-        if (name == "？？？") name = "神秘人士";
+        if (name == "？？？" || string.IsNullOrWhiteSpace(name)) name = "神秘人士";
         if (entry.Type == "multiline")
             name = GetMultiLineName(entry);
         var dialog = entry.Dialog;

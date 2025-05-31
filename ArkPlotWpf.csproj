@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <DefaultLanguage>zh-Hans</DefaultLanguage>
     <PublishRoot>bin\Publish</PublishRoot>
     <Nullable>enable</Nullable>
@@ -23,6 +23,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
     <PackageReference Include="HandyControl" Version="3.4.0" />
     <PackageReference Include="Markdig" Version="0.30.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
   </ItemGroup>

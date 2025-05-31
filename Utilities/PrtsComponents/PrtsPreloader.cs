@@ -10,10 +10,10 @@ using ResItem = System.Collections.Generic.KeyValuePair<string, string>;
 // Define the alias
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
-public class PrtsPreloader
+public partial class PrtsPreloader
 {
-    public readonly PreloadSet Assets = new();
-    private readonly string _page;
+    public readonly PreloadSet Assets = [];
+    private readonly string _pageName;
     private readonly PrtsDataProcessor _prts = new();
     private int _counter;
     private bool _isCharacterNeedsOverride = true;
@@ -22,22 +22,29 @@ public class PrtsPreloader
     private bool _isTweenNeedsOverride = true;
     private readonly List<FormattedTextEntry> _textList;
 
-    private static PortraitInfo CreateDefaultPortraitInfo() => new(new List<string>(){"https://pics/transparent.png"}, 0);
+    private static PortraitInfo CreateDefaultPortraitInfo() => new(["https://pics/transparent.png"], 0);
     private PortraitInfo _currentPortraits = CreateDefaultPortraitInfo();
     private const string DefaultBg = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png";
     private string _currentBg = DefaultBg;
 
+    public string PageName
+    {
+        get => _pageName;
+    }
+    public string Content = string.Empty;
+
     public PrtsPreloader(PlotManager plotManager)
     {
         var pageName = plotManager.CurrentPlot.Title;
-        plotManager.CurrentPlot.Content.ToString().Split("\n");
-        // 用来将章节名称替换成prts页面地址
-        _page = pageName.Trim()
+        _ = plotManager.CurrentPlot.Content.ToString().Split("\n");
+        // 用来将章节名称替换成 prts 页面地址
+        _pageName = pageName.Trim()
             .Replace(" 行动后", "/END")
             .Replace(" 行动前", "/BEG")
             .Replace(" 幕间", "/NBT");
         //.Replace(" ", "_");
         _textList = plotManager.CurrentPlot.TextVariants;
+        Content = plotManager.CurrentPlot.Content.ToString();
     }
 
     public void ParseAndCollectAssets()
@@ -74,9 +81,9 @@ public class PrtsPreloader
                 entry.CommandSet = ProcessCommand(matchedTag.ToLower(), matchedCommands, out List<string> urlList);
                 entry.Type = entry.CommandSet["type"];
                 if (entry.Type == "sticker") entry.Dialog = GetStickerText(entry);
-                if (entry.Type == "subtitle" && entry.CommandSet.TryGetValue("text", out var subtitle)) 
+                if (entry.Type == "subtitle" && entry.CommandSet.TryGetValue("text", out var subtitle))
                 {
-                    entry.Dialog = subtitle??"";
+                    entry.Dialog = subtitle ?? "";
                 }
                 entry.ResourceUrls = urlList;
             }
@@ -90,13 +97,13 @@ public class PrtsPreloader
     {
         var commandDict = parameters.ToCommandSet();
         commandDict["type"] = command;
-        urls = new();
+        urls = [];
         switch (command)
         {
             case "background":
             case "image":
             case "showitem":
-                urls =ProcessImageCommand(commandDict);
+                urls = ProcessImageCommand(commandDict);
                 if (urls.Count != 0 && !string.IsNullOrEmpty(urls[0]))
                     _currentBg = urls[0];
                 else
@@ -126,7 +133,7 @@ public class PrtsPreloader
             case "largebg":
             case "largeimg":
                 urls = ProcessLargeImageCommand(commandDict);
-                if(urls.Count != 0) _currentBg = urls[0];
+                if (urls.Count != 0) _currentBg = urls[0];
                 break;
             case "playmusic":
             case "playsound":
@@ -135,25 +142,25 @@ public class PrtsPreloader
         }
         return commandDict;
     }
-    
-    private string GetStickerText(FormattedTextEntry line)
+
+    private static string GetStickerText(FormattedTextEntry line)
     {
         if (!line.CommandSet.TryGetValue("text", out var text) || string.IsNullOrEmpty(text)) return "";
         var textWithoutSlashN = text.Replace(@"\n", "");
-        if (!textWithoutSlashN.StartsWith("<")) return textWithoutSlashN;
+        if (!textWithoutSlashN.StartsWith('<')) return textWithoutSlashN;
         // if start with "<", it just like:
         // <i>《艾芙斯浪漫故事》（划掉）（就说我忘了）</i>
         // then just replace the tag with empty
-        return System.Text.RegularExpressions.Regex.Replace(textWithoutSlashN, "<.*?>", "");
+        return RoundedWithTagRegex().Replace(textWithoutSlashN, "");
     }
 
 
-    private PortraitInfo GetCurrentPortraitsFromCutin(StringDict commandDict, List<string> urls)
+    private static PortraitInfo GetCurrentPortraitsFromCutin(StringDict commandDict, List<string> urls)
     {
         return new PortraitInfo(urls, 0);
     }
 
-    private PortraitInfo GetCurrentPortraitsFromCharacter(StringDict commandDict, List<string> inputUrls)
+    private static PortraitInfo GetCurrentPortraitsFromCharacter(StringDict commandDict, List<string> inputUrls)
     {
         List<string> urls = new(inputUrls);
         if (urls.Count == 0) return CreateDefaultPortraitInfo();
@@ -170,21 +177,17 @@ public class PrtsPreloader
         return new PortraitInfo(urls, 0);
     }
 
-    private PortraitInfo GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
+    private static PortraitInfo GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
     {
         if (commandDict.TryGetValue("slot", out string? position))
         {
-            switch (position)
+            return position switch
             {
-                case "m":
-                    return new PortraitInfo(urls, 0);
-                case "l":
-                    return new PortraitInfo(urls, 1);
-                case "r":
-                    return new PortraitInfo(urls, 2);
-                default:
-                    return new PortraitInfo(urls, 0);
-            }
+                "m" => new PortraitInfo(urls, 0),
+                "l" => new PortraitInfo(urls, 1),
+                "r" => new PortraitInfo(urls, 2),
+                _ => new PortraitInfo(urls, 0),
+            };
         }
         return new PortraitInfo(urls, 0);
     }
@@ -200,7 +203,7 @@ public class PrtsPreloader
 
         // 尝试获取对应页的'override'内容
         var isOverPageImageExists =
-            overrideLineList.TryGetProperty(_page, out var pageOverrideLineList) && isOverrideExists;
+            overrideLineList.TryGetProperty(_pageName, out var pageOverrideLineList) && isOverrideExists;
         // 如果对应页的'override'内容不存在，则立即返回
         if (!isOverPageImageExists)
         {
@@ -228,21 +231,19 @@ public class PrtsPreloader
         var isBg = commandDict.ContainsKey("type") &&
                    commandDict["type"].Equals("background", StringComparison.OrdinalIgnoreCase);
         var prefix = isBg ? "bg_" : "";
-        var key = commandDict.ContainsKey("image") ? prefix + commandDict["image"].ToLower() : string.Empty;
+        var key = commandDict.TryGetValue("image", out string? value) ? prefix + value.ToLower() : string.Empty;
 
-        if (string.IsNullOrEmpty(key)) return new List<string>(); // Skip if key is not valid
+        if (string.IsNullOrEmpty(key)) return []; // Skip if key is not valid
 
-        if (!_prts.Res.DataImage.ContainsKey(key))
+        if (!_prts.Res.DataImage.TryGetValue(key, out string? url))
         {
             // Log or handle the error where the key does not exist
             Console.WriteLine($"<image> Linked key [{key}] not exist.");
-            return new List<string>();
+            return [];
         }
 
-        // Adding the resolved image asset to assets
-        var url = _prts.Res.DataImage[key];
         Assets.Add(new ResItem(key, url));
-        return new List<string>{url};
+        return [url];
     }
 
     private List<string> ProcessPortraitCommand(StringDict commandDict)
@@ -254,7 +255,7 @@ public class PrtsPreloader
         if (commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
             names.Add(name2.ToLower());
 
-        List<string> urls = new();
+        List<string> urls = [];
         foreach (var characterName in names)
         {
             // Placeholder for character asset key retrieval or formatting logic
@@ -269,7 +270,7 @@ public class PrtsPreloader
 
     private List<string> ProcessLargeImageCommand(StringDict commandDict)
     {
-        List<string> urls = new();
+        List<string> urls = [];
         if (!commandDict.TryGetValue("imagegroup",
                 out var imageGroupValue)) return urls; // No image group specified, nothing to process
 
@@ -283,9 +284,8 @@ public class PrtsPreloader
                 : img.ToLower();
 
             // Checking if the key exists in the DataChar collection and adding it to assets if it does
-            if (!string.IsNullOrWhiteSpace(key) && _prts.Res.DataChar.ContainsKey(key))
+            if (!string.IsNullOrWhiteSpace(key) && _prts.Res.DataChar.TryGetValue(key, out string? url))
             {
-                var url = _prts.Res.DataChar[key];
                 Assets.Add(new ResItem(key, url));
             }
             else
@@ -303,7 +303,7 @@ public class PrtsPreloader
         var isOverTweenExists = _prts.Res.DataOverrideDocument.RootElement.TryGetProperty("tween", out var tweens);
         if (!isOverTweenExists) return;
 
-        var isOverPageTweenExists = tweens.TryGetProperty(_page, out var pageTweens) && isOverTweenExists;
+        var isOverPageTweenExists = tweens.TryGetProperty(_pageName, out var pageTweens) && isOverTweenExists;
         if (!isOverPageTweenExists)
         {
             _isTweenNeedsOverride = false;
@@ -329,8 +329,8 @@ public class PrtsPreloader
 
     private List<string> ProcessSoundsCommand(StringDict commandDict)
     {
-        List<string> audioKeys = new();
-        List<string> urls = new();
+        List<string> audioKeys = [];
+        List<string> urls = [];
 
         // If the command is "playmusic" and an intro is specified, add it to the list
         if (commandDict["type"] == "playmusic" && commandDict.TryGetValue("intro", out var intro)) audioKeys.Add(intro);
@@ -359,7 +359,7 @@ public class PrtsPreloader
         var isOverCharacterExists = _prts.Res.DataOverrideDocument.RootElement.TryGetProperty("char", out var tweens);
         if (!isOverCharacterExists) return;
 
-        var isOverPageCharacterExists = tweens.TryGetProperty(_page, out var pageCharacters) && isOverCharacterExists;
+        var isOverPageCharacterExists = tweens.TryGetProperty(_pageName, out var pageCharacters) && isOverCharacterExists;
         if (!isOverPageCharacterExists)
         {
             _isCharacterNeedsOverride = false;
@@ -395,7 +395,7 @@ public class PrtsPreloader
         if (!isOverImageExists) return;
 
         // 尝试获取对应页的'image'属性
-        var isOverPageImageExists = images.TryGetProperty(_page, out var pageImages) && isOverImageExists;
+        var isOverPageImageExists = images.TryGetProperty(_pageName, out var pageImages) && isOverImageExists;
         // 如果对应页的'image'属性不存在，则立即返回
         if (!isOverPageImageExists)
         {
@@ -431,4 +431,7 @@ public class PrtsPreloader
         foreach (var cmd in commands) res.Add($"{cmd.Key}=\"{cmd.Value}\"");
         return $"[{commands["type"]}({string.Join(", ", res)})]";
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex("<.*?>")]
+    private static partial System.Text.RegularExpressions.Regex RoundedWithTagRegex();
 }

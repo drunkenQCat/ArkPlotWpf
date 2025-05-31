@@ -23,5 +23,5 @@ public class Plot
     public StringBuilder Content { get; init; }
 
     /// <summary>每一行文字</summary>
-    public List<FormattedTextEntry> TextVariants = new();
+    public List<FormattedTextEntry> TextVariants = [];
 }
