@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="CalcBinding" Version="2.5.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="HandyControl" Version="3.4.0" />
     <PackageReference Include="Markdig" Version="0.30.4" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
