@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ArkPlotWpf\ArkPlotWpf.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -8,15 +8,24 @@ public class PrtsDataMapper : IMapper<PrtsData, PrtsDataEntity>
 {
     public PrtsDataEntity ToEntity(PrtsData model)
     {
+        if (model == null)
+            return null!;
+            
         return new PrtsDataEntity
         {
             Tag = model.Tag,
-            DataJson = JsonSerializer.Serialize(model.Data)
+            DataJson = JsonSerializer.Serialize(model.Data, new JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            })
         };
     }
 
     public PrtsData ToModel(PrtsDataEntity entity)
     {
+        if (entity == null)
+            return null!;
+            
         StringDict data;
         
         try
