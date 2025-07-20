@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ArkPlotWpf.csproj # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
+      Solution_Name: ArkPlotWpf/ArkPlotWpf.csproj
       # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #请替换为您的测试项目路径
 
     strategy:
@@ -46,10 +46,10 @@ jobs:
           dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
           dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
           # html文件路径
-          $sourceHtml = Get-ChildItem .\assets\*.html
+          $sourceHtml = Get-ChildItem .\ArkPlotWpf\assets\*.html
 
           # 目标文件路径
-          $publishPath = "${{ github.workspace }}\Publish\assets"
+          $publishPath = "${{ github.workspace }}\ArkPlotWpf\Publish\assets"
 
           # 获取目标文件夹路径（不包括文件名）
 
@@ -70,7 +70,7 @@ jobs:
       - name: Extract version
         id: extract_version
         run: |
-          $csprojPath = Get-ChildItem -Path . -Filter "*.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          $csprojPath = Get-ChildItem -Path . -Filter "ArkPlotWpf.csproj" -Recurse | Select-Object -First 1 -ExpandProperty FullName
           $version = Select-String -Path $csprojPath -Pattern '<Version>(.*)</Version>' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value }
           echo "version=$version"
           echo "version=$version" >> $env:GITHUB_OUTPUT
@@ -80,7 +80,7 @@ jobs:
         run: |
           $version = ${{steps.extract_version.outputs.version}}
           echo "$version"
-          Compress-Archive -Path ${{ github.workspace }}/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.version }}_Win-X64.zip
+          Compress-Archive -Path ${{ github.workspace }}/ArkPlotWpf/Publish/* -DestinationPath ${{ github.workspace }}/ArkPlot${{ steps.extract_version.outputs.version }}_Win-X64.zip
 
       - name: Create Release and Upload Release Asset
         uses: softprops/action-gh-release@v1

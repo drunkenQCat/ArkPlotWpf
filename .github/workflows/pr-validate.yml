@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: ArkPlotWpf.csproj # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
+      Solution_Name: ArkPlotWpf/ArkPlotWpf.csproj # 假设解决方案名称和项目文件名相同，如果不是，请进行调整
       # Test_Project_Path: Tests\ArkPlot.Tests.csproj  #请替换为您的测试项目路径
 
     strategy:
@@ -38,10 +38,10 @@ jobs:
           dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
           dotnet publish ${{ env.Solution_Name }} --no-build --configuration ${{ matrix.configuration }} --output ${{ github.workspace }}/Publish
           # html文件路径
-          $sourceHtml = Get-ChildItem .\assets\*.html
+          $sourceHtml = Get-ChildItem .\ArkPlotWpf\assets\*.html
 
           # 目标文件路径
-          $publishPath = "${{ github.workspace }}\Publish\assets"
+          $publishPath = "${{ github.workspace }}\ArkPlotWpf\Publish\assets"
 
           # 获取目标文件夹路径（不包括文件名）
 
