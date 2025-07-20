@@ -18,22 +18,41 @@ public class PlotRepository
     public readonly string actName;
     public readonly long actId;
 
-    public PlotRepository(string initActName = "default")
+public PlotRepository(string initActName = "default", string? customDbPath = null)
     {
         actName = initActName;
 
-        var rootPath = AppDomain.CurrentDomain.BaseDirectory;
-        var dataDir = Path.Combine(rootPath, "Data");
-        // 要是没有，就创建 Data 文件夹
-        if (!Directory.Exists(dataDir))
+        if (string.IsNullOrWhiteSpace(customDbPath))
         {
-            Directory.CreateDirectory(dataDir);
-        }
+            var rootPath = AppDomain.CurrentDomain.BaseDirectory;
+            var dataDir = Path.Combine(rootPath, "Data");
+            // 要是没有，就创建 Data 文件夹
+            if (!Directory.Exists(dataDir))
+            {
+                Directory.CreateDirectory(dataDir);
+            }
 
-        // 数据库文件路径
-        var dbPath = Path.Combine(dataDir, "PlotData.db");
-        _connectionString = $"Data Source={dbPath}";
+            // 数据库文件路径
+            var dbPath = Path.Combine(dataDir, "PlotData.db");
+            _connectionString = $"Data Source={dbPath}";
+        }
+        else
+        {
+            // Handle cases where customDbPath is already a complete connection string
+            if (customDbPath.StartsWith("Data Source="))
+            {
+                _connectionString = customDbPath;
+            }
+            else
+            {
+                _connectionString = $"Data Source={customDbPath}";
+            }
+        }
+        
         Console.WriteLine($"DB path: {_connectionString}");
+
+        // 执行数据库迁移
+        DatabaseMigration.Migrate(_connectionString);
 
         // 开始连接数据库
         using var connection = new SqliteConnection(_connectionString);
@@ -45,48 +64,8 @@ public class PlotRepository
 
     private void InitializeDatabase(SqliteConnection _connection)
     {
-        using var actCommand = _connection.CreateCommand();
-        actCommand.CommandText = """
-        CREATE TABLE IF NOT EXISTS Acts (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Title TEXT NOT NULL UNIQUE
-        );
-        """;
-        actCommand.ExecuteNonQuery();
-
-        using var plotsCommand = _connection.CreateCommand();
-        plotsCommand.CommandText = """
-        CREATE TABLE IF NOT EXISTS Plots (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Title TEXT NOT NULL UNIQUE,
-            Content TEXT NOT NULL,
-            ActId INTEGER NOT NULL,
-            FOREIGN KEY (ActId) REFERENCES Acts(Id) ON DELETE CASCADE
-        );
-        """;
-        plotsCommand.ExecuteNonQuery();
-
-        using var entryCommand = _connection.CreateCommand();
-        entryCommand.CommandText = """
-        CREATE TABLE IF NOT EXISTS FormattedTextEntries (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            PlotId INTEGER NOT NULL,
-            IndexNo INTEGER,
-            OriginalText TEXT,
-            MdText TEXT,
-            MdDuplicateCounter INTEGER,
-            TypText TEXT,
-            Type TEXT,
-            IsTagOnly INTEGER,
-            CharacterName TEXT,
-            Dialog TEXT,
-            PngIndex INTEGER,
-            Bg TEXT,
-            MetadataJson TEXT,
-            FOREIGN KEY (PlotId) REFERENCES Plots(Id) ON DELETE CASCADE
-        );
-        """;
-        entryCommand.ExecuteNonQuery();
+        // 数据库迁移系统已经处理了表创建和索引
+        // 这里只需要处理Act相关的初始化逻辑
     }
 
     private long GetActId(SqliteConnection _connection, string actName)
@@ -117,7 +96,7 @@ public class PlotRepository
 
     public long AddPlot(Plot plot, long actId)
     {
-        using var connection = new SqliteConnection(_connectionString);
+        using var connection = CreateConnection();
         connection.Open();
         using var transaction = connection.BeginTransaction();
 
@@ -153,7 +132,7 @@ public class PlotRepository
 
     public Plot? GetPlotByTitle(string title, long actId)
     {
-        using var connection = new SqliteConnection(_connectionString);
+        using var connection = CreateConnection();
         connection.Open();
 
         var plotEntity = connection.QueryFirstOrDefault<PlotEntity>(
@@ -170,5 +149,10 @@ public class PlotRepository
         var plot = plotEntity.ToModel(entries);
 
         return plot;
+    }
+
+    protected virtual SqliteConnection CreateConnection()
+    {
+        return new SqliteConnection(_connectionString);
     }
 }

@@ -22,6 +22,9 @@ public class Plot
     /// <summary>类的内容。</summary>
     public StringBuilder Content { get; init; }
 
+    /// <summary>数据库主键ID</summary>
+    public long Id { get; set; }
+
     /// <summary>每一行文字</summary>
     public List<FormattedTextEntry> TextVariants = [];
 }

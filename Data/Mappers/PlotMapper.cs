@@ -52,7 +52,17 @@ public static class PlotMapper
 
     public static FormattedTextEntry ToModel(this FormattedTextEntryEntity entity)
     {
-        var meta = JsonSerializer.Deserialize<FormattedTextEntryMetadata>(entity.MetadataJson) ?? new();
+        FormattedTextEntryMetadata meta;
+        try
+        {
+            meta = string.IsNullOrWhiteSpace(entity.MetadataJson) 
+                ? new FormattedTextEntryMetadata() 
+                : JsonSerializer.Deserialize<FormattedTextEntryMetadata>(entity.MetadataJson) ?? new FormattedTextEntryMetadata();
+        }
+        catch (JsonException)
+        {
+            meta = new FormattedTextEntryMetadata();
+        }
 
         return new FormattedTextEntry
         {

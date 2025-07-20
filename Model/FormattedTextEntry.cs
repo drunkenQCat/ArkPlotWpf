@@ -90,4 +90,37 @@ public class FormattedTextEntry
     public FormattedTextEntry()
     {
     }
+
+    /// <summary>
+    /// 验证数据完整性
+    /// </summary>
+    /// <returns>验证结果</returns>
+    public bool Validate()
+    {
+        // 基本验证
+        if (string.IsNullOrEmpty(OriginalText) && string.IsNullOrEmpty(MdText) && string.IsNullOrEmpty(TypText))
+        {
+            return false; // 至少需要有一种格式的文本
+        }
+
+        // 索引验证
+        if (Index < 0)
+        {
+            return false;
+        }
+
+        // 计数器验证
+        if (MdDuplicateCounter < 0)
+        {
+            return false;
+        }
+
+        // PNG索引验证
+        if (PngIndex < 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
