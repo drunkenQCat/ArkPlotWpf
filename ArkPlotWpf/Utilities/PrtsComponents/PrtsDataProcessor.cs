@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ArkPlotWpf.Model;
+using ArkPlotWpf.Services;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
@@ -13,6 +15,7 @@ public partial class PrtsDataProcessor
     {
         var tasks = Res.AllData.Select(GetSingleData).ToList();
         await Task.WhenAll(tasks);
+        Res.RestoreAllData();
     }
 
     private async Task GetSingleData(PrtsData singleData)
@@ -22,7 +25,11 @@ public partial class PrtsDataProcessor
                               singleData.Tag + "}}";
         var query = await NetworkUtility.GetAsync(prtsTemplateUrl);
         var csv = ProcessQuery(query);
-        if (csv is null) return;
+        if (csv is null)
+        {
+            NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs($"{singleData.Tag} 无内容，请检查与prts的连接"));
+            return;
+        }
         if (singleData.Tag == "Data_Link")
         {
             Res.PortraitLinkDocument = GetPortraitLinkDocument(csv);
@@ -172,7 +179,7 @@ public partial class PrtsDataProcessor
 
     private static void ParseItemList(PrtsData prts, IEnumerable<string> itemList)
     {
-        var csvDict = prts.Data;
+        var csvDict = new StringDict();
         if (prts.Tag == "Data_Audio")
         {
             ParseAudioJson(itemList);
@@ -181,6 +188,7 @@ public partial class PrtsDataProcessor
         {
             ParseNormalCsv(itemList);
         }
+        prts.Data = csvDict;
         /*
          * Separated function to parse the Data_Audio json
          */
@@ -257,7 +265,7 @@ public partial class PrtsDataProcessor
         var items = jsonItem.Replace("\"", "").Replace(",", "").Split(':');
         items =
             (from i in items
-                select i.Trim()).ToArray();
+             select i.Trim()).ToArray();
 
         return items;
     }

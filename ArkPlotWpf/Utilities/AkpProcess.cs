@@ -51,7 +51,7 @@ internal abstract class AkpProcessor
         var result = FormatHtmlBody(htmlContent, markdown.Title);
         File.WriteAllText(htmlPath, result);
     }
-    
+
     /// <summary>
     /// 将 html 文本中的链接替换为本地相对地址。
     /// </summary>
@@ -121,7 +121,7 @@ internal abstract class AkpProcessor
             fileIndex++;
         }
     }
-    
+
     private static void CopyDirectory(string sourceDir, string destinationDir)
     {
         // Ensure the source directory exists

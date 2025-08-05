@@ -1,158 +1,123 @@
-using ArkPlotWpf.Data.Entities;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using System;
-using System.Linq;
-using System.IO;
-
+using System.Threading.Tasks;
+using SqlSugar;
 using ArkPlotWpf.Model;
-using ArkPlotWpf.Data.Mappers;
-
 
 namespace ArkPlotWpf.Data.Repositories;
 
-
-public class PlotRepository
+/// <summary>
+/// Plot 仓储类，提供 Plot 实体的特定业务操作
+/// </summary>
+public class PlotRepository : BaseRepository<Plot>
 {
-    private readonly string _connectionString;
-    public readonly string actName;
-    public readonly long actId;
-
-public PlotRepository(string initActName = "default", string? customDbPath = null)
+    public PlotRepository(SqlSugarClient? db = null) : base(db)
     {
-        actName = initActName;
-
-        if (string.IsNullOrWhiteSpace(customDbPath))
-        {
-            var rootPath = AppDomain.CurrentDomain.BaseDirectory;
-            var dataDir = Path.Combine(rootPath, "Data");
-            // 要是没有，就创建 Data 文件夹
-            if (!Directory.Exists(dataDir))
-            {
-                Directory.CreateDirectory(dataDir);
-            }
-
-            // 数据库文件路径
-            var dbPath = Path.Combine(dataDir, "PlotData.db");
-            _connectionString = $"Data Source={dbPath}";
-        }
-        else
-        {
-            // Handle cases where customDbPath is already a complete connection string
-            if (customDbPath.StartsWith("Data Source="))
-            {
-                _connectionString = customDbPath;
-            }
-            else
-            {
-                _connectionString = $"Data Source={customDbPath}";
-            }
-        }
-        
-        Console.WriteLine($"DB path: {_connectionString}");
-
-        // 执行数据库迁移
-        DatabaseMigration.Migrate(_connectionString);
-
-        // 开始连接数据库
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
-
-        InitializeDatabase(connection);
-        actId = GetActId(connection, initActName);
     }
 
-    private void InitializeDatabase(SqliteConnection _connection)
-    {
-        // 数据库迁移系统已经处理了表创建和索引
-        // 这里只需要处理Act相关的初始化逻辑
-    }
+    #region 业务特定方法
 
-    private long GetActId(SqliteConnection _connection, string actName)
-    {
-        using var command = _connection.CreateCommand();
-        command.CommandText = "SELECT Id FROM Acts WHERE Title = @title";
-        command.Parameters.AddWithValue("@title", actName);
-        var result = command.ExecuteScalar();
+    /// <summary>
+    /// 根据标题模糊查询 Plot
+    /// </summary>
+    /// <param name="title">标题关键词</param>
+    /// <returns>匹配的 Plot 列表</returns>
+    public List<Plot> GetByTitle(string title) =>
+        GetWhere(x => x.Title.Contains(title));
 
-        if (result != null && result != DBNull.Value)
-        {
-            return Convert.ToInt64(result);
-        }
-        else
-        {
-            Console.WriteLine($"Act \"{actName}\" not found. Creating a new one...");
+    /// <summary>
+    /// 根据标题精确查询 Plot
+    /// </summary>
+    /// <param name="title">标题</param>
+    /// <returns>匹配的 Plot</returns>
+    public Plot GetByTitleExact(string title) =>
+        FirstOrDefault(x => x.Title == title);
 
-            // 插入新 Act
-            using var insertCommand = _connection.CreateCommand();
-            insertCommand.CommandText = "INSERT INTO Acts (Title) VALUES (@title)";
-            insertCommand.Parameters.AddWithValue("@title", actName);
-            insertCommand.ExecuteNonQuery();
+    /// <summary>
+    /// 根据标题分页查询 Plot
+    /// </summary>
+    /// <param name="title">标题关键词</param>
+    /// <param name="pageIndex">页码</param>
+    /// <param name="pageSize">每页大小</param>
+    /// <returns>(Plot 列表, 总数量)</returns>
+    public (List<Plot>, int) GetByTitlePaged(string title, int pageIndex, int pageSize) =>
+        GetPage(pageIndex, pageSize, x => x.Title.Contains(title));
 
-            command.CommandText = "SELECT last_insert_rowid();";
-            return (long)command.ExecuteScalar()!;
-        }
-    }
+    /// <summary>
+    /// 更新 Plot 标题
+    /// </summary>
+    /// <param name="id">Plot ID</param>
+    /// <param name="newTitle">新标题</param>
+    /// <returns>是否更新成功</returns>
+    public bool UpdateTitle(long id, string newTitle) =>
+        Update(x => new Plot { Title = newTitle }, x => x.Id == id);
 
-    public long AddPlot(Plot plot, long actId)
-    {
-        using var connection = CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+    /// <summary>
+    /// 更新 Plot 内容
+    /// </summary>
+    /// <param name="id">Plot ID</param>
+    /// <param name="content">新内容</param>
+    /// <returns>是否更新成功</returns>
+    public bool UpdateContent(long id, StringBuilder content) =>
+        Update(x => new Plot { Content = content }, x => x.Id == id);
 
-        // 先把 Plot 转成 PlotEntity
-        var plotEntity = plot.ToEntity(actId);
+    /// <summary>
+    /// 获取所有标题
+    /// </summary>
+    /// <returns>标题列表</returns>
+    public List<string> GetAllTitles() =>
+        _db.Queryable<Plot>().Select(x => x.Title).ToList();
 
-        var plotSql = """
-        INSERT INTO Plots (Title, Content, ActId)
-        VALUES (@Title, @Content, @ActId);
-        SELECT last_insert_rowid();
-        """;
+    /// <summary>
+    /// 检查标题是否存在
+    /// </summary>
+    /// <param name="title">标题</param>
+    /// <returns>是否存在</returns>
+    public bool TitleExists(string title) =>
+        Any(x => x.Title == title);
 
-        // 插入 PlotEntity，拿到新生成的 plotId
-        var plotId = connection.ExecuteScalar<long>(plotSql, plotEntity, transaction);
+    #endregion
 
-        // 把 Plot 的 TextVariants 转成 FormattedTextEntryEntity 列表，带上 plotId
-        var entryEntities = plot.TextVariants.Select(entry => entry.ToEntity(plotId));
+    #region 异步业务方法
 
-        var entrySql = """
-        INSERT INTO FormattedTextEntries
-        (PlotId, IndexNo, OriginalText, MdText, MdDuplicateCounter, TypText, Type, IsTagOnly, CharacterName, Dialog, PngIndex, Bg, MetadataJson)
-        VALUES
-        (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type, @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @MetadataJson)
-        """;
+    /// <summary>
+    /// 异步根据标题模糊查询 Plot
+    /// </summary>
+    /// <param name="title">标题关键词</param>
+    /// <returns>匹配的 Plot 列表</returns>
+    public async Task<List<Plot>> GetByTitleAsync(string title) =>
+        await GetWhereAsync(x => x.Title.Contains(title));
 
-        connection.Execute(entrySql, entryEntities, transaction);
+    /// <summary>
+    /// 异步根据标题精确查询 Plot
+    /// </summary>
+    /// <param name="title">标题</param>
+    /// <returns>匹配的 Plot</returns>
+    public async Task<Plot> GetByTitleExactAsync(string title) =>
+        await FirstOrDefaultAsync(x => x.Title == title);
 
-        transaction.Commit();
+    /// <summary>
+    /// 异步更新 Plot 标题
+    /// </summary>
+    /// <param name="id">Plot ID</param>
+    /// <param name="newTitle">新标题</param>
+    /// <returns>是否更新成功</returns>
+    public async Task<bool> UpdateTitleAsync(long id, string newTitle) =>
+        await UpdateAsync(x => new Plot { Title = newTitle }, x => x.Id == id);
 
-        return plotId;
-    }
+    /// <summary>
+    /// 异步更新 Plot 内容
+    /// </summary>
+    /// <param name="id">Plot ID</param>
+    /// <param name="content">新内容</param>
+    /// <returns>是否更新成功</returns>
+    public async Task<bool> UpdateContentAsync(long id, StringBuilder content) =>
+        await UpdateAsync(x => new Plot { Content = content }, x => x.Id == id);
 
+    /// <summary>
+    /// 异步获取所有标题
+    /// </summary>
+    /// <returns>标题列表</returns>
+    public async Task<List<string>> GetAllTitlesAsync() =>
+        await _db.Queryable<Plot>().Select(x => x.Title).ToListAsync();
 
-    public Plot? GetPlotByTitle(string title, long actId)
-    {
-        using var connection = CreateConnection();
-        connection.Open();
-
-        var plotEntity = connection.QueryFirstOrDefault<PlotEntity>(
-            "SELECT * FROM Plots WHERE Title = @Title AND ActId = @ActId",
-            new { Title = title, ActId = actId });
-
-        if (plotEntity == null)
-            return null;
-
-        var entries = connection.Query<FormattedTextEntryEntity>(
-            "SELECT * FROM FormattedTextEntries WHERE PlotId = @PlotId",
-            new { PlotId = plotEntity.Id }).AsList();
-
-        var plot = plotEntity.ToModel(entries);
-
-        return plot;
-    }
-
-    protected virtual SqliteConnection CreateConnection()
-    {
-        return new SqliteConnection(_connectionString);
-    }
+    #endregion
 }

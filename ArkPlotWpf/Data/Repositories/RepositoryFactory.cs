@@ -1,62 +1,73 @@
+using System;
+using System.Threading.Tasks;
+using SqlSugar;
+
 namespace ArkPlotWpf.Data.Repositories;
 
 /// <summary>
-/// Repository工厂类，用于创建和管理Repository实例
+/// 仓储工厂类，提供统一的仓储访问入口
 /// </summary>
 public static class RepositoryFactory
 {
-    private static readonly Dictionary<string, object> _repositories = new();
+    private static readonly Lazy<PlotRepository> _plotRepository = new(() => new PlotRepository());
+    private static readonly Lazy<FormattedTextEntryRepository> _formattedTextEntryRepository = new(() => new FormattedTextEntryRepository());
+    private static readonly Lazy<PrtsDataRepository> _prtsDataRepository = new(() => new PrtsDataRepository());
 
     /// <summary>
-    /// 创建PrtsDataRepository实例
+    /// 获取 Plot 仓储实例
     /// </summary>
-    /// <param name="connectionString">数据库连接字符串，如果为null则使用默认连接</param>
-    /// <returns>PrtsDataRepository实例</returns>
-    public static IPrtsDataRepository CreatePrtsDataRepository(string? connectionString = null)
+    public static PlotRepository Plot => _plotRepository.Value;
+
+    /// <summary>
+    /// 获取 FormattedTextEntry 仓储实例
+    /// </summary>
+    public static FormattedTextEntryRepository FormattedTextEntry => _formattedTextEntryRepository.Value;
+
+    /// <summary>
+    /// 获取 PrtsData 仓储实例
+    /// </summary>
+    public static PrtsDataRepository PrtsData => _prtsDataRepository.Value;
+
+    /// <summary>
+    /// 获取数据库连接实例
+    /// </summary>
+    public static SqlSugarClient Db => DatabaseContext.GetDb();
+
+    /// <summary>
+    /// 执行事务操作
+    /// </summary>
+    /// <param name="action">事务操作</param>
+    /// <returns>是否执行成功</returns>
+    public static bool UseTransaction(Action action)
     {
-        var key = $"PrtsData_{connectionString ?? "default"}";
-        
-        if (!_repositories.ContainsKey(key))
+        try
         {
-            _repositories[key] = new PrtsDataRepository(connectionString);
+            Db.Ado.UseTran(action);
+            return true;
         }
-        
-        return (IPrtsDataRepository)_repositories[key];
-    }
-
-    /// <summary>
-    /// 创建PrtsAssetsRepository实例
-    /// </summary>
-    /// <param name="connectionString">数据库连接字符串，如果为null则使用默认连接</param>
-    /// <returns>PrtsAssetsRepository实例</returns>
-    public static IPrtsAssetsRepository CreatePrtsAssetsRepository(string? connectionString = null)
-    {
-        var key = $"PrtsAssets_{connectionString ?? "default"}";
-        
-        if (!_repositories.ContainsKey(key))
+        catch (Exception ex)
         {
-            _repositories[key] = new PrtsAssetsRepository(connectionString);
+            Console.WriteLine($"事务执行失败: {ex.Message}");
+            return false;
         }
-        
-        return (IPrtsAssetsRepository)_repositories[key];
     }
 
     /// <summary>
-    /// 清除所有缓存的Repository实例
+    /// 异步执行事务操作
     /// </summary>
-    public static void ClearCache()
+    /// <param name="action">事务操作</param>
+    /// <returns>是否执行成功</returns>
+    public static async Task<bool> UseTransactionAsync(Func<Task> action)
     {
-        _repositories.Clear();
+        try
+        {
+            await Db.Ado.UseTranAsync(action);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"异步事务执行失败: {ex.Message}");
+            return false;
+        }
     }
-
-    /// <summary>
-    /// 移除指定的Repository实例
-    /// </summary>
-    /// <param name="repositoryType">Repository类型</param>
-    /// <param name="connectionString">连接字符串</param>
-    public static void RemoveRepository(string repositoryType, string? connectionString = null)
-    {
-        var key = $"{repositoryType}_{connectionString ?? "default"}";
-        _repositories.Remove(key);
-    }
-} 
+}

@@ -34,11 +34,11 @@ public partial class TagEditorViewModel : ObservableObject
     {
         var data =
             (from item in dataGrid
-                let tag = (item.Tag, item.NewTag)
-                let tagReg = ($"{item.Tag}_reg", item.Reg)
-                from pair in new[] { tag, tagReg }
-                orderby pair.Item1
-                select pair)
+             let tag = (item.Tag, item.NewTag)
+             let tagReg = ($"{item.Tag}_reg", item.Reg)
+             from pair in new[] { tag, tagReg }
+             orderby pair.Item1
+             select pair)
             .ToDictionary(x => x.Item1, x => x.Item2);
         var options = new JsonSerializerOptions
         {
@@ -50,16 +50,16 @@ public partial class TagEditorViewModel : ObservableObject
         File.WriteAllText("tags.json", jsonContent);
         LoadTagJson();
     }
-    
+
     [RelayCommand]
     private void LoadTagJson()
     {
         var jsonContent = File.ReadAllText(jsonPath);
         var data = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
         var tagsAndRegs = from pair in data
-            where !pair.Key.EndsWith("_reg")
-            let reg = data![pair.Key + "_reg"]
-            select new TagReplacementRule(pair.Key, reg, pair.Value);
+                          where !pair.Key.EndsWith("_reg")
+                          let reg = data![pair.Key + "_reg"]
+                          select new TagReplacementRule(pair.Key, reg, pair.Value);
         DataGrid = new ObservableCollection<TagReplacementRule>(tagsAndRegs);
     }
 
@@ -78,14 +78,14 @@ public partial class TagEditorViewModel : ObservableObject
     {
         window?.Close();
     }
-    
+
     private int FindMaxIndexOfNewItem()
     {
         var maxItem =
             (from item in dataGrid
-                where item.Tag.Contains("NewItem")
-                orderby item.Tag descending
-                select item.Tag).FirstOrDefault();
+             where item.Tag.Contains("NewItem")
+             orderby item.Tag descending
+             select item.Tag).FirstOrDefault();
         if (maxItem == null) return 0;
         try
         {

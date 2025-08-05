@@ -44,7 +44,7 @@ public partial class MainWindow
         {
             // Note that you can have more than one file.
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            
+
             (DataContext as MainWindowViewModel)?.DropJsonFile(files[0]);
         }
     }

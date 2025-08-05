@@ -58,7 +58,7 @@ public class PlotManager
         {
             entry.MdText = ConvertToMarkdown(entry);
             entry.TypText = ConvertToTypstCode(entry);
-            if(string.IsNullOrEmpty(entry.TypText)) continue;
+            if (string.IsNullOrEmpty(entry.TypText)) continue;
             entry.PngIndex = pngIndex;
             pngIndex++;
         }
@@ -81,9 +81,9 @@ public class PlotManager
         List<string> portraits = line.PortraitsInfo.Portraits;
         int focus = line.PortraitsInfo.FocusOn;
 
-        string FormatSinglePortrait(string portrait) => 
+        string FormatSinglePortrait(string portrait) =>
             $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"{portrait.Replace("https://", "")}\", height: 135%), {bgImage}, focus: {focus})";
-    
+
         string FormatTwoPortraits(string portrait1, string portrait2) =>
             $"#arknights_sim_2p(\"{characterName}\", \"{dialog}\", image(\"{portrait1.Replace("https://", "")}\", height: 135%), image(\"{portrait2.Replace("https://", "")}\", height: 135%), {bgImage}, focus: {focus})";
 

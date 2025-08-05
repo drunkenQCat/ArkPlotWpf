@@ -82,12 +82,12 @@ public class MdReconstructor
             temp.Add(item);
         }
     }
-    
+
     bool IsItemOnlyDashes(FormattedTextEntry item)
     {
         return !item.MdText.StartsWith('-');
     }
-        
+
     private void RemoveLeadingDashes(EntryList entries)
     {
         entries.ForEach(item =>
@@ -245,7 +245,7 @@ public class MdReconstructor
         _ = characterOriginalEntry.CommandSet.TryGetValue("focus", out string? focusIndex);
         if (int.TryParse(focusIndex, out var focusIdx))
         {
-            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.ResourceUrls.Count)  return characterOriginalEntry.ResourceUrls[focusIdx - 1];
+            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.ResourceUrls.Count) return characterOriginalEntry.ResourceUrls[focusIdx - 1];
         }
         return url;
     }
@@ -263,7 +263,7 @@ public class MdReconstructor
         var chartSeg = string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count));
         chartSeg = $"|{chartSeg}";
         var chartBody = $"{chartHead}\r\n{chartSeg}\r\n\r\n";
-            var firstLine = group.SList.First();
+        var firstLine = group.SList.First();
         firstLine.MdText = firstLine.MdText.Insert(0, chartBody);
     }
 

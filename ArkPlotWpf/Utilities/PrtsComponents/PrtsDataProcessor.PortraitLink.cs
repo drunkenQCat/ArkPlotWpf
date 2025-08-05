@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ArkPlotWpf.Data;
+using ArkPlotWpf.Services;
 
 namespace ArkPlotWpf.Utilities.PrtsComponents;
 
@@ -20,7 +21,7 @@ public partial class PrtsDataProcessor
         (var key, var index) = FindPortraitInLinkData(inputKey);
         if (!Res.PortraitLinkDocument.RootElement.TryGetProperty(key, out var linkItem))
         {
-            Console.WriteLine($"Character key [\"{key}\"] not exist, please check the link list");
+            NotificationBlock.Instance.RaiseCommonEvent($"Character key [\"{key}\"] not exist, please check the link list");
             // fall to thorns' portrait
             return Res.DataChar["char_293_thorns_1"];
         }
@@ -30,12 +31,12 @@ public partial class PrtsDataProcessor
             .GetString();
         if (newKey is null)
             // Log error - character asset not found
-            Console.WriteLine($"<character> Linked key [{key}] not exist.");
+            NotificationBlock.Instance.RaiseCommonEvent($"<character> Linked key [{key}] not exist.");
 
         // if finally nothing found, return Thorn's head
         newKey = newKey is null ? "char_293_thorns_1" : newKey.ToLower();
         var isPortraitExists = Res.DataChar.TryGetValue(newKey, out var url);
-        return isPortraitExists ? url! : "https://wiki/images/d/d0/Avg_char_293_thorns_1.png";
+        return isPortraitExists ? url! : "https://media.prts.wiki/d/d0/Avg_char_293_thorns_1.png";
     }
 
     /// <summary>

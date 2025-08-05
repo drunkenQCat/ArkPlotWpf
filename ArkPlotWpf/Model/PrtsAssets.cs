@@ -22,21 +22,21 @@ public class PrtsAssets
     /// <summary>
     /// 所有PRTS数据集合，包含图片、角色、音频等资源数据
     /// </summary>
-    public readonly List<PrtsData> AllData;
+    public List<PrtsData> AllData;
 
     /// table of Sound Effects and Musics
-    public readonly StringDict DataAudio = new();
+    public StringDict DataAudio = new();
 
     /// table of Character Images
-    public readonly StringDict DataChar = new();
+    public StringDict DataChar = new();
 
     /// table of Background Images
-    public readonly StringDict DataImage = new();
+    public StringDict DataImage = new();
 
     /// <summary>
     /// 覆盖数据字典，包含多层嵌套的配置数据
     /// </summary>
-    public readonly Dictionary<string, Dictionary<string, object>> RideItems = new();
+    public Dictionary<string, Dictionary<string, object>> RideItems = new();
 
     /// <summary>
     /// PRTS补丁数据文档，用于覆盖默认配置
@@ -66,6 +66,13 @@ public class PrtsAssets
             /* { "Data_Override", DataOverride }, */
             /* { "Data_Link", DataLink } */
         };
+    }
+
+    public void RestoreAllData()
+    {
+        DataImage = AllData[0].Data;
+        DataChar = AllData[1].Data;
+        DataAudio = AllData[2].Data;
     }
 
     /// <summary>

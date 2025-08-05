@@ -14,7 +14,7 @@ namespace ArkPlotWpf
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-        
+
             var messenger = WeakReferenceMessenger.Default;
             messenger.Register<OpenWindowMessage>(this, (recipient, message) =>
             {

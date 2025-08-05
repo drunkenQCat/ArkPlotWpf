@@ -272,7 +272,7 @@ public class PlotDataService : IDisposable
                 (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type, 
                  @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @ResourceUrls, @PortraitsInfo, @CommandSet)
                 """;
-                
+
                 entryCommand.Parameters.AddWithValue("@PlotId", plotId);
                 entryCommand.Parameters.AddWithValue("@IndexNo", entry.Index);
                 entryCommand.Parameters.AddWithValue("@OriginalText", entry.OriginalText);

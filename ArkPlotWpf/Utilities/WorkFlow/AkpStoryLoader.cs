@@ -106,7 +106,7 @@ internal class AkpStoryLoader
         // 下载所有资源
         await PrtsResLoader.DownloadAssets(StoryName, toPreLoad);
     }
-    
+
     public void ParseAllDocuments(string jsonPath)
     {
         var parser = new AkpParser(jsonPath);

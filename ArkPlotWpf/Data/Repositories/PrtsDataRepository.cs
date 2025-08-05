@@ -1,162 +1,180 @@
-using ArkPlotWpf.Data.Entities;
+using System.Threading.Tasks;
+using SqlSugar;
 using ArkPlotWpf.Model;
-using ArkPlotWpf.Data.Mappers;
-using ArkPlotWpf.Data.Validation;
-using Dapper;
-using Microsoft.Data.Sqlite;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace ArkPlotWpf.Data.Repositories;
 
-public class PrtsDataRepository : BaseRepository, IPrtsDataRepository
+/// <summary>
+/// PrtsData 仓储类，提供 PrtsData 实体的特定业务操作
+/// </summary>
+public class PrtsDataRepository : BaseRepository<PrtsData>
 {
-
-    public PrtsDataRepository(string? connectionString = null) : base(connectionString)
+    public PrtsDataRepository(SqlSugarClient? db = null) : base(db)
     {
-        // 执行数据库迁移
-        DatabaseMigration.Migrate(_connectionString);
-        
-        InitializeDatabase();
     }
 
-    private void InitializeDatabase()
+    #region 业务特定方法
+
+    /// <summary>
+    /// 根据标签查询 PrtsData
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <returns>匹配的 PrtsData</returns>
+    public PrtsData GetByTag(string tag) =>
+        FirstOrDefault(x => x.Tag == tag);
+
+    /// <summary>
+    /// 根据标签模糊查询 PrtsData
+    /// </summary>
+    /// <param name="tag">标签关键词</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public List<PrtsData> GetByTagLike(string tag) =>
+        GetWhere(x => x.Tag.Contains(tag));
+
+    /// <summary>
+    /// 根据标签前缀查询 PrtsData
+    /// </summary>
+    /// <param name="prefix">标签前缀</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public List<PrtsData> GetByTagPrefix(string prefix) =>
+        GetWhere(x => x.Tag.StartsWith(prefix));
+
+    /// <summary>
+    /// 获取所有标签
+    /// </summary>
+    /// <returns>标签列表</returns>
+    public List<string> GetAllTags() =>
+        _db.Queryable<PrtsData>().Select(x => x.Tag).ToList();
+
+    /// <summary>
+    /// 检查标签是否存在
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <returns>是否存在</returns>
+    public bool TagExists(string tag) =>
+        Any(x => x.Tag == tag);
+
+    /// <summary>
+    /// 根据标签更新数据
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <param name="data">新数据</param>
+    /// <returns>是否更新成功</returns>
+    public bool UpdateDataByTag(string tag, StringDict data) =>
+        Update(x => new PrtsData { Data = data }, x => x.Tag == tag);
+
+    /// <summary>
+    /// 批量更新数据
+    /// </summary>
+    /// <param name="dataList">数据列表，包含标签和数据</param>
+    /// <returns>是否更新成功</returns>
+    public bool UpdateDataBatch(List<(string tag, StringDict data)> dataList)
     {
-        // 数据库迁移系统已经处理了表创建和索引
-    }
-
-    public long AddPrtsData(PrtsData prtsData)
-    {
-        // 数据验证
-        DataValidator.ValidatePrtsData(prtsData);
-        
-        var entity = prtsData.ToEntity();
-        var sql = """
-        INSERT INTO PrtsData (Tag, DataJson)
-        VALUES (@Tag, @DataJson);
-        SELECT last_insert_rowid();
-        """;
-
-        return ExecuteScalar<long>(sql, entity);
-    }
-
-    public void AddOrUpdatePrtsData(PrtsData prtsData)
-    {
-        // 数据验证
-        DataValidator.ValidatePrtsData(prtsData);
-        
-        var entity = prtsData.ToEntity();
-
-        // 尝试更新，如果不存在则插入
-        var updateSql = """
-        UPDATE PrtsData 
-        SET DataJson = @DataJson
-        WHERE Tag = @Tag
-        """;
-
-        var rowsAffected = Execute(updateSql, entity);
-        if (rowsAffected == 0)
+        try
         {
-            // 如果更新失败，说明记录不存在，执行插入
-            var insertSql = """
-            INSERT INTO PrtsData (Tag, DataJson)
-            VALUES (@Tag, @DataJson)
-            """;
-            Execute(insertSql, entity);
+            return UseTransaction(() =>
+            {
+                foreach (var (tag, data) in dataList)
+                {
+                    UpdateDataByTag(tag, data);
+                }
+            });
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    public PrtsData? GetPrtsDataByTag(string tag)
-    {
-        return GetByTag(tag);
-    }
+    /// <summary>
+    /// 获取包含特定键的数据
+    /// </summary>
+    /// <param name="key">键名</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public List<PrtsData> GetByDataKey(string key) =>
+        GetWhere(x => x.Data.ContainsKey(key));
 
-    public PrtsData? GetByTag(string tag)
-    {
-        var entity = QuerySingleOrDefault<PrtsDataEntity>(
-            "SELECT * FROM PrtsData WHERE Tag = @Tag",
-            new { Tag = tag });
+    /// <summary>
+    /// 获取包含特定值的数据
+    /// </summary>
+    /// <param name="value">值</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public List<PrtsData> GetByDataValue(string value) =>
+        GetWhere(x => x.Data.ContainsValue(value));
 
-        return entity?.ToModel();
-    }
+    /// <summary>
+    /// 清空所有数据
+    /// </summary>
+    /// <returns>是否清空成功</returns>
+    public bool ClearAll() =>
+        _db.Deleteable<PrtsData>().ExecuteCommand() > 0;
 
-    public List<PrtsData> GetAllPrtsData()
-    {
-        var entities = Query<PrtsDataEntity>("SELECT * FROM PrtsData").AsList();
-        return entities.Select(e => e.ToModel()).ToList();
-    }
+    #endregion
 
-    public bool UpdatePrtsData(PrtsData prtsData)
-    {
-        // 数据验证
-        DataValidator.ValidatePrtsData(prtsData);
-        
-        var entity = prtsData.ToEntity();
-        var sql = """
-        UPDATE PrtsData 
-        SET DataJson = @DataJson
-        WHERE Tag = @Tag
-        """;
+    #region 异步业务方法
 
-        var rowsAffected = Execute(sql, entity);
-        return rowsAffected > 0;
-    }
+    /// <summary>
+    /// 异步根据标签查询 PrtsData
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <returns>匹配的 PrtsData</returns>
+    public async Task<PrtsData> GetByTagAsync(string tag) =>
+        await FirstOrDefaultAsync(x => x.Tag == tag);
 
-    public bool DeletePrtsData(string tag)
-    {
-        return DeleteByTag(tag);
-    }
+    /// <summary>
+    /// 异步根据标签模糊查询 PrtsData
+    /// </summary>
+    /// <param name="tag">标签关键词</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public async Task<List<PrtsData>> GetByTagLikeAsync(string tag) =>
+        await GetWhereAsync(x => x.Tag.Contains(tag));
 
-    public PrtsData? GetById(long id)
-    {
-        var entity = QuerySingleOrDefault<PrtsDataEntity>(
-            "SELECT * FROM PrtsData WHERE Id = @Id",
-            new { Id = id });
+    /// <summary>
+    /// 异步根据标签前缀查询 PrtsData
+    /// </summary>
+    /// <param name="prefix">标签前缀</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public async Task<List<PrtsData>> GetByTagPrefixAsync(string prefix) =>
+        await GetWhereAsync(x => x.Tag.StartsWith(prefix));
 
-        return entity?.ToModel();
-    }
+    /// <summary>
+    /// 异步获取所有标签
+    /// </summary>
+    /// <returns>标签列表</returns>
+    public async Task<List<string>> GetAllTagsAsync() =>
+        await _db.Queryable<PrtsData>().Select(x => x.Tag).ToListAsync();
 
-    public IEnumerable<PrtsData> GetAll()
-    {
-        return GetAllPrtsData();
-    }
+    /// <summary>
+    /// 异步根据标签更新数据
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <param name="data">新数据</param>
+    /// <returns>是否更新成功</returns>
+    public async Task<bool> UpdateDataByTagAsync(string tag, StringDict data) =>
+        await UpdateAsync(x => new PrtsData { Data = data }, x => x.Tag == tag);
 
-    public long Add(PrtsData entity)
-    {
-        return AddPrtsData(entity);
-    }
+    /// <summary>
+    /// 异步获取包含特定键的数据
+    /// </summary>
+    /// <param name="key">键名</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public async Task<List<PrtsData>> GetByDataKeyAsync(string key) =>
+        await GetWhereAsync(x => x.Data.ContainsKey(key));
 
-    public bool Update(PrtsData entity)
-    {
-        return UpdatePrtsData(entity);
-    }
+    /// <summary>
+    /// 异步获取包含特定值的数据
+    /// </summary>
+    /// <param name="value">值</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
+    public async Task<List<PrtsData>> GetByDataValueAsync(string value) =>
+        await GetWhereAsync(x => x.Data.ContainsValue(value));
 
-    public bool Delete(long id)
-    {
-        var sql = "DELETE FROM PrtsData WHERE Id = @Id";
-        var rowsAffected = Execute(sql, new { Id = id });
-        return rowsAffected > 0;
-    }
+    /// <summary>
+    /// 异步清空所有数据
+    /// </summary>
+    /// <returns>是否清空成功</returns>
+    public async Task<bool> ClearAllAsync() =>
+        await _db.Deleteable<PrtsData>().ExecuteCommandAsync() > 0;
 
-    public void AddOrUpdate(PrtsData entity)
-    {
-        AddOrUpdatePrtsData(entity);
-    }
-
-    public bool DeleteByTag(string tag)
-    {
-        var sql = "DELETE FROM PrtsData WHERE Tag = @Tag";
-        var rowsAffected = Execute(sql, new { Tag = tag });
-        return rowsAffected > 0;
-    }
-
-    public bool Exists(string tag)
-    {
-        var count = ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM PrtsData WHERE Tag = @Tag",
-            new { Tag = tag });
-
-        return count > 0;
-    }
+    #endregion
 }

@@ -1,299 +1,137 @@
-using Microsoft.Data.Sqlite;
-using Dapper;
 using System;
-using System.Data;
-using System.IO;
-using ArkPlotWpf.Data.Exceptions;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using SqlSugar;
 
 namespace ArkPlotWpf.Data.Repositories;
 
 /// <summary>
-/// 基础Repository类，提供公共的数据库操作逻辑
+/// 基础仓储实现类，提供通用的 CRUD 操作
 /// </summary>
-public abstract class BaseRepository
+/// <typeparam name="T">实体类型</typeparam>
+public class BaseRepository<T> : IBaseRepository<T> where T : class, new()
 {
-    protected readonly string _connectionString;
+    protected readonly SqlSugarClient _db;
 
-    protected BaseRepository(string? connectionString = null)
+    public BaseRepository(SqlSugarClient? db = null)
     {
-        _connectionString = connectionString ?? GetDefaultConnectionString();
+        _db = db ?? DatabaseContext.GetDb();
     }
 
-    /// <summary>
-    /// 获取默认连接字符串
-    /// </summary>
-    /// <returns>默认数据库连接字符串</returns>
-    protected virtual string GetDefaultConnectionString()
+    #region 同步操作
+
+    public int Add(T entity) => _db.Insertable(entity).ExecuteCommand();
+
+    public int AddRange(IEnumerable<T> entities) => _db.Insertable(entities.ToList()).ExecuteCommand();
+
+    public bool Delete(Expression<Func<T, bool>> where) => _db.Deleteable<T>().Where(where).ExecuteCommand() > 0;
+
+    public bool DeleteById(dynamic id) => _db.Deleteable<T>().In(id).ExecuteCommand() > 0;
+
+    public bool DeleteByIds(dynamic[] ids) => _db.Deleteable<T>().In(ids).ExecuteCommand() > 0;
+
+    public bool Update(T entity) => _db.Updateable(entity).ExecuteCommand() > 0;
+
+    public bool UpdateRange(IEnumerable<T> entities) => _db.Updateable(entities.ToList()).ExecuteCommand() > 0;
+
+    public bool Update(Expression<Func<T, T>> set, Expression<Func<T, bool>> where) =>
+        _db.Updateable<T>().SetColumns(set).Where(where).ExecuteCommand() > 0;
+
+    public T GetById(dynamic id) => _db.Queryable<T>().InSingle(id);
+
+    public List<T> GetAll() => _db.Queryable<T>().ToList();
+
+    public List<T> GetWhere(Expression<Func<T, bool>> where) => _db.Queryable<T>().Where(where).ToList();
+
+    public T FirstOrDefault(Expression<Func<T, bool>> where) => _db.Queryable<T>().First(where);
+
+    public bool Any(Expression<Func<T, bool>> where) => _db.Queryable<T>().Any(where);
+
+    public int Count(Expression<Func<T, bool>>? where = null) =>
+        where == null ? _db.Queryable<T>().Count() : _db.Queryable<T>().Where(where).Count();
+
+    public (List<T>, int) GetPage(int pageIndex, int pageSize, Expression<Func<T, bool>>? where = null)
     {
-        var rootPath = AppDomain.CurrentDomain.BaseDirectory;
-        var dataDir = Path.Combine(rootPath, "Data");
-        if (!Directory.Exists(dataDir))
+        var query = _db.Queryable<T>();
+        if (where != null)
         {
-            Directory.CreateDirectory(dataDir);
+            query = query.Where(where);
         }
 
-        var dbPath = Path.Combine(dataDir, "PlotData.db");
-        return $"Data Source={dbPath}";
+        var total = query.Count();
+        var list = query.ToPageList(pageIndex, pageSize);
+        return (list, total);
     }
 
-    /// <summary>
-    /// 创建数据库连接
-    /// </summary>
-    /// <returns>数据库连接</returns>
-    protected virtual IDbConnection CreateConnection()
+    public bool UseTransaction(Action action)
     {
         try
         {
-            var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-            return connection;
+            _db.Ado.UseTran(action);
+            return true;
         }
         catch (Exception ex)
         {
-            throw new DatabaseConnectionException(_connectionString, ex);
+            Console.WriteLine($"事务执行失败: {ex.Message}");
+            return false;
         }
     }
 
-    /// <summary>
-    /// 执行数据库操作，自动处理连接生命周期
-    /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="operation">数据库操作</param>
-    /// <returns>操作结果</returns>
-    protected virtual T ExecuteWithConnection<T>(Func<IDbConnection, T> operation)
-    {
-        try
-        {
-            using var connection = CreateConnection();
-            return operation(connection);
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseException("数据库操作失败", ex);
-        }
-    }
+    #endregion
 
-    /// <summary>
-    /// 执行数据库操作，自动处理连接生命周期（无返回值）
-    /// </summary>
-    /// <param name="operation">数据库操作</param>
-    protected virtual void ExecuteWithConnection(Action<IDbConnection> operation)
-    {
-        try
-        {
-            using var connection = CreateConnection();
-            operation(connection);
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseException("数据库操作失败", ex);
-        }
-    }
+    #region 异步操作
 
-    /// <summary>
-    /// 执行查询并返回单个结果
-    /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="sql">SQL语句</param>
-    /// <param name="parameters">参数</param>
-    /// <returns>查询结果</returns>
-    protected virtual T? QuerySingleOrDefault<T>(string sql, object? parameters = null)
-    {
-        try
-        {
-            return ExecuteWithConnection(connection => 
-                connection.QueryFirstOrDefault<T>(sql, parameters));
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseQueryException(sql, parameters, ex);
-        }
-    }
+    public async Task<int> AddAsync(T entity) => await _db.Insertable(entity).ExecuteCommandAsync();
 
-    /// <summary>
-    /// 执行查询并返回多个结果
-    /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="sql">SQL语句</param>
-    /// <param name="parameters">参数</param>
-    /// <returns>查询结果列表</returns>
-    protected virtual IEnumerable<T> Query<T>(string sql, object? parameters = null)
-    {
-        try
-        {
-            return ExecuteWithConnection(connection => 
-                connection.Query<T>(sql, parameters));
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseQueryException(sql, parameters, ex);
-        }
-    }
+    public async Task<int> AddRangeAsync(IEnumerable<T> entities) => await _db.Insertable(entities.ToList()).ExecuteCommandAsync();
 
-    /// <summary>
-    /// 执行非查询SQL语句
-    /// </summary>
-    /// <param name="sql">SQL语句</param>
-    /// <param name="parameters">参数</param>
-    /// <returns>受影响的行数</returns>
-    protected virtual int Execute(string sql, object? parameters = null)
-    {
-        try
-        {
-            return ExecuteWithConnection(connection => 
-                connection.Execute(sql, parameters));
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseQueryException(sql, parameters, ex);
-        }
-    }
+    public async Task<bool> DeleteAsync(Expression<Func<T, bool>> where) => await _db.Deleteable<T>().Where(where).ExecuteCommandAsync() > 0;
 
-    /// <summary>
-    /// 执行标量查询
-    /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="sql">SQL语句</param>
-    /// <param name="parameters">参数</param>
-    /// <returns>标量结果</returns>
-    protected virtual T ExecuteScalar<T>(string sql, object? parameters = null)
-    {
-        try
-        {
-            return ExecuteWithConnection(connection => 
-                connection.ExecuteScalar<T>(sql, parameters));
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseQueryException(sql, parameters, ex);
-        }
-    }
+    public async Task<bool> UpdateAsync(T entity) => await _db.Updateable(entity).ExecuteCommandAsync() > 0;
 
-    /// <summary>
-    /// 检查表是否存在
-    /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <returns>表是否存在</returns>
-    protected virtual bool TableExists(string tableName)
+    public async Task<bool> UpdateAsync(Expression<Func<T, T>> set, Expression<Func<T, bool>> where) =>
+        await _db.Updateable<T>().SetColumns(set).Where(where).ExecuteCommandAsync() > 0;
+
+    public async Task<T> GetByIdAsync(dynamic id) => await _db.Queryable<T>().InSingleAsync(id);
+
+    public async Task<List<T>> GetAllAsync() => await _db.Queryable<T>().ToListAsync();
+
+    public async Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> where) => await _db.Queryable<T>().Where(where).ToListAsync();
+
+    public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> where) => await _db.Queryable<T>().FirstAsync(where);
+
+    public async Task<bool> AnyAsync(Expression<Func<T, bool>> where) => await _db.Queryable<T>().AnyAsync(where);
+
+    public async Task<int> CountAsync(Expression<Func<T, bool>>? where = null) =>
+        where == null ? await _db.Queryable<T>().CountAsync() : await _db.Queryable<T>().Where(where).CountAsync();
+
+    public async Task<(List<T>, int)> GetPageAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? where = null)
     {
-        var sql = @"
-            SELECT COUNT(*) 
-            FROM sqlite_master 
-            WHERE type='table' AND name=@TableName";
+        var query = _db.Queryable<T>();
+        if (where != null)
+        {
+            query = query.Where(where);
+        }
         
-        var count = ExecuteScalar<int>(sql, new { TableName = tableName });
-        return count > 0;
+        var total = await query.CountAsync();
+        var list = await query.ToPageListAsync(pageIndex, pageSize);
+        return (list, total);
     }
 
-    /// <summary>
-    /// 获取表的记录数
-    /// </summary>
-    /// <param name="tableName">表名</param>
-    /// <returns>记录数</returns>
-    protected virtual int GetTableCount(string tableName)
-    {
-        var sql = $"SELECT COUNT(*) FROM {tableName}";
-        return ExecuteScalar<int>(sql);
-    }
-
-    /// <summary>
-    /// 开始事务
-    /// </summary>
-    /// <returns>数据库事务</returns>
-    protected virtual IDbTransaction BeginTransaction()
-    {
-        var connection = CreateConnection();
-        return connection.BeginTransaction();
-    }
-
-    /// <summary>
-    /// 执行事务操作
-    /// </summary>
-    /// <typeparam name="T">返回类型</typeparam>
-    /// <param name="operation">事务操作</param>
-    /// <returns>操作结果</returns>
-    protected virtual T ExecuteWithTransaction<T>(Func<IDbTransaction, T> operation)
+    public async Task<bool> UseTransactionAsync(Func<Task> action)
     {
         try
         {
-            using var connection = CreateConnection();
-            using var transaction = connection.BeginTransaction();
-            
-            try
-            {
-                var result = operation(transaction);
-                transaction.Commit();
-                return result;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
-        catch (DatabaseException)
-        {
-            throw;
+            await _db.Ado.UseTranAsync(action);
+            return true;
         }
         catch (Exception ex)
         {
-            throw new DatabaseTransactionException(ex);
+            Console.WriteLine($"异步事务执行失败: {ex.Message}");
+            return false;
         }
     }
 
-    /// <summary>
-    /// 执行事务操作（无返回值）
-    /// </summary>
-    /// <param name="operation">事务操作</param>
-    protected virtual void ExecuteWithTransaction(Action<IDbTransaction> operation)
-    {
-        try
-        {
-            using var connection = CreateConnection();
-            using var transaction = connection.BeginTransaction();
-            
-            try
-            {
-                operation(transaction);
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
-        catch (DatabaseException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new DatabaseTransactionException(ex);
-        }
-    }
-} 
+    #endregion
+}
