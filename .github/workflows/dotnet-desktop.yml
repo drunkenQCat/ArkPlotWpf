@@ -50,6 +50,7 @@ jobs:
 
           # 目标文件路径
           $publishPath = "${{ github.workspace }}\Publish\assets"
+          $jsonPath = "${{ github.workspace }}\tags.json"
 
           # 获取目标文件夹路径（不包括文件名）
 
@@ -62,6 +63,7 @@ jobs:
 
           # 现在路径已经确保存在，复制文件到目标路径
           $sourceHtml|ForEach-Object{Copy-Item -Force $_ $publishPath}
+          Copy-Item -Force $jsonPath "${{ github.workspace }}\Publish"
           Get-ChildItem $publistPath
 
 
