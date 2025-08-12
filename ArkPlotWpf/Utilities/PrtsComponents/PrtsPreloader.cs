@@ -425,7 +425,7 @@ public partial class PrtsPreloader
     }
 
     // Additional helper methods for processing other commands
-    private static string SerializeCommandDict(Dictionary<string, string> commands)
+    private static string SerializeCommandDict(StringDict commands)
     {
         var res = new List<string>();
         foreach (var cmd in commands) res.Add($"{cmd.Key}=\"{cmd.Value}\"");

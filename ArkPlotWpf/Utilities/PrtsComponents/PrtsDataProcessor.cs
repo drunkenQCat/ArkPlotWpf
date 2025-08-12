@@ -15,7 +15,6 @@ public partial class PrtsDataProcessor
     {
         var tasks = Res.AllData.Select(GetSingleData).ToList();
         await Task.WhenAll(tasks);
-        Res.RestoreAllData();
     }
 
     private async Task GetSingleData(PrtsData singleData)
@@ -179,7 +178,7 @@ public partial class PrtsDataProcessor
 
     private static void ParseItemList(PrtsData prts, IEnumerable<string> itemList)
     {
-        var csvDict = new StringDict();
+        var csvDict = prts.Data;
         if (prts.Tag == "Data_Audio")
         {
             ParseAudioJson(itemList);

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using SqlSugar;
 
@@ -21,9 +22,55 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class, new()
 
     #region 同步操作
 
-    public int Add(T entity) => _db.Insertable(entity).ExecuteCommand();
+    public int Add(T entity)
+    {
+        var newId = _db.Insertable(entity).ExecuteReturnIdentity();
+        // 找到名为 "Id" 的属性，并且是可写的
+        var idProp = typeof(T).GetProperty("Id");
+        if (idProp != null && idProp.CanWrite)
+        {
+            // 根据属性类型安全赋值
+            if (idProp.PropertyType == typeof(int))
+                idProp.SetValue(entity, newId);
+            else if (idProp.PropertyType == typeof(long))
+                idProp.SetValue(entity, (long)newId);
+            else if (idProp.PropertyType == typeof(string))
+                idProp.SetValue(entity, newId.ToString());
+        }
 
-    public int AddRange(IEnumerable<T> entities) => _db.Insertable(entities.ToList()).ExecuteCommand();
+        return newId;
+    }
+
+    public int AddRange(IEnumerable<T> entities)
+    {
+        var entityList = entities.ToList();
+        var idProp = typeof(T).GetProperties()
+                         .FirstOrDefault(p =>
+                             p.GetCustomAttribute<SugarColumn>()?.IsPrimaryKey == true &&
+                             p.GetCustomAttribute<SugarColumn>()?.IsIdentity == true)
+                     ?? typeof(T).GetProperty("Id"); // 退回找 Id
+
+        var newIds = new List<int>();
+
+        foreach (var entity in entityList)
+        {
+            var newId = _db.Insertable(entity).ExecuteReturnIdentity();
+            newIds.Add(newId);
+
+            if (idProp != null && idProp.CanWrite)
+            {
+                if (idProp.PropertyType == typeof(int))
+                    idProp.SetValue(entity, newId);
+                else if (idProp.PropertyType == typeof(long))
+                    idProp.SetValue(entity, (long)newId);
+                else if (idProp.PropertyType == typeof(string))
+                    idProp.SetValue(entity, newId.ToString());
+            }
+        }
+
+        return newIds[0];
+    }
+
 
     public bool Delete(Expression<Func<T, bool>> where) => _db.Deleteable<T>().Where(where).ExecuteCommand() > 0;
 

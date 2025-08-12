@@ -9,6 +9,8 @@ namespace ArkPlotWpf.Model;
 [SugarTable("PrtsData")]
 public class PrtsData
 {
+    private StringDict? _dataCache;
+
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]
     public long Id { get; set; }
     [SugarColumn(IsNullable = false, Length = 100)]
@@ -18,9 +20,26 @@ public class PrtsData
     [SugarColumn(IsIgnore = true)]
     public StringDict Data
     {
-        get => string.IsNullOrEmpty(DataJson) ? new StringDict() : JsonSerializer.Deserialize<StringDict>(DataJson) ?? new StringDict();
-        set => DataJson = value != null ? JsonSerializer.Serialize(value) : "{}";
+        get
+        {
+            if (_dataCache == null)
+            {
+                _dataCache = string.IsNullOrEmpty(DataJson)
+                    ? new StringDict()
+                    : JsonSerializer.Deserialize<StringDict>(DataJson) ?? new StringDict();
+                _dataCache.OnChanged += () => DataJson = JsonSerializer.Serialize(_dataCache);
+            }
+            return _dataCache;
+        }
+        set
+        {
+            _dataCache = value ?? new StringDict();
+            DataJson = JsonSerializer.Serialize(_dataCache);
+            // 订阅修改事件
+            _dataCache.OnChanged += () => DataJson = JsonSerializer.Serialize(_dataCache);
+        }
     }
+
 
     /// <summary>
     /// 使用指定的标签初始化 <see cref="PrtsData"/> 类的不使用字典的实例。
@@ -29,7 +48,6 @@ public class PrtsData
     public PrtsData(string tag)
     {
         Tag = tag;
-        Data = new StringDict();
         DataJson = "{}";
     }
 
@@ -42,12 +60,11 @@ public class PrtsData
     {
         Tag = tag;
         Data = data;
-        DataJson = data != null ? JsonSerializer.Serialize(data) : "{}";
+        DataJson = JsonSerializer.Serialize(data);
     }
     public PrtsData()
     {
         Tag = string.Empty;
-        Data = new StringDict();
         DataJson = "{}";
     }
 }
