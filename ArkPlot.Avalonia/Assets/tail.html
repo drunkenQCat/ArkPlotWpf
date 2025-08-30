@@ -1,0 +1,49 @@
+<script crossorigin="anonymous" integrity="sha384-//wPThGdTrthOQR9M9/zrttkJAr5GB6+mtDs5KEBfyxRko5vM8k/UTYDYYbC9732" src="https://lib.baomitu.com/onecolor/latest/one-color.js"></script>
+
+<script>
+    // give the names clolor
+    const stringToColor = (str) => {
+        let hash = 0;
+        str.split('').forEach(char => {
+            hash = char.charCodeAt(0) + ((hash << 5) - hash);
+        });
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            const value = (hash >> (i * 8)) & 0xff;
+            color += value.toString(16).padStart(2, '0');
+        }
+        var c = new one.color(color);
+        color = c.saturation(0.4).value(0.76).alpha(0.4).cssa();
+        return color;
+    }
+    // Get all the <strong> elements on the page
+    var strongElements = document.querySelectorAll('strong');
+
+    // Loop through each <strong> element
+    strongElements.forEach(element => {
+        var characterName = element.textContent;
+        var color = stringToColor(characterName);
+        element.style.backgroundColor = color ;
+    }); 
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var lazyAudios = document.querySelectorAll('.lazy-audio, .music');
+
+        var lazyLoadAudio = function () {
+            lazyAudios.forEach(function (audio) {
+                var source = audio.querySelector('source'); // get <source> element
+                if (source && source.src && audio.getBoundingClientRect().top < window.innerHeight && !audio.hasAttribute('src')) {
+                    audio.src = source.src; // from <source> get src
+                    audio.load();           // load the audio
+                }
+            });
+        };
+
+        lazyLoadAudio();
+
+        document.addEventListener('scroll', lazyLoadAudio);
+        window.addEventListener('resize', lazyLoadAudio);
+        window.addEventListener('orientationchange', lazyLoadAudio);
+    });
+</script>

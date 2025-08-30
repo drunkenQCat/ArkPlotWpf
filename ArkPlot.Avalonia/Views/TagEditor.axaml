@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ArkPlot.Avalonia.ViewModels;assembly=ArkPlot.Avalonia"
+        xmlns:b="clr-namespace:Avalonia.Xaml.Behaviors;assembly=Avalonia.Xaml.Behaviors"
+        xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ArkPlot.Avalonia.TagEditor"
+        x:DataType="vm:TagEditorViewModel"
+        Title="TagEditor" Height="558" Width="530">
+    <Window.DataContext>
+        <vm:TagEditorViewModel />
+    </Window.DataContext>
+    <i:Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded">
+            <InvokeCommandAction Command="{Binding LoadTagJsonCommand}" CommandParameter="zh_CN" />
+        </EventTriggerBehavior>
+    </i:Interaction.Behaviors>
+    <Grid>
+        <StackPanel>
+            <DataGrid Height="440"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                SelectionMode="Extended"
+                SelectedIndex="{Binding SelectedIndex}"
+                ItemsSource="{Binding DataGrid}"
+                AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="tag名" Binding="{Binding Tag}" Width="130"/>
+                    <DataGridTextColumn Header="替换为..." Binding="{Binding NewTag}" Width="130"/>
+                    <DataGridTextColumn Header="保留内容格式（正则表达式）" Binding="{Binding Reg}"  Width="226"/>
+                </DataGrid.Columns>
+
+            </DataGrid>
+
+            <Button Width="73" Command="{Binding AddItemCommand}" Margin="0,6,0,0">[    +    ]</Button>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Width="80" Command="{Binding SaveTagJsonCommand }" Margin="0,7,0,0">保存</Button>
+                <Button Width="80" 
+                        Command="{Binding CloseWindowCommand}" 
+                        CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
+                        Margin="10,7,0,0">取消</Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

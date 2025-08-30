@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlotWpf", "ArkPlotWpf\Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlotWpf.DbTests", "ArkPlotWpf.DbTests\ArkPlotWpf.DbTests.csproj", "{5EDCD40D-6C86-45F1-818B-6D59425E54A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Core", "ArkPlot.Core\ArkPlot.Core.csproj", "{BA78B4D3-B9B5-4EA2-B717-9B815C081651}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Avalonia", "ArkPlot.Avalonia\ArkPlot.Avalonia.csproj", "{C1DA2C0C-80E7-44BC-93A9-9E81989413A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{5EDCD40D-6C86-45F1-818B-6D59425E54A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EDCD40D-6C86-45F1-818B-6D59425E54A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EDCD40D-6C86-45F1-818B-6D59425E54A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA78B4D3-B9B5-4EA2-B717-9B815C081651}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA78B4D3-B9B5-4EA2-B717-9B815C081651}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA78B4D3-B9B5-4EA2-B717-9B815C081651}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA78B4D3-B9B5-4EA2-B717-9B815C081651}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1DA2C0C-80E7-44BC-93A9-9E81989413A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1DA2C0C-80E7-44BC-93A9-9E81989413A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1DA2C0C-80E7-44BC-93A9-9E81989413A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1DA2C0C-80E7-44BC-93A9-9E81989413A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 # Spawned Markdown and Html files
 /.idea/
 /.vscode/
+**/output/

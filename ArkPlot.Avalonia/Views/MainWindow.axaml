@@ -1,0 +1,186 @@
+<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:ArkPlot.Avalonia.ViewModels;assembly=ArkPlot.Avalonia"
+    xmlns:b="clr-namespace:Avalonia.Xaml.Behaviors;assembly=Avalonia.Xaml.Behaviors"
+    xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+    xmlns:c="clr-namespace:CalcBinding;assembly=CalcBindingAva"
+    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    x:Class="ArkPlot.Avalonia.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
+    Title="ArkPlot"
+    Height="650"
+    Width="300"
+    >
+    <Window.DataContext>
+        <vm:MainWindowViewModel />
+    </Window.DataContext>
+
+    <i:Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded">
+            <InvokeCommandAction Command="{Binding LoadInitResourceCommand}" />
+        </EventTriggerBehavior>
+    </i:Interaction.Behaviors>
+
+    <StackPanel>
+        <Canvas Height="30">
+            <Image
+                Source="avares://ArkPlot.Avalonia/Assets/slogan.jpg"
+                Width="456" Canvas.Left="0" HorizontalAlignment="Center" Canvas.Top="0"
+                VerticalAlignment="Top">
+                <Image.Clip>
+                    <RectangleGeometry Rect="0,0,300,70" />
+                </Image.Clip>
+            </Image>
+        </Canvas>
+        <Grid
+            Margin="10 42 10 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel
+                Spacing="10" 
+                Orientation="Horizontal" 
+                Grid.Row="0">
+                    <RadioButton
+                        Content="插曲"
+                        IsChecked="True"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                        Command="{Binding LoadActsCommand}"
+                        CommandParameter="ACTIVITY_STORY" />
+                    <RadioButton
+                        Content="故事集"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                        Command="{Binding LoadActsCommand}"
+                        CommandParameter="MINI_STORY" />
+                    <RadioButton
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                        Content="主题曲"
+                        Command="{Binding LoadActsCommand}"
+                        CommandParameter="MAIN_STORY" />
+                </StackPanel>
+            <StackPanel
+                Spacing="10" 
+                Orientation="Horizontal" 
+                Grid.Row="1">
+                <RadioButton
+                    Content="简中"
+                    IsChecked="True"
+                    Command="{Binding LoadLangTableCommand}"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    CommandParameter="zh_CN" />
+                <RadioButton
+                    Content="日本語"
+                    Command="{Binding LoadLangTableCommand}"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    CommandParameter="ja_JP" />
+                <RadioButton
+                    Content="Eng"
+                    Command="{Binding LoadLangTableCommand}"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    CommandParameter="en_US" />
+                <RadioButton
+                    Content="한국어"
+                    Command="{Binding LoadLangTableCommand}"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    CommandParameter="ko_KR" />
+
+            </StackPanel>
+            <Grid Grid.Row="2"
+                Margin="0 20 0 10">
+                <Grid Margin="0 4 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0"
+                        Content="故事名" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                    <Button Grid.Row="1" Grid.Column="0"
+                        Content="Tags文件"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Foreground="#FF326CF3"
+                        BorderBrush="#FF326CF3" />
+                    <Button Grid.Row="2" Grid.Column="0"
+                        Content="生成位置"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Foreground="#FF326CF3"
+                        BorderBrush="#FF326CF3" />
+
+                    <ComboBox
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        ItemsSource="{Binding StoriesNames}"
+                        MaxDropDownHeight="800"
+                        SelectedIndex="{Binding SelectedIndex}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                        Text="{Binding JsonPath}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch" />
+                        <!-- AllowDrop="True" -->
+                        <!-- Drop="JsonPathBox_Drop" -->
+                        <!-- PreviewDragOver="TextBox_PreviewDragOver" -->
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                        Text="{Binding OutputPath}" VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch" />
+                </Grid>
+            </Grid>
+                            <StackPanel
+                Margin="0 0 0 0"
+                Grid.Row="3"
+                VerticalAlignment="Center">
+                <Button
+                    IsEnabled="{c:Binding !LoadInitResourceCommand.IsRunning and IsInitialized}"
+                    Margin="0 10 0 10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" Command="{Binding LoadMdCommand}"  Width="100">
+                    开始
+                </Button>
+                <Button
+                    Margin="0 0 0 10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" Command="{Binding OpenTagEditorCommand}"  Width="100">
+                    编辑tags
+                </Button>
+                <CheckBox
+                    Content="生成时使用本地资源"
+                    IsChecked="{Binding IsLocalResChecked}"
+                    Margin="0 -6 16 11"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+            <Border
+                Grid.Row="4" Margin="7" BorderThickness="2" BorderBrush="#7001"
+                VerticalAlignment="Stretch" Height="225">
+                <ScrollViewer>
+                    <!-- HorizontalAlignment="Stretch" -->
+                    <!-- VerticalAlignment="Top" -->
+                    <!-- properties:AutoScroll.AutoScroll="True" -->
+                    <!-- HorizontalScrollBarVisibility="Disabled" -->
+                    <!-- IsInertiaEnabled="True"> -->
+                    <TextBox
+                        Margin="10 12 10 0"
+                        TextWrapping="Wrap"
+                        Background="Transparent"
+                        IsReadOnly="True"
+                        Text="{Binding ConsoleOutput}" />
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </StackPanel>
+</Window>
+
