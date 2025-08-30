@@ -6,6 +6,7 @@
     xmlns:b="clr-namespace:Avalonia.Xaml.Behaviors;assembly=Avalonia.Xaml.Behaviors"
     xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
     xmlns:c="clr-namespace:CalcBinding;assembly=CalcBindingAva"
+    xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
     x:Class="ArkPlot.Avalonia.Views.MainWindow"
     x:DataType="vm:MainWindowViewModel"
@@ -46,21 +47,25 @@
             <StackPanel
                 Spacing="10" 
                 Orientation="Horizontal" 
+                HorizontalAlignment="Center"
                 Grid.Row="0">
                     <RadioButton
                         Content="插曲"
                         IsChecked="True"
+                        Classes="Chips"
                         IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="ACTIVITY_STORY" />
                     <RadioButton
                         Content="故事集"
+                        Classes="Chips"
                         IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="MINI_STORY" />
                     <RadioButton
-                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                        Classes="Chips"
                         Content="主题曲"
+                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                         Command="{Binding LoadActsCommand}"
                         CommandParameter="MAIN_STORY" />
                 </StackPanel>
@@ -70,22 +75,26 @@
                 Grid.Row="1">
                 <RadioButton
                     Content="简中"
+                    Classes="Chips"
                     IsChecked="True"
                     Command="{Binding LoadLangTableCommand}"
                     IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                     CommandParameter="zh_CN" />
                 <RadioButton
                     Content="日本語"
+                    Classes="Chips"
                     Command="{Binding LoadLangTableCommand}"
                     IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                     CommandParameter="ja_JP" />
                 <RadioButton
                     Content="Eng"
+                    Classes="Chips"
                     Command="{Binding LoadLangTableCommand}"
                     IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                     CommandParameter="en_US" />
                 <RadioButton
                     Content="한국어"
+                    Classes="Chips"
                     Command="{Binding LoadLangTableCommand}"
                     IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
                     CommandParameter="ko_KR" />

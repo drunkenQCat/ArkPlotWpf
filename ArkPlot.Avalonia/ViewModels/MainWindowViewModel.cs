@@ -64,10 +64,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadInitResource()
     {
+        Console.WriteLine("LoadInitResource started...");
         SubscribeAll();
         await LoadResourceTable();
         await LoadLangTable(language);
         IsInitialized = true;
+        Console.WriteLine("LoadInitResource completed.");
     }
 
     private void SubscribeAll()
@@ -223,7 +225,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
         );
-        if (resultFile is null) return;
+        if (resultFile is null || resultFile.FirstOrDefault() is null) return;
         else JsonPath = resultFile.FirstOrDefault()!.Path.LocalPath;
     }
 
@@ -237,7 +239,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 Title = "选择输出文件夹",
             }
         );
-        if (resultFolder is null) return;
+        if (resultFolder is null || resultFolder.FirstOrDefault() is null) return;
         else OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
 
     }
