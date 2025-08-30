@@ -13,7 +13,7 @@ public class TypstTranslator
     private string portrait2 = "";
     private string script = "";
 
-    private TypstTranslator(string name)
+    public TypstTranslator(string name)
     {
         ChapterName = name;
     }
@@ -26,17 +26,17 @@ public class TypstTranslator
     {
         return $@"
 #arknights_sim(
-  {name},
-  {script},
-  image(
-    {portrait},
-    height: 150%
-  ),
-  image(
-    {background},
-    width: 120%
-  )
-)
+        {name},
+        {script},
+        image(
+            {portrait},
+            height: 150%
+            ),
+        image(
+            {background},
+            width: 120%
+            )
+        )
 ";
     }
 
@@ -45,21 +45,21 @@ public class TypstTranslator
     {
         return @$"
 #arknights_sim_2p(
-  {name},
-  {script},
-  image(
-    {portrait},
-    height: 150%
-  ),
-  image(
-    {portrait2},
-    height: 150%
-  ),
-  image(
-    {background},
-    width: 120%
-  )
-)";
+        {name},
+        {script},
+        image(
+            {portrait},
+            height: 150%
+            ),
+        image(
+            {portrait2},
+            height: 150%
+            ),
+        image(
+            {background},
+            width: 120%
+            )
+        )";
     }
 
     // 这些方法用来设置对话的名字、对话的内容、对话的背景图等等。
