@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities; // Added for AkpProcessor
@@ -10,10 +11,15 @@ using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
+
+
 // ReSharper disable InconsistentNaming
 
 namespace ArkPlot.Avalonia.ViewModels;
@@ -84,6 +90,12 @@ public partial class MainWindowViewModel : ViewModelBase
             var s = "\r\n网络错误，无法加载资源文件。\r\n";
             noticeBlock.RaiseCommonEvent(s);
             // Removed MessageBox.Show(s);
+            MessageBoxManager.GetMessageBoxStandard(
+                    title: "网络异常",
+                    text: s,
+                    @enum: ButtonEnum.Ok,
+                    icon: Icon.Error
+                    );
         }
     }
 
@@ -131,7 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase
         await PreloadResources(content);
         await StartParseDocuments(content);
         await ExportDocuments(content);
-        CompleteLoading();
+        await CompleteLoading();
     }
 
     private void PrepareLoading()
@@ -194,11 +206,59 @@ public partial class MainWindowViewModel : ViewModelBase
             AkpProcessor.WriteHtml(outputPathOfCurrentStory, rawMarkdown);
     }
 
-    private void CompleteLoading()
+
+    [RelayCommand]
+    private async Task PickTagFile()
     {
-        // Changed MessageBox.Show to noticeBlock.RaiseCommonEvent
-        noticeBlock.RaiseCommonEvent("生成完成。是否打开文件夹？");
-        OpenOutputFolder(); // Always open folder for now, or add a dialog service
+        var storageProvider = GlobalStorageProvider.StorageProvider;
+        var resultFile = await storageProvider.OpenFilePickerAsync(
+            new FilePickerOpenOptions()
+            {
+                Title = "选取json文件",
+                FileTypeFilter = new[] {
+                    new FilePickerFileType("tag 文件")
+                    {
+                        Patterns = new[]{"*.json"}
+                    }
+                }
+            }
+        );
+        if (resultFile is null) return;
+        else JsonPath = resultFile.FirstOrDefault()!.Path.LocalPath;
+    }
+
+    [RelayCommand]
+    private async Task PickOutputFolder()
+    {
+        var storageProvider = GlobalStorageProvider.StorageProvider;
+        var resultFolder = await storageProvider.OpenFolderPickerAsync(
+            new FolderPickerOpenOptions()
+            {
+                Title = "选择输出文件夹",
+            }
+        );
+        if (resultFolder is null) return;
+        else OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
+
+    }
+
+    private async Task CompleteLoading()
+    {
+        var messageBox = MessageBoxManager
+            .GetMessageBoxStandard(
+                title: "提示",
+                text: "生成完成。是否打开文件夹？",
+                @enum: ButtonEnum.OkCancel,
+                icon: Icon.Info);
+
+        // 2. 以 Popup 形式展示，并等待用户点击结果
+        var result = await messageBox.ShowAsync();
+
+        // 3. 根据返回值执行后续逻辑
+        if (result == ButtonResult.Ok)
+        {
+            OpenOutputFolder();
+        }
         IsInitialized = true;
     }
 

@@ -108,12 +108,14 @@
                         Content="故事名" VerticalAlignment="Center" HorizontalAlignment="Right" />
                     <Button Grid.Row="1" Grid.Column="0"
                         Content="Tags文件"
+                        Command="{Binding PickTagFileCommand}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Foreground="#FF326CF3"
                         BorderBrush="#FF326CF3" />
                     <Button Grid.Row="2" Grid.Column="0"
                         Content="生成位置"
+                        Command="{Binding PickOutputFolderCommand}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Foreground="#FF326CF3"

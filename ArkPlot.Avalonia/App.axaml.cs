@@ -2,9 +2,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.Messaging;
+using Avalonia.Controls;
 
 using ArkPlot.Avalonia.ViewModels;
 using ArkPlot.Avalonia.Views;
+using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Services;
 
 namespace ArkPlot.Avalonia;
@@ -37,8 +39,10 @@ public partial class App : Application
             {
                 DataContext = new MainWindowViewModel(),
             };
-        }
 
+            var topLevel = TopLevel.GetTopLevel(desktop.MainWindow);
+            GlobalStorageProvider.StorageProvider = topLevel!.StorageProvider;
+        }
         base.OnFrameworkInitializationCompleted();
     }
 }
