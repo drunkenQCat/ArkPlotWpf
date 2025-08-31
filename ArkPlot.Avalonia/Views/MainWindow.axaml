@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -7,7 +7,7 @@
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:c="using:CalcBinding"
-    xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+    xmlns:sukiUi="using:SukiUI.Controls"
     xmlns:ba="using:ArkPlot.Avalonia.Styles"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
     x:Class="ArkPlot.Avalonia.Views.MainWindow"
@@ -16,10 +16,26 @@
     Height="750"
     Width="400"
     >
-    <Window.DataContext>
+  <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
+    <Window.Styles>
+        <Style Selector="RadioButton.Chips:disabled">
+            <Setter Property="Foreground" Value="Red"/>
+            <Setter Property="Background" Value="#CCC"/>
+            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+            <Setter Property="Opacity" Value="0.3" />
+        </Style>
+        <Style Selector="RadioButton.Chips:disabled:checked">
+            <Setter Property="Opacity" Value="0.2" />
+            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+        </Style>
 
+    </Window.Styles>
+
+    <sukiUi:SukiWindow.Hosts>
+      <sukiUi:SukiToastHost Manager="{Binding ToastManager}"/>
+    </sukiUi:SukiWindow.Hosts>
     <i:Interaction.Behaviors>
         <ia:EventTriggerBehavior EventName="Opened">
             <ia:InvokeCommandAction Command="{Binding LoadInitResourceCommand}" />
@@ -27,15 +43,6 @@
     </i:Interaction.Behaviors>
 
     <StackPanel>
-        <Border DockPanel.Dock="Bottom" 
-            Background="#EEE" 
-            IsVisible="{c:Binding !IsInitialized}"
-            Padding="5"
-            BorderBrush="#CCC" BorderThickness="1,1,0,0">
-            <TextBlock 
-                Text="{Binding Status}" 
-            />
-        </Border>
         <Canvas Height="30">
             <Image
                 Source="avares://ArkPlot.Avalonia/Assets/slogan.jpg"
@@ -47,18 +54,14 @@
             </Image>
         </Canvas>
         <Grid
-            Margin="10 42 10 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+            Margin="10 42 10 0"
+            RowDefinitions="*,*,*,*,*"
+            >
             <StackPanel
-                Spacing="10" 
+                Spacing="6" 
                 Orientation="Horizontal" 
                 HorizontalAlignment="Center"
+                Margin="6"
                 Grid.Row="0">
                 <RadioButton
                     Content="插曲"
@@ -81,7 +84,7 @@
                     CommandParameter="MAIN_STORY" />
             </StackPanel>
             <StackPanel
-                Spacing="10" 
+                Spacing="5" 
                 HorizontalAlignment="Center"
                 Orientation="Horizontal" 
                 Grid.Row="1">
@@ -113,7 +116,7 @@
 
             </StackPanel>
             <Grid Grid.Row="2"
-                Margin="0 20 0 10">
+                Margin="0 10 0 10">
                 <Grid Margin="0 4 0 0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -125,8 +128,11 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Label Grid.Row="0" Grid.Column="0"
-                        Content="故事名" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                    <Button Grid.Row="0" Grid.Column="0"
+                        Content="当前活动" 
+                        VerticalAlignment="Center" 
+                        HorizontalAlignment="Right" 
+                    />
                     <Button Grid.Row="1" Grid.Column="0"
                         Content="Tags文件"
                         Command="{Binding PickTagFileCommand}"
@@ -212,5 +218,5 @@
             </Border>
         </Grid>
     </StackPanel>
-</Window>
+</sukiUi:SukiWindow>
 

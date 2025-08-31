@@ -18,6 +18,9 @@ using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
+using SukiUI.Toasts;
+using SukiUI.Controls;
+using Avalonia.Controls.Notifications;
 
 
 // ReSharper disable InconsistentNaming
@@ -30,6 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
+    [ObservableProperty] private ISukiToastManager toastManager  = new SukiToastManager();  // public, 只读属性
 
     [ObservableProperty] private string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
 
@@ -70,14 +74,39 @@ public partial class MainWindowViewModel : ViewModelBase
         SubscribeAll();
         await Task.Yield();
         Status = $"正在加载Prts资源索引...";
+        ToastManager.CreateToast()
+            .WithTitle("初始化中")
+            .WithContent(Status)
+            .WithLoadingState(true)
+            .Dismiss().After(TimeSpan.FromSeconds(7))
+            .Queue();
+
         var sw = Stopwatch.StartNew();
         await LoadResourceTable();
         sw.Stop();
         Status = $"Prts资源索引加载完成，耗时：{sw.ElapsedMilliseconds / 1000} s";
-        await Task.Delay(1000); // 等待一秒
+        ToastManager.CreateToast()
+            .WithTitle("初始化中")
+            .OfType(NotificationType.Success)
+            .WithContent(Status)
+            .Dismiss().After(TimeSpan.FromSeconds(1))
+            .Queue();
+
         Status = $"正在加载活动列表...";
+        ToastManager.CreateToast()
+            .WithTitle("初始化中")
+            .WithContent(Status)
+            .WithLoadingState(true)
+            .Dismiss().After(TimeSpan.FromSeconds(2))
+            .Queue();
         await LoadLangTable(language);
         Status = $"初始化已完成";
+        ToastManager.CreateToast()
+            .WithTitle("初始化中")
+            .OfType(NotificationType.Success)
+            .WithContent(Status)
+            .Dismiss().After(TimeSpan.FromSeconds(3))
+            .Queue();
         IsInitialized = true;
     }
 
