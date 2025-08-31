@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using ArkPlotWpf.Services;
+using ArkPlot.Core.Services;
 using ArkPlotWpf.View;
 using ArkPlotWpf.ViewModel;
 using CommunityToolkit.Mvvm.Messaging;
