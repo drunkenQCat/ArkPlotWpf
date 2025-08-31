@@ -157,7 +157,6 @@
                                                     <DataTemplate>
                                                         <ToggleButton 
                                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                            Classes="Warning"
                                                             FontSize="14"
                                                             Margin="2"
                                                             HorizontalAlignment="Stretch">

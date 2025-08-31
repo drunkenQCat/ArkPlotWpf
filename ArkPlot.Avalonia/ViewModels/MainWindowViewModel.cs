@@ -76,6 +76,7 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedIndexChanged(int value)
     {
         Chapters.Clear();
+        
     }
 
     [RelayCommand]
@@ -231,10 +232,19 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadMd()
     {
+        if (Chapters.Count == 0)
+        {
+            await LoadChapters();
+        }
         var selectedChapters = Chapters.Where(c => c.IsSelected).Select(c => c.ChapterName).ToList();
         if (!selectedChapters.Any())
         {
-            ToastManager.CreateToast().WithTitle("操作无效").WithContent("请至少选择一个章节再开始生成。").Queue();
+            ToastManager
+                .CreateToast()
+                .OfType(NotificationType.Information)
+                .WithTitle("选择出错")
+                .WithContent("您没有选择任何章节")
+                .Dismiss().After(TimeSpan.FromSeconds(7)).Queue();
             return;
         }
 
