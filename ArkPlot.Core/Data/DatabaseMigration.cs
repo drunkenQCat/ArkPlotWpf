@@ -160,13 +160,14 @@ public class Migration_002_AddIndexes : IMigration
 
     public void Execute(SqlSugarClient db)
     {
-        // 为Plot 表添加索引
+        // 为 Plot 表添加索引
         db.CodeFirst.SetStringDefaultLength(200).InitTables(typeof(Plot));
 
-        // 为FormattedTextEntry 表添加索引
+        // 为 FormattedTextEntry 表添加索引
         db.CodeFirst.SetStringDefaultLength(200).InitTables(typeof(FormattedTextEntry));
 
-        // 为PrtsData 表添加索引
+        // 为 PrtsData 表添加索引
         db.CodeFirst.SetStringDefaultLength(200).InitTables(typeof(PrtsData));
     }
 }
+

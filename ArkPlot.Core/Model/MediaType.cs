@@ -1,4 +1,4 @@
-namespace ArkPlot.Core.Model;
+﻿namespace ArkPlot.Core.Model;
 
 public enum MediaType
 {

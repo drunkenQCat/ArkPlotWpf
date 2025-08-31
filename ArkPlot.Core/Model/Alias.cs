@@ -4,14 +4,14 @@ using System.Linq;
 namespace ArkPlot.Core.Model;
 
 /// <summary>
-/// 表示一个字符串字典的类，继承自 <see cref="Dictionary{TKey, TValue}"/>�?
+/// 表示一个字符串字典的类，继承自 <see cref="Dictionary{TKey, TValue}"/>。
 /// </summary>
 public class StringDict : OrderedDictionary<string, string>
 {
     public event Action? OnChanged;
 
     /// <summary>
-    /// 初始�?<see cref="StringDict"/> 类的新实例�?
+    /// 初始化 <see cref="StringDict"/> 类的新实例。
     /// </summary>
     public StringDict()
     {
@@ -22,15 +22,15 @@ public class StringDict : OrderedDictionary<string, string>
     }
 
     /// <summary>
-    /// 从键值对集合创建一�?<see cref="StringDict"/> 实例�?
+    /// 从键值对集合创建一个 <see cref="StringDict"/> 实例。
     /// </summary>
-    /// <param name="kvpList">键值对集合�?/param>
-    /// <returns>一个新�?<see cref="StringDict"/> 实例�?/returns>
+    /// <param name="kvpList">键值对集合。</param>
+    /// <returns>一个新的 <see cref="StringDict"/> 实例。</returns>
     public static StringDict FromEnumerable(IEnumerable<KeyValuePair<string, string>> kvpList)
     {
         return new StringDict(kvpList.ToDictionary(pair => pair.Key, pair => pair.Value));
     }
-    // 重写索引�?
+    // 重写索引器
     public new string this[string key]
     {
         get => base[key];
@@ -57,7 +57,7 @@ public class StringDict : OrderedDictionary<string, string>
         return result;
     }
 
-    // 其他修改方法也建议重写并触发 OnChanged（比�?Clear、Insert 等）
+    // 其他修改方法也建议重写并触发 OnChanged（比如 Clear、Insert 等）
     public new void Clear()
     {
         base.Clear();

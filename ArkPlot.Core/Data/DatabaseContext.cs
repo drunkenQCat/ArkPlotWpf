@@ -37,12 +37,12 @@ public class DatabaseContext
             }
         });
 
-        // 初始化数据库表结�?
+        // 初始化数据库表结构
         InitializeTables();
     }
 
     /// <summary>
-    /// 初始化数据库表结�?
+    /// 初始化数据库表结构
     /// </summary>
     private void InitializeTables()
     {
@@ -64,7 +64,7 @@ public class DatabaseContext
     }
 
     /// <summary>
-    /// 获取数据库连接实�?
+    /// 获取数据库连接实例
     /// </summary>
     public static SqlSugarClient GetDb() => Instance.Db;
 }

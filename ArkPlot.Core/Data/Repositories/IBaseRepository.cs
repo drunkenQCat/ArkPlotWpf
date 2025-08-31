@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace ArkPlot.Core.Data.Repositories;
 
 /// <summary>
-/// 基础仓储接口，定义通用�?CRUD 操作
+/// 基础仓储接口，定义通用的 CRUD 操作
 /// </summary>
 /// <typeparam name="T">实体类型</typeparam>
 public interface IBaseRepository<T> where T : class, new()
@@ -16,14 +16,14 @@ public interface IBaseRepository<T> where T : class, new()
     /// 添加单个实体
     /// </summary>
     /// <param name="entity">要添加的实体</param>
-    /// <returns>影响的行�?/returns>
+    /// <returns>影响的行数</returns>
     int Add(T entity);
 
     /// <summary>
     /// 批量添加实体
     /// </summary>
     /// <param name="entities">要添加的实体集合</param>
-    /// <returns>影响的行�?/returns>
+    /// <returns>影响的行数</returns>
     int AddRange(IEnumerable<T> entities);
 
     /// <summary>
@@ -36,14 +36,14 @@ public interface IBaseRepository<T> where T : class, new()
     /// <summary>
     /// 根据主键删除实体
     /// </summary>
-    /// <param name="id">主键�?/param>
+    /// <param name="id">主键值</param>
     /// <returns>是否删除成功</returns>
     bool DeleteById(dynamic id);
 
     /// <summary>
     /// 根据主键批量删除实体
     /// </summary>
-    /// <param name="ids">主键值数�?/param>
+    /// <param name="ids">主键值数组</param>
     /// <returns>是否删除成功</returns>
     bool DeleteByIds(dynamic[] ids);
 
@@ -64,7 +64,7 @@ public interface IBaseRepository<T> where T : class, new()
     /// <summary>
     /// 根据条件更新实体
     /// </summary>
-    /// <param name="set">更新表达�?/param>
+    /// <param name="set">更新表达式</param>
     /// <param name="where">更新条件</param>
     /// <returns>是否更新成功</returns>
     bool Update(Expression<Func<T, T>> set, Expression<Func<T, bool>> where);
@@ -72,12 +72,12 @@ public interface IBaseRepository<T> where T : class, new()
     /// <summary>
     /// 根据主键获取实体
     /// </summary>
-    /// <param name="id">主键�?/param>
+    /// <param name="id">主键值</param>
     /// <returns>实体对象</returns>
     T GetById(dynamic id);
 
     /// <summary>
-    /// 获取所有实�?
+    /// 获取所有实体
     /// </summary>
     /// <returns>实体列表</returns>
     List<T> GetAll();
@@ -90,10 +90,10 @@ public interface IBaseRepository<T> where T : class, new()
     List<T> GetWhere(Expression<Func<T, bool>> where);
 
     /// <summary>
-    /// 根据条件获取第一个实�?
+    /// 根据条件获取第一个实体
     /// </summary>
     /// <param name="where">查询条件</param>
-    /// <returns>实体对象，如果不存在则返�?null</returns>
+    /// <returns>实体对象，如果不存在则返回 null</returns>
     T FirstOrDefault(Expression<Func<T, bool>> where);
 
     /// <summary>
@@ -104,7 +104,7 @@ public interface IBaseRepository<T> where T : class, new()
     bool Any(Expression<Func<T, bool>> where);
 
     /// <summary>
-    /// 统计满足条件的实体数�?
+    /// 统计满足条件的实体数量
     /// </summary>
     /// <param name="where">查询条件</param>
     /// <returns>实体数量</returns>
@@ -116,7 +116,7 @@ public interface IBaseRepository<T> where T : class, new()
     /// <param name="pageIndex">页码（从1开始）</param>
     /// <param name="pageSize">每页大小</param>
     /// <param name="where">查询条件</param>
-    /// <returns>(实体列表, 总数�?</returns>
+    /// <returns>(实体列表, 总数量)</returns>
     (List<T>, int) GetPage(int pageIndex, int pageSize, Expression<Func<T, bool>>? where = null);
 
     /// <summary>
@@ -134,14 +134,14 @@ public interface IBaseRepository<T> where T : class, new()
     /// 异步添加单个实体
     /// </summary>
     /// <param name="entity">要添加的实体</param>
-    /// <returns>影响的行�?/returns>
+    /// <returns>影响的行数</returns>
     Task<int> AddAsync(T entity);
 
     /// <summary>
     /// 异步批量添加实体
     /// </summary>
     /// <param name="entities">要添加的实体集合</param>
-    /// <returns>影响的行�?/returns>
+    /// <returns>影响的行数</returns>
     Task<int> AddRangeAsync(IEnumerable<T> entities);
 
     /// <summary>
@@ -161,7 +161,7 @@ public interface IBaseRepository<T> where T : class, new()
     /// <summary>
     /// 异步根据条件更新实体
     /// </summary>
-    /// <param name="set">更新表达�?/param>
+    /// <param name="set">更新表达式</param>
     /// <param name="where">更新条件</param>
     /// <returns>是否更新成功</returns>
     Task<bool> UpdateAsync(Expression<Func<T, T>> set, Expression<Func<T, bool>> where);
@@ -169,12 +169,12 @@ public interface IBaseRepository<T> where T : class, new()
     /// <summary>
     /// 异步根据主键获取实体
     /// </summary>
-    /// <param name="id">主键�?/param>
+    /// <param name="id">主键值</param>
     /// <returns>实体对象</returns>
     Task<T> GetByIdAsync(dynamic id);
 
     /// <summary>
-    /// 异步获取所有实�?
+    /// 异步获取所有实体
     /// </summary>
     /// <returns>实体列表</returns>
     Task<List<T>> GetAllAsync();
@@ -187,10 +187,10 @@ public interface IBaseRepository<T> where T : class, new()
     Task<List<T>> GetWhereAsync(Expression<Func<T, bool>> where);
 
     /// <summary>
-    /// 异步根据条件获取第一个实�?
+    /// 异步根据条件获取第一个实体
     /// </summary>
     /// <param name="where">查询条件</param>
-    /// <returns>实体对象，如果不存在则返�?null</returns>
+    /// <returns>实体对象，如果不存在则返回 null</returns>
     Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> where);
 
     /// <summary>
@@ -201,7 +201,7 @@ public interface IBaseRepository<T> where T : class, new()
     Task<bool> AnyAsync(Expression<Func<T, bool>> where);
 
     /// <summary>
-    /// 异步统计满足条件的实体数�?
+    /// 异步统计满足条件的实体数量
     /// </summary>
     /// <param name="where">查询条件</param>
     /// <returns>实体数量</returns>
@@ -213,7 +213,7 @@ public interface IBaseRepository<T> where T : class, new()
     /// <param name="pageIndex">页码（从1开始）</param>
     /// <param name="pageSize">每页大小</param>
     /// <param name="where">查询条件</param>
-    /// <returns>(实体列表, 总数�?</returns>
+    /// <returns>(实体列表, 总数量)</returns>
     Task<(List<T>, int)> GetPageAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? where = null);
 
     /// <summary>

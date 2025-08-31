@@ -8,7 +8,7 @@ using SqlSugar;
 namespace ArkPlot.Core.Data.Repositories;
 
 /// <summary>
-/// 基础仓储实现类，提供通用�?CRUD 操作
+/// 基础仓储实现类，提供通用的 CRUD 操作
 /// </summary>
 /// <typeparam name="T">实体类型</typeparam>
 public class BaseRepository<T> : IBaseRepository<T> where T : class, new()
@@ -29,7 +29,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class, new()
         var idProp = typeof(T).GetProperty("Id");
         if (idProp != null && idProp.CanWrite)
         {
-            // 根据属性类型安全赋�?
+            // 根据属性类型安全赋值
             if (idProp.PropertyType == typeof(int))
                 idProp.SetValue(entity, newId);
             else if (idProp.PropertyType == typeof(long))

@@ -10,13 +10,13 @@ namespace ArkPlot.Core.Model;
 public class FormattedTextEntry
 {
     /// <summary>
-    /// 文本行的索引�?
+    /// 文本行的索引号
     /// </summary>
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]
     public long Id { get; set; }
 
     /// <summary>
-    /// 文本行的索引�?
+    /// 文本行的索引号
     /// </summary>
     [SugarColumn(ColumnDataType = "INTEGER")]
     public int Index { get; set; }
@@ -81,7 +81,7 @@ public class FormattedTextEntry
     public string Bg { get; set; } = "";
 
     /// <summary>
-    /// 复制构造函�?
+    /// 复制构造函数
     /// </summary>
     /// <param name="entry">要复制的 FormattedTextEntry 实例</param>
     public FormattedTextEntry(FormattedTextEntry entry)
@@ -102,14 +102,14 @@ public class FormattedTextEntry
     }
 
     /// <summary>
-    /// 默认构造函�?
+    /// 默认构造函数
     /// </summary>
     public FormattedTextEntry()
     {
     }
 
     /// <summary>
-    /// 验证数据完整�?
+    /// 验证数据完整性
     /// </summary>
     /// <returns>验证结果</returns>
     public bool Validate()
@@ -126,7 +126,7 @@ public class FormattedTextEntry
             return false;
         }
 
-        // 计数器验�?
+        // 计数器验证
         if (MdDuplicateCounter < 0)
         {
             return false;

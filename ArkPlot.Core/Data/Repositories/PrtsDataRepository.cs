@@ -5,7 +5,7 @@ using ArkPlot.Core.Model;
 namespace ArkPlot.Core.Data.Repositories;
 
 /// <summary>
-/// PrtsData 仓储类，提供 PrtsData 实体的特定业务操�?
+/// PrtsData 仓储类，提供 PrtsData 实体的特定业务操作
 /// </summary>
 public class PrtsDataRepository : BaseRepository<PrtsData>
 {
@@ -19,15 +19,15 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 根据标签查询 PrtsData
     /// </summary>
     /// <param name="tag">标签</param>
-    /// <returns>匹配�?PrtsData</returns>
+    /// <returns>匹配的 PrtsData</returns>
     public PrtsData GetByTag(string tag) =>
         FirstOrDefault(x => x.Tag == tag);
 
     /// <summary>
     /// 根据标签模糊查询 PrtsData
     /// </summary>
-    /// <param name="tag">标签关键�?/param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <param name="tag">标签关键词</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public List<PrtsData> GetByTagLike(string tag) =>
         GetWhere(x => x.Tag.Contains(tag));
 
@@ -35,19 +35,19 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 根据标签前缀查询 PrtsData
     /// </summary>
     /// <param name="prefix">标签前缀</param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public List<PrtsData> GetByTagPrefix(string prefix) =>
         GetWhere(x => x.Tag.StartsWith(prefix));
 
     /// <summary>
-    /// 获取所有标�?
+    /// 获取所有标签
     /// </summary>
     /// <returns>标签列表</returns>
     public List<string> GetAllTags() =>
         _db.Queryable<PrtsData>().Select(x => x.Tag).ToList();
 
     /// <summary>
-    /// 检查标签是否存�?
+    /// 检查标签是否存在
     /// </summary>
     /// <param name="tag">标签</param>
     /// <returns>是否存在</returns>
@@ -58,7 +58,7 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 根据标签更新数据
     /// </summary>
     /// <param name="tag">标签</param>
-    /// <param name="data">新数�?/param>
+    /// <param name="data">新数据</param>
     /// <returns>是否更新成功</returns>
     public bool UpdateDataByTag(string tag, StringDict data) =>
         Update(x => new PrtsData { Data = data }, x => x.Tag == tag);
@@ -90,20 +90,20 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 获取包含特定键的数据
     /// </summary>
     /// <param name="key">键名</param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public List<PrtsData> GetByDataKey(string key) =>
         GetWhere(x => x.Data.ContainsKey(key));
 
     /// <summary>
     /// 获取包含特定值的数据
     /// </summary>
-    /// <param name="value">�?/param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <param name="value">值</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public List<PrtsData> GetByDataValue(string value) =>
         GetWhere(x => x.Data.ContainsValue(value));
 
     /// <summary>
-    /// 清空所有数�?
+    /// 清空所有数据
     /// </summary>
     /// <returns>是否清空成功</returns>
     public bool ClearAll() =>
@@ -117,15 +117,15 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 异步根据标签查询 PrtsData
     /// </summary>
     /// <param name="tag">标签</param>
-    /// <returns>匹配�?PrtsData</returns>
+    /// <returns>匹配的 PrtsData</returns>
     public async Task<PrtsData> GetByTagAsync(string tag) =>
         await FirstOrDefaultAsync(x => x.Tag == tag);
 
     /// <summary>
     /// 异步根据标签模糊查询 PrtsData
     /// </summary>
-    /// <param name="tag">标签关键�?/param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <param name="tag">标签关键词</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public async Task<List<PrtsData>> GetByTagLikeAsync(string tag) =>
         await GetWhereAsync(x => x.Tag.Contains(tag));
 
@@ -133,12 +133,12 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 异步根据标签前缀查询 PrtsData
     /// </summary>
     /// <param name="prefix">标签前缀</param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public async Task<List<PrtsData>> GetByTagPrefixAsync(string prefix) =>
         await GetWhereAsync(x => x.Tag.StartsWith(prefix));
 
     /// <summary>
-    /// 异步获取所有标�?
+    /// 异步获取所有标签
     /// </summary>
     /// <returns>标签列表</returns>
     public async Task<List<string>> GetAllTagsAsync() =>
@@ -148,7 +148,7 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 异步根据标签更新数据
     /// </summary>
     /// <param name="tag">标签</param>
-    /// <param name="data">新数�?/param>
+    /// <param name="data">新数据</param>
     /// <returns>是否更新成功</returns>
     public async Task<bool> UpdateDataByTagAsync(string tag, StringDict data) =>
         await UpdateAsync(x => new PrtsData { Data = data }, x => x.Tag == tag);
@@ -157,20 +157,20 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// 异步获取包含特定键的数据
     /// </summary>
     /// <param name="key">键名</param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public async Task<List<PrtsData>> GetByDataKeyAsync(string key) =>
         await GetWhereAsync(x => x.Data.ContainsKey(key));
 
     /// <summary>
     /// 异步获取包含特定值的数据
     /// </summary>
-    /// <param name="value">�?/param>
-    /// <returns>匹配�?PrtsData 列表</returns>
+    /// <param name="value">值</param>
+    /// <returns>匹配的 PrtsData 列表</returns>
     public async Task<List<PrtsData>> GetByDataValueAsync(string value) =>
         await GetWhereAsync(x => x.Data.ContainsValue(value));
 
     /// <summary>
-    /// 异步清空所有数�?
+    /// 异步清空所有数据
     /// </summary>
     /// <returns>是否清空成功</returns>
     public async Task<bool> ClearAllAsync() =>

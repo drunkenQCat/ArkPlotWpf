@@ -1,97 +1,97 @@
-using System.Text.RegularExpressions;
+ï»¿using System.Text.RegularExpressions;
 
 namespace ArkPlot.Core.Data;
 
 internal partial class ArkPlotRegs
 {
         /*
-        ^£ºÆ¥ÅäÊäÈë×Ö·û´®µÄ¿ªÊ¼Î»ÖÃ¡£
-        ([^@#$]+)£º²¶»ñ×é1£¬Æ¥ÅäÒ»´Î»ò¶à´ÎÈÎºÎ²»ÊÇ@¡¢#¡¢$µÄ×Ö·û¡£
-        (?: ... )?£º·Ç²¶»ñ×é£¬ºóÃæ¸úËæ?±íÊ¾Õâ¸ö×éÊÇ¿ÉÑ¡µÄ¡£
-        ([@#$])£º²¶»ñ×é2£¬Æ¥ÅäÒ»¸ö@¡¢#»ò$×Ö·û¡£
-        ([a-z\d]+)£º²¶»ñ×é3£¬Æ¥ÅäÒ»´Î»ò¶à´ÎÐ¡Ð´×ÖÄ¸»òÊý×Ö¡£
-        |£ºÂß¼­¡°»ò¡±²Ù×÷·û£¬±íÊ¾Æ¥ÅäÇ°Ãæ»òºóÃæµÄÄ£Ê½¡£
-        #(\d+)\$(\d+)£ºÈç¹ûÇ°ÃæµÄÄ£Ê½Ã»ÓÐÆ¥Åä£¬³¢ÊÔÆ¥ÅäÕâ¸öÄ£Ê½¡£
-        #£ºÆ¥Åä×Ö·û#¡£
-        (\d+)£º²¶»ñ×é4£¬Æ¥ÅäÒ»´Î»ò¶à´ÎÊý×Ö¡£
-        \$£ºÆ¥Åä×Ö·û$¡£
-        (\d+)£º²¶»ñ×é5£¬Æ¥ÅäÒ»´Î»ò¶à´ÎÊý×Ö¡£
-        $£ºÆ¥ÅäÊäÈë×Ö·û´®µÄ½áÊøÎ»ÖÃ¡£
+        ^ï¼šåŒ¹é…è¾“å…¥å­—ç¬¦ä¸²çš„å¼€å§‹ä½ç½®ã€‚
+        ([^@#$]+)ï¼šæ•èŽ·ç»„1ï¼ŒåŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡ä»»ä½•ä¸æ˜¯@ã€#ã€$çš„å­—ç¬¦ã€‚
+        (?: ... )?ï¼šéžæ•èŽ·ç»„ï¼ŒåŽé¢è·Ÿéš?è¡¨ç¤ºè¿™ä¸ªç»„æ˜¯å¯é€‰çš„ã€‚
+        ([@#$])ï¼šæ•èŽ·ç»„2ï¼ŒåŒ¹é…ä¸€ä¸ª@ã€#æˆ–$å­—ç¬¦ã€‚
+        ([a-z\d]+)ï¼šæ•èŽ·ç»„3ï¼ŒåŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡å°å†™å­—æ¯æˆ–æ•°å­—ã€‚
+        |ï¼šé€»è¾‘â€œæˆ–â€æ“ä½œç¬¦ï¼Œè¡¨ç¤ºåŒ¹é…å‰é¢æˆ–åŽé¢çš„æ¨¡å¼ã€‚
+        #(\d+)\$(\d+)ï¼šå¦‚æžœå‰é¢çš„æ¨¡å¼æ²¡æœ‰åŒ¹é…ï¼Œå°è¯•åŒ¹é…è¿™ä¸ªæ¨¡å¼ã€‚
+        #ï¼šåŒ¹é…å­—ç¬¦#ã€‚
+        (\d+)ï¼šæ•èŽ·ç»„4ï¼ŒåŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡æ•°å­—ã€‚
+        \$ï¼šåŒ¹é…å­—ç¬¦$ã€‚
+        (\d+)ï¼šæ•èŽ·ç»„5ï¼ŒåŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡æ•°å­—ã€‚
+        $ï¼šåŒ¹é…è¾“å…¥å­—ç¬¦ä¸²çš„ç»“æŸä½ç½®ã€‚
          */
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥ÅäÌØ¶¨¸ñÊ½µÄ×Ö·û´®£¬ÆäÖÐ°üº¬×Ö·û¡¢Êý×ÖºÍÌØÊâ×Ö·ûµÄ×éºÏ¡£
-        /// ¸ñÊ½ÈçÏÂ£º
-        /// - ×Ö·û´®ÒÔ·Ç@¡¢#¡¢$×Ö·û¿ªÍ·¡£
-        /// - ¿ÉÑ¡µÄ²¶»ñ×é2°üº¬Ò»¸ö@¡¢#»ò$×Ö·û£¬ºóÃæ¸úËæ²¶»ñ×é3£¬ËüÆ¥ÅäÒ»´Î»ò¶à´ÎÐ¡Ð´×ÖÄ¸»òÊý×Ö¡£
-        /// - Èç¹û²¶»ñ×é2Î´Æ¥Åä£¬Ôò³¢ÊÔÆ¥Åä#ºó¸ú²¶»ñ×é4Æ¥ÅäÒ»´Î»ò¶à´ÎÊý×Ö£¬È»ºóÊÇ$ºó¸ú²¶»ñ×é5Æ¥ÅäÒ»´Î»ò¶à´ÎÊý×Ö¡£
-        /// - ×Ö·û´®ÒÔÊäÈë×Ö·û´®µÄ½áÊøÎ»ÖÃ½áÊø¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…ç‰¹å®šæ ¼å¼çš„å­—ç¬¦ä¸²ï¼Œå…¶ä¸­åŒ…å«å­—ç¬¦ã€æ•°å­—å’Œç‰¹æ®Šå­—ç¬¦çš„ç»„åˆã€‚
+        /// æ ¼å¼å¦‚ä¸‹ï¼š
+        /// - å­—ç¬¦ä¸²ä»¥éž@ã€#ã€$å­—ç¬¦å¼€å¤´ã€‚
+        /// - å¯é€‰çš„æ•èŽ·ç»„2åŒ…å«ä¸€ä¸ª@ã€#æˆ–$å­—ç¬¦ï¼ŒåŽé¢è·Ÿéšæ•èŽ·ç»„3ï¼Œå®ƒåŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡å°å†™å­—æ¯æˆ–æ•°å­—ã€‚
+        /// - å¦‚æžœæ•èŽ·ç»„2æœªåŒ¹é…ï¼Œåˆ™å°è¯•åŒ¹é…#åŽè·Ÿæ•èŽ·ç»„4åŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡æ•°å­—ï¼Œç„¶åŽæ˜¯$åŽè·Ÿæ•èŽ·ç»„5åŒ¹é…ä¸€æ¬¡æˆ–å¤šæ¬¡æ•°å­—ã€‚
+        /// - å­—ç¬¦ä¸²ä»¥è¾“å…¥å­—ç¬¦ä¸²çš„ç»“æŸä½ç½®ç»“æŸã€‚
         /// </summary>
-        /// <returns>Æ¥ÅäÌØ¶¨¸ñÊ½×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…ç‰¹å®šæ ¼å¼å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex(@"^([^@#$]+)(?:([@#$])([a-z\d]+)|#(\d+)\$(\d+))?$", RegexOptions.Compiled)]
         public static partial Regex CharPortraitCodeRegex();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥Åä²»°üº¬·½À¨ºÅµÄ×Ö·û´®¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…ä¸åŒ…å«æ–¹æ‹¬å·çš„å­—ç¬¦ä¸²ã€‚
         /// </summary>
-        /// <returns>Æ¥Åä²»°üº¬·½À¨ºÅµÄ×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…ä¸åŒ…å«æ–¹æ‹¬å·çš„å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex("^[^\\[].*$", RegexOptions.Compiled)]
         public static partial Regex CommentRegex();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥Åä°üº¬ÌØ¶¨¸ñÊ½µÄÃû³Æ×Ö·û´®¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…åŒ…å«ç‰¹å®šæ ¼å¼çš„åç§°å­—ç¬¦ä¸²ã€‚
         /// </summary>
-        /// <returns>Æ¥ÅäÌØ¶¨¸ñÊ½Ãû³Æ×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…ç‰¹å®šæ ¼å¼åç§°å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex("(?<=(\\[name=[\'\"])|(\\[multiline\\(name=[\'\"])).*(?=[\'\"])", RegexOptions.Compiled)]
         public static partial Regex NameRegex();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥Åä°üº¬ÌØ¶¨¸ñÊ½µÄ×ÓÃû³Æ×Ö·û´®¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…åŒ…å«ç‰¹å®šæ ¼å¼çš„å­åç§°å­—ç¬¦ä¸²ã€‚
         /// </summary>
-        /// <returns>Æ¥ÅäÌØ¶¨¸ñÊ½×ÓÃû³Æ×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…ç‰¹å®šæ ¼å¼å­åç§°å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex("\\[name.*\\]|\\[multiline.*\\]", RegexOptions.Compiled)]
         public static partial Regex RegexToSubName();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥ÅäÌØ¶¨¸ñÊ½µÄ¶ÎÂä×Ö·û´®¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…ç‰¹å®šæ ¼å¼çš„æ®µè½å­—ç¬¦ä¸²ã€‚
         /// </summary>
-        /// <returns>Æ¥ÅäÌØ¶¨¸ñÊ½¶ÎÂä×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…ç‰¹å®šæ ¼å¼æ®µè½å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex("(?<=\\[)[A-Za-z]*(?=\\])", RegexOptions.Compiled)]
         public static partial Regex SegmentRegex();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚÆ¥Åä°üº¬ÌØÊâ±êÇ©µÄ×Ö·û´®¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽåŒ¹é…åŒ…å«ç‰¹æ®Šæ ‡ç­¾çš„å­—ç¬¦ä¸²ã€‚
         /// </summary>
-        /// <returns>Æ¥Åä°üº¬ÌØÊâ±êÇ©×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>åŒ¹é…åŒ…å«ç‰¹æ®Šæ ‡ç­¾å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex("(?<=(\\[(?!name))).*(?=\\()", RegexOptions.Compiled)]
         public static partial Regex SpecialTagRegex();
 
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚ½âÎö¾ßÓÐÌØ¶¨¸ñÊ½µÄ×Ö·û´®£¬ÀýÈç key1=value1, key2=value2¡£
-        /// ½âÎöºóµÄ¶ÔÏó¿ÉÒÔ·½±ãµØ·ÃÎÊºÍ²Ù×÷ÆäÖÐµÄ¼üÖµ¶Ô¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽè§£æžå…·æœ‰ç‰¹å®šæ ¼å¼çš„å­—ç¬¦ä¸²ï¼Œä¾‹å¦‚ key1=value1, key2=value2ã€‚
+        /// è§£æžåŽçš„å¯¹è±¡å¯ä»¥æ–¹ä¾¿åœ°è®¿é—®å’Œæ“ä½œå…¶ä¸­çš„é”®å€¼å¯¹ã€‚
         /// </summary>
-        /// <returns>ÓÃÓÚ½âÎöÌØ¶¨¸ñÊ½×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>ç”¨äºŽè§£æžç‰¹å®šæ ¼å¼å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex(@"\s*(.*?)\s*=\s*(?:['""](.*?)['""]|([\w.-]+))\s*,?", RegexOptions.Compiled)]
         public static partial Regex TagParametersRegex();
 
         /*
-                ### ÕýÔò±í´ïÊ½½âÊÍ
+                ### æ­£åˆ™è¡¨è¾¾å¼è§£é‡Š
 
-                - `^\[\s*`£º´Ó×Ö·û´®µÄ¿ªÊ¼´¦Æ¥ÅäÒ»¸ö×ó·½À¨ºÅ`[`£¬ºóÃæ¸úËæÁã¸ö»ò¶à¸ö¿Õ°××Ö·û¡£
-                - `(?: ... | ... )`£ºÒ»¸ö·Ç²¶»ñ×é£¬°üº¬Á½²¿·Ö£¬ÓÃ`|`·Ö¸ô£¬±íÊ¾Æ¥Åä×ó±ß»òÓÒ±ßµÄÄ£Ê½¡£
-                    - `(.*?)\((.*)\)`£ºµÚÒ»²¿·Ö£¬³¢ÊÔ²¶»ñÁ½¸ö×é£º
-                        - `(.*?)`£º²¶»ñ×é1£¬·ÇÌ°À·µØÆ¥ÅäÈÎÒâ×Ö·û£¬Ö±µ½Óöµ½ÏÂÒ»¸öÄ£Ê½¡£
-                        - `\((.*)\)`£ºÆ¥ÅäÒ»¶ÔÔ²À¨ºÅÄÚµÄÄÚÈÝ£¬Ô²À¨ºÅÄÚµÄÈÎÒâ×Ö·û±»²¶»ñÎª×é2¡£
-                    - `([\\.|\\w]*)|(.*?)`£ºµÚ¶þ²¿·Ö£¬ÓÖÊÇÁ½¸öÑ¡Ôñ£º
-                        - `([\\.|\\w]*)`£º²¶»ñ×é3£¬Æ¥ÅäÁã¸ö»ò¶à¸ö×ÖÄ¸¡¢Êý×Ö¡¢ÏÂ»®Ïß»òµã×Ö·û¡£
-                        - `(.*?)`£º²¶»ñ×é4£¬·ÇÌ°À·µØÆ¥ÅäÈÎÒâ×Ö·û¡£
-                - `\\s*\\]\\s*`£ºÆ¥ÅäÁã¸ö»ò¶à¸ö¿Õ°××Ö·û£¬ºóÃæ¸úÒ»¸öÓÒ·½À¨ºÅ`]`£¬ÔÙºóÃæÊÇÁã¸ö»ò¶à¸ö¿Õ°××Ö·û¡£
-                - `(.*)`£º²¶»ñ×é5£¬Ì°À·µØÆ¥ÅäÊ£ÓàµÄÈÎÒâ×Ö·ûÖ±µ½×Ö·û´®½áÊø¡£
+                - `^\[\s*`ï¼šä»Žå­—ç¬¦ä¸²çš„å¼€å§‹å¤„åŒ¹é…ä¸€ä¸ªå·¦æ–¹æ‹¬å·`[`ï¼ŒåŽé¢è·Ÿéšé›¶ä¸ªæˆ–å¤šä¸ªç©ºç™½å­—ç¬¦ã€‚
+                - `(?: ... | ... )`ï¼šä¸€ä¸ªéžæ•èŽ·ç»„ï¼ŒåŒ…å«ä¸¤éƒ¨åˆ†ï¼Œç”¨`|`åˆ†éš”ï¼Œè¡¨ç¤ºåŒ¹é…å·¦è¾¹æˆ–å³è¾¹çš„æ¨¡å¼ã€‚
+                    - `(.*?)\((.*)\)`ï¼šç¬¬ä¸€éƒ¨åˆ†ï¼Œå°è¯•æ•èŽ·ä¸¤ä¸ªç»„ï¼š
+                        - `(.*?)`ï¼šæ•èŽ·ç»„1ï¼Œéžè´ªå©ªåœ°åŒ¹é…ä»»æ„å­—ç¬¦ï¼Œç›´åˆ°é‡åˆ°ä¸‹ä¸€ä¸ªæ¨¡å¼ã€‚
+                        - `\((.*)\)`ï¼šåŒ¹é…ä¸€å¯¹åœ†æ‹¬å·å†…çš„å†…å®¹ï¼Œåœ†æ‹¬å·å†…çš„ä»»æ„å­—ç¬¦è¢«æ•èŽ·ä¸ºç»„2ã€‚
+                    - `([\\.|\\w]*)|(.*?)`ï¼šç¬¬äºŒéƒ¨åˆ†ï¼Œåˆæ˜¯ä¸¤ä¸ªé€‰æ‹©ï¼š
+                        - `([\\.|\\w]*)`ï¼šæ•èŽ·ç»„3ï¼ŒåŒ¹é…é›¶ä¸ªæˆ–å¤šä¸ªå­—æ¯ã€æ•°å­—ã€ä¸‹åˆ’çº¿æˆ–ç‚¹å­—ç¬¦ã€‚
+                        - `(.*?)`ï¼šæ•èŽ·ç»„4ï¼Œéžè´ªå©ªåœ°åŒ¹é…ä»»æ„å­—ç¬¦ã€‚
+                - `\\s*\\]\\s*`ï¼šåŒ¹é…é›¶ä¸ªæˆ–å¤šä¸ªç©ºç™½å­—ç¬¦ï¼ŒåŽé¢è·Ÿä¸€ä¸ªå³æ–¹æ‹¬å·`]`ï¼Œå†åŽé¢æ˜¯é›¶ä¸ªæˆ–å¤šä¸ªç©ºç™½å­—ç¬¦ã€‚
+                - `(.*)`ï¼šæ•èŽ·ç»„5ï¼Œè´ªå©ªåœ°åŒ¹é…å‰©ä½™çš„ä»»æ„å­—ç¬¦ç›´åˆ°å­—ç¬¦ä¸²ç»“æŸã€‚
         */
         /// <summary>
-        /// ´ËÕýÔò±í´ïÊ½ÓÃÓÚ½âÎö¾ßÓÐÌØ¶¨¸ñÊ½µÄ×Ö·û´®£¬ÆäÖÐ°üº¬Í¨ÓÃ±êÇ©¡£
-        /// ½âÎöºóµÄ¶ÔÏó¿ÉÒÔ·½±ãµØ·ÃÎÊºÍ²Ù×÷ÆäÖÐµÄ±êÇ©ºÍÄÚÈÝ¡£
+        /// æ­¤æ­£åˆ™è¡¨è¾¾å¼ç”¨äºŽè§£æžå…·æœ‰ç‰¹å®šæ ¼å¼çš„å­—ç¬¦ä¸²ï¼Œå…¶ä¸­åŒ…å«é€šç”¨æ ‡ç­¾ã€‚
+        /// è§£æžåŽçš„å¯¹è±¡å¯ä»¥æ–¹ä¾¿åœ°è®¿é—®å’Œæ“ä½œå…¶ä¸­çš„æ ‡ç­¾å’Œå†…å®¹ã€‚
         /// </summary>
-        /// <returns>ÓÃÓÚ½âÎöÌØ¶¨¸ñÊ½×Ö·û´®µÄÕýÔò±í´ïÊ½¡£</returns>
+        /// <returns>ç”¨äºŽè§£æžç‰¹å®šæ ¼å¼å­—ç¬¦ä¸²çš„æ­£åˆ™è¡¨è¾¾å¼ã€‚</returns>
         [GeneratedRegex(@"^\[\s*(?:(.*?)\((.*)\)|(?:([\.\w]*)|(.*?)))\s*\]\s*(.*)", RegexOptions.Compiled)]
         public static partial Regex UniversalTagsRegex();
 }

@@ -39,7 +39,7 @@ public class PrtsAssets
     public Dictionary<string, Dictionary<string, object>> RideItems = new();
 
     /// <summary>
-    /// PRTS补丁数据文档，用于覆盖默认配�?
+    /// PRTS补丁数据文档，用于覆盖默认配置
     /// </summary>
     public JsonDocument DataOverrideDocument = JsonDocument.Parse(EmptyJson);
 
@@ -50,7 +50,7 @@ public class PrtsAssets
 
     /// set of preloaded resources
     /// <summary>
-    /// 预加载资源集合，用于快速访问常用资�?
+    /// 预加载资源集合，用于快速访问常用资源
     /// </summary>
     public StringDict PreLoaded = new();
 

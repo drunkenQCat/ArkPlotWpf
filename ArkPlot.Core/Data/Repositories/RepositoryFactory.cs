@@ -5,7 +5,7 @@ using SqlSugar;
 namespace ArkPlot.Core.Data.Repositories;
 
 /// <summary>
-/// 仓储工厂类，提供统一的仓储访问入�?
+/// 仓储工厂类，提供统一的仓储访问入口
 /// </summary>
 public static class RepositoryFactory
 {
@@ -29,7 +29,7 @@ public static class RepositoryFactory
     public static PrtsDataRepository PrtsData => _prtsDataRepository.Value;
 
     /// <summary>
-    /// 获取数据库连接实�?
+    /// 获取数据库连接实例
     /// </summary>
     public static SqlSugarClient Db => DatabaseContext.GetDb();
 

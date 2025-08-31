@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace ArkPlot.Core.Model;
 
 /// <summary>
-/// 用来表示一个章节的类�?
+/// 用来表示一个章节的类。
 /// </summary>
 [SugarTable("Plot")]
 public class Plot
@@ -36,10 +36,10 @@ public class Plot
     }
 
     /// <summary>
-    /// 用来表示一个章节的类�?
+    /// 用来表示一个章节的类。
     /// </summary>
-    /// <param name="title">类的标题�?/param>
-    /// <param name="content">类的内容�?/param>
+    /// <param name="title">类的标题。</param>
+    /// <param name="content">类的内容。</param>
     public Plot(string title, StringBuilder content)
     {
         Title = title;
