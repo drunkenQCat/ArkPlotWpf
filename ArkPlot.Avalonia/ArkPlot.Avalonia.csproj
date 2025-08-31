@@ -42,9 +42,9 @@
     <Copy SourceFiles="Assets\tail.html" DestinationFolder="$(OutputPath)\assets" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="CopyFilesAfterPub" AfterTargets="Publish">
-    <Copy SourceFiles="tags.json" DestinationFolder="$(PublishRoot)" />
-    <Copy SourceFiles="assets\head.html" DestinationFolder="$(PublishRoot)\assets" />
-    <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishRoot)\assets" />
+    <Copy SourceFiles="tags.json" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="assets\head.html" DestinationFolder="$(PublishDir)\assets" />
+    <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishDir)\assets" />
   </Target>
 
 </Project>

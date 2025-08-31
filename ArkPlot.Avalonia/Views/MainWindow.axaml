@@ -2,36 +2,47 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:ArkPlot.Avalonia.ViewModels;assembly=ArkPlot.Avalonia"
-    xmlns:b="clr-namespace:Avalonia.Xaml.Behaviors;assembly=Avalonia.Xaml.Behaviors"
-    xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-    xmlns:c="clr-namespace:CalcBinding;assembly=CalcBindingAva"
+    xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+    xmlns:b="using:Avalonia.Xaml.Behaviors"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+    xmlns:c="using:CalcBinding"
     xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+    xmlns:ba="using:ArkPlot.Avalonia.Styles"
     mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
     x:Class="ArkPlot.Avalonia.Views.MainWindow"
     x:DataType="vm:MainWindowViewModel"
     Title="ArkPlot"
-    Height="650"
-    Width="300"
+    Height="750"
+    Width="400"
     >
     <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
 
     <i:Interaction.Behaviors>
-        <EventTriggerBehavior EventName="Loaded">
-            <InvokeCommandAction Command="{Binding LoadInitResourceCommand}" />
-        </EventTriggerBehavior>
+        <ia:EventTriggerBehavior EventName="Opened">
+            <ia:InvokeCommandAction Command="{Binding LoadInitResourceCommand}" />
+        </ia:EventTriggerBehavior>
     </i:Interaction.Behaviors>
 
     <StackPanel>
+        <Border DockPanel.Dock="Bottom" 
+            Background="#EEE" 
+            IsVisible="{c:Binding !IsInitialized}"
+            Padding="5"
+            BorderBrush="#CCC" BorderThickness="1,1,0,0">
+            <TextBlock 
+                Text="{Binding Status}" 
+            />
+        </Border>
         <Canvas Height="30">
             <Image
                 Source="avares://ArkPlot.Avalonia/Assets/slogan.jpg"
                 Width="456" Canvas.Left="0" HorizontalAlignment="Center" Canvas.Top="0"
                 VerticalAlignment="Top">
                 <Image.Clip>
-                    <RectangleGeometry Rect="0,0,300,70" />
+                    <RectangleGeometry Rect="0,0,400,70" />
                 </Image.Clip>
             </Image>
         </Canvas>
@@ -49,28 +60,29 @@
                 Orientation="Horizontal" 
                 HorizontalAlignment="Center"
                 Grid.Row="0">
-                    <RadioButton
-                        Content="插曲"
-                        IsChecked="True"
-                        Classes="Chips"
-                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
-                        Command="{Binding LoadActsCommand}"
-                        CommandParameter="ACTIVITY_STORY" />
-                    <RadioButton
-                        Content="故事集"
-                        Classes="Chips"
-                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
-                        Command="{Binding LoadActsCommand}"
-                        CommandParameter="MINI_STORY" />
-                    <RadioButton
-                        Classes="Chips"
-                        Content="主题曲"
-                        IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
-                        Command="{Binding LoadActsCommand}"
-                        CommandParameter="MAIN_STORY" />
-                </StackPanel>
+                <RadioButton
+                    Content="插曲"
+                    IsChecked="True"
+                    Classes="Chips"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="ACTIVITY_STORY" />
+                <RadioButton
+                    Content="故事集"
+                    Classes="Chips"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="MINI_STORY" />
+                <RadioButton
+                    Classes="Chips"
+                    Content="主题曲"
+                    IsEnabled="{c:Binding !LoadLangTableCommand.IsRunning and IsInitialized}"
+                    Command="{Binding LoadActsCommand}"
+                    CommandParameter="MAIN_STORY" />
+            </StackPanel>
             <StackPanel
                 Spacing="10" 
+                HorizontalAlignment="Center"
                 Orientation="Horizontal" 
                 Grid.Row="1">
                 <RadioButton
@@ -142,15 +154,15 @@
                         Text="{Binding JsonPath}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Stretch" />
-                        <!-- AllowDrop="True" -->
-                        <!-- Drop="JsonPathBox_Drop" -->
-                        <!-- PreviewDragOver="TextBox_PreviewDragOver" -->
+                    <!-- AllowDrop="True" -->
+                    <!-- Drop="JsonPathBox_Drop" -->
+                    <!-- PreviewDragOver="TextBox_PreviewDragOver" -->
                     <TextBox Grid.Row="2" Grid.Column="1"
                         Text="{Binding OutputPath}" VerticalAlignment="Center"
                         HorizontalAlignment="Stretch" />
                 </Grid>
             </Grid>
-                            <StackPanel
+            <StackPanel
                 Margin="0 0 0 0"
                 Grid.Row="3"
                 VerticalAlignment="Center">
@@ -177,7 +189,14 @@
             <Border
                 Grid.Row="4" Margin="7" BorderThickness="2" BorderBrush="#7001"
                 VerticalAlignment="Stretch" Height="225">
-                <ScrollViewer>
+                <ScrollViewer
+                    x:Name="ConsoleScrollViewer"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    >
+                    <i:Interaction.Behaviors>
+                        <ba:AutoScrollBehavior Enabled="True"/>
+                    </i:Interaction.Behaviors>
                     <!-- HorizontalAlignment="Stretch" -->
                     <!-- VerticalAlignment="Top" -->
                     <!-- properties:AutoScroll.AutoScroll="True" -->

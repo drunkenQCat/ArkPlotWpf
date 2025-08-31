@@ -14,5 +14,9 @@
         <!-- <FluentTheme /> -->
         <!-- <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/> -->
         <sukiUi:SukiTheme Locale="zh-CN" ThemeColor="Blue"  />
+        <Style Selector="RadioButton.Chips:is-disabled">
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Background" Value="#DDD"/>
+        </Style>
     </Application.Styles>
 </Application>

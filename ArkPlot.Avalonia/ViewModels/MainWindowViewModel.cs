@@ -55,6 +55,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private System.Collections.Generic.IEnumerable<string>? storiesNames; // Changed ICollectionView to IEnumerable and removed CollectionViewSource.GetDefaultView
+    [ObservableProperty]
+    private string status = "准备中...";
+
 
     private string storyType = "ACTIVITY_STORY";
     private string? activeTitle;
@@ -64,12 +67,18 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadInitResource()
     {
-        Console.WriteLine("LoadInitResource started...");
         SubscribeAll();
+        await Task.Yield();
+        Status = $"正在加载Prts资源索引...";
+        var sw = Stopwatch.StartNew();
         await LoadResourceTable();
+        sw.Stop();
+        Status = $"Prts资源索引加载完成，耗时：{sw.ElapsedMilliseconds / 1000} s";
+        await Task.Delay(1000); // 等待一秒
+        Status = $"正在加载活动列表...";
         await LoadLangTable(language);
+        Status = $"初始化已完成";
         IsInitialized = true;
-        Console.WriteLine("LoadInitResource completed.");
     }
 
     private void SubscribeAll()

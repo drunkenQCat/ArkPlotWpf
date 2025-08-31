@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
-
 namespace ArkPlot.Core.Utilities.PrtsComponents;
 
 public partial class PrtsDataProcessor
@@ -21,30 +20,34 @@ public partial class PrtsDataProcessor
     {
         // 所有csv都是从Prts的模板里扒下来的
         var prtsTemplateUrl = "https://prts.wiki/api.php?action=expandtemplates&format=json&text={{Widget:" +
-                              singleData.Tag + "}}";
+            singleData.Tag + "}}";
         var query = await NetworkUtility.GetAsync(prtsTemplateUrl);
         var csv = ProcessQuery(query);
-        if (csv is null)
+        await Task.Run(() =>
         {
-            NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs($"{singleData.Tag} 无内容，请检查与prts的连接"));
-            return;
-        }
-        if (singleData.Tag == "Data_Link")
-        {
-            Res.PortraitLinkDocument = GetPortraitLinkDocument(csv);
-            return;
-        }
 
-        if (singleData.Tag == "Data_Override")
-        {
-            var overrideTxt = csv;
-            var overrideItems = LinesSplitter(overrideTxt);
-            Res.DataOverrideDocument = ParseOverrideList(overrideItems);
-            return;
-        }
+            if (csv is null)
+            {
+                NotificationBlock.Instance.OnNetErrorHappen(new NetworkErrorEventArgs($"{singleData.Tag} 无内容，请检查与prts的连接"));
+                return;
+            }
+            if (singleData.Tag == "Data_Link")
+            {
+                Res.PortraitLinkDocument = GetPortraitLinkDocument(csv);
+                return;
+            }
 
-        var csvItems = LinesSplitter(csv);
-        ParseItemList(singleData, csvItems);
+            if (singleData.Tag == "Data_Override")
+            {
+                var overrideTxt = csv;
+                var overrideItems = LinesSplitter(overrideTxt);
+                Res.DataOverrideDocument = ParseOverrideList(overrideItems);
+                return;
+            }
+
+            var csvItems = LinesSplitter(csv);
+            ParseItemList(singleData, csvItems);
+        });
     }
 
     private JsonDocument ParseOverrideList(IEnumerable<string> lines)
