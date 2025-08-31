@@ -34,13 +34,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
-    [ObservableProperty] private ISukiToastManager toastManager  = new SukiToastManager();  // public, 只读属性
+    [ObservableProperty] private ISukiToastManager toastManager = new SukiToastManager();  // public, 只读属性
 
     [ObservableProperty] private string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
 
-    - 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；
-    - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
-    - 如果有任何改进意见，欢迎Pr。";
+        - 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；
+            - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
+            - 如果有任何改进意见，欢迎Pr。";
 
     private List<ActInfo> currentActInfos = new();
 
@@ -48,7 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool isLocalResChecked;
 
-    [ObservableProperty] private string jsonPath = Environment.CurrentDirectory + @"\tags.json";
+    [ObservableProperty] private string jsonPath = AppContext.BaseDirectory + @"\tags.json";
 
     private string language = "zh_CN";
 
@@ -94,14 +94,31 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "正在加载章节列表...";
 
         var storyLoader = new AkpStoryLoader(CurrentAct);
-        // FIXME: AkpStoryLoader does not have GetChapterNamesAsync method
-        var chapterNames = await storyLoader.GetChapterNamesAsync(); // 假设 AkpStoryLoader 有一个新方法
+        var chapterNames = await storyLoader.GetChapterNamesAsync();
 
         foreach (var name in chapterNames)
         {
             Chapters.Add(new ChapterSelectionViewModel(name));
         }
         Status = "章节列表加载完成。";
+    }
+
+    [RelayCommand]
+    private void SelectAllChapters()
+    {
+        foreach (var chapter in Chapters)
+        {
+            chapter.IsSelected = true;
+        }
+    }
+
+    [RelayCommand]
+    private void DeselectAllChapters()
+    {
+        foreach (var chapter in Chapters)
+        {
+            chapter.IsSelected = false;
+        }
     }
 
 
@@ -137,7 +154,7 @@ public partial class MainWindowViewModel : ViewModelBase
             .Dismiss().After(TimeSpan.FromSeconds(2))
             .Queue();
         await LoadLangTable(language);
-        Status = "初始化已完成";
+        Status = $"初始化已完成";
         ToastManager.CreateToast()
             .WithTitle("初始化中")
             .OfType(NotificationType.Success)
@@ -160,11 +177,11 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             await prts.GetAllData();
-            noticeBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\r\n");
+            noticeBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\n");
         }
         catch (Exception)
         {
-            var s = "\r\n网络错误，无法加载资源文件。\r\n";
+            var s = "\n网络错误，无法加载资源文件。\n";
             noticeBlock.RaiseCommonEvent(s);
             // Removed MessageBox.Show(s);
             MessageBoxManager.GetMessageBoxStandard(
@@ -183,12 +200,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             language = lang;
             await Task.Run(() => actsTable.Lang = lang);
-            noticeBlock.RaiseCommonEvent("【剧情索引文件加载完成】\r\n");
+            noticeBlock.RaiseCommonEvent("【剧情索引文件加载完成】\n");
             LoadActs(storyType);
         }
         catch (Exception)
         {
-            var s = "\r\n索引文件加载出错！请检查网络代理。\r\n";
+            var s = "\n索引文件加载出错！请检查网络代理。\n";
             noticeBlock.RaiseCommonEvent(s);
             // Removed MessageBox.Show(s);
         }
@@ -214,9 +231,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadMd()
     {
+        var selectedChapters = Chapters.Where(c => c.IsSelected).Select(c => c.ChapterName).ToList();
+        if (!selectedChapters.Any())
+        {
+            ToastManager.CreateToast().WithTitle("操作无效").WithContent("请至少选择一个章节再开始生成。").Queue();
+            return;
+        }
+
         PrepareLoading();
         var content = new AkpStoryLoader(CurrentAct);
-        await LoadAllChapters(content);
+        await LoadAllChapters(content, selectedChapters);
         await PreloadResources(content);
         await StartParseDocuments(content);
         await ExportDocuments(content);
@@ -230,10 +254,10 @@ public partial class MainWindowViewModel : ViewModelBase
         noticeBlock.RaiseCommonEvent("初始化加载...");
     }
 
-    private async Task LoadAllChapters(AkpStoryLoader contentLoader)
+    private async Task LoadAllChapters(AkpStoryLoader contentLoader, List<string> chapterNames)
     {
         activeTitle = CurrentAct.Tokens["name"]?.ToString();
-        await contentLoader.GetAllChapters();
+        await contentLoader.GetAllChapters(chapterNames);
         noticeBlock.RaiseCommonEvent("章节加载完成。");
     }
 
@@ -262,7 +286,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.RaiseCommonEvent("正在导出文档....");
         var rawMd = await ExportPlots(contentLoader.ContentTable);
-        var rawMdWithTitle = "# " + (activeTitle ?? "") + "\r\n\r\n" + rawMd;
+        var rawMdWithTitle = "# " + (activeTitle ?? "") + "\n\n" + rawMd;
         ExportMdAndHtmlFiles(rawMdWithTitle);
         if (IsLocalResChecked)
         {
@@ -289,17 +313,17 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var storageProvider = GlobalStorageProvider.StorageProvider;
         var resultFile = await storageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions()
-            {
-                Title = "选取json文件",
-                FileTypeFilter = new[] {
-                    new FilePickerFileType("tag 文件")
-                    {
-                        Patterns = new[]{"*.json"}
-                    }
+                new FilePickerOpenOptions()
+                {
+                    Title = "选取json文件",
+                    FileTypeFilter = new[] {
+                new FilePickerFileType("tag 文件")
+                {
+                Patterns = new[]{"*.json"}
                 }
-            }
-        );
+                }
+                }
+                );
         if (resultFile is null || resultFile.FirstOrDefault() is null) return;
         else JsonPath = resultFile.FirstOrDefault()!.Path.LocalPath;
     }
@@ -309,11 +333,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var storageProvider = GlobalStorageProvider.StorageProvider;
         var resultFolder = await storageProvider.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions()
-            {
-                Title = "选择输出文件夹",
-            }
-        );
+                new FolderPickerOpenOptions()
+                {
+                    Title = "选择输出文件夹",
+                }
+                );
         if (resultFolder is null || resultFolder.FirstOrDefault() is null) return;
         else OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
 
@@ -323,10 +347,10 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var messageBox = MessageBoxManager
             .GetMessageBoxStandard(
-                title: "提示",
-                text: "生成完成。是否打开文件夹？",
-                @enum: ButtonEnum.OkCancel,
-                icon: Icon.Info);
+                    title: "提示",
+                    text: "生成完成。是否打开文件夹？",
+                    @enum: ButtonEnum.OkCancel,
+                    icon: Icon.Info);
 
         // 2. 以 Popup 形式展示，并等待用户点击结果
         var result = await messageBox.ShowAsync();
@@ -343,7 +367,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            ProcessStartInfo startInfo = new() 
+            ProcessStartInfo startInfo = new()
             {
                 Arguments = OutputPath, // Changed outputPath to OutputPath
                 FileName = "explorer.exe",
@@ -404,7 +428,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void SubscribeCommonNotification()
     {
-        noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\r\n{args}";
+        noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\n{args}";
     }
 
 
@@ -413,7 +437,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.NetErrorHappen += (_, args) =>
         {
-            var s = $"\r\n网络错误：{args.Message}，请确认是否连接代理？";
+            var s = $"\n网络错误：{args.Message}，请确认是否连接代理？";
             ConsoleOutput += s;
             // Removed MessageBox.Show(s);
         };
@@ -423,7 +447,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.LineNoMatch += (_, args) =>
         {
-            var s = $"\r\n警告：请检查tags.json中{args.Tag}是否存在？\r\n出错的句子:" + args.Line;
+            var s = $"\n警告：请检查tags.json中{args.Tag}是否存在？\n出错的句子:" + args.Line;
             ConsoleOutput += s;
         };
     }
@@ -432,7 +456,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.ChapterLoaded += (_, args) =>
         {
-            var s = "\r\n" + args.Title.ToString() + "已加载";
+            var s = "\n" + args.Title.ToString() + "已加载";
             ConsoleOutput += s;
         };
     }
