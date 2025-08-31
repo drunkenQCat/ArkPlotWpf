@@ -51,7 +51,7 @@
 
   <Target Name="PostBuild" AfterTargets="AfterBuild">
     <ItemGroup>
-      <SourceFiles Include="typst arknights simulator\**\*.*" />
+      <SourceFiles Include="..\typst-template\**\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(OutDir)typst-template\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>

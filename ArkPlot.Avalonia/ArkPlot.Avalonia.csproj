@@ -47,4 +47,11 @@
     <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishDir)\assets" />
   </Target>
 
+  <Target Name="CopyTypstTemplate" AfterTargets="Build">
+    <ItemGroup>
+      <TypstTemplateFiles Include="..\typst-template\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(TypstTemplateFiles)" DestinationFolder="$(OutputPath)\%(RecursiveDir)" />
+  </Target>
+
 </Project>
