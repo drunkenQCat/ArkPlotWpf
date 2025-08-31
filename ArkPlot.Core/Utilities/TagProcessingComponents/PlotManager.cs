@@ -21,9 +21,9 @@ public class PlotManager
 
     public void InitializePlot()
     {
-        // 假设这里填充了TextVariants的初始�?
+        // 假设这里填充了TextVariants的初始值
         List<FormattedTextEntry> textVariants = new List<FormattedTextEntry>();
-        // 示例：假设每个文本段落是原始内容按行分割的结�?
+        // 示例：假设每个文本段落是原始内容按行分割的结果
         var lines = CurrentPlot.Content.ToString().Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
         int index = 0;
         foreach (var line in lines)
@@ -42,14 +42,14 @@ public class PlotManager
     public void StartParseLines(AkpParser akpParser)
     {
         Parser = akpParser;
-        // 示例：假设每个文本段落是原始内容按行分割的结�?
+        // 示例：假设每个文本段落是原始内容按行分割的结果
         switch (Parser)
         {
             case { IsInitialized: false }:
                 Parser.InitializeParser();
                 break;
             default:
-                _noticeBlock.RaiseCommonEvent("【警�?解析器未配置!】\r\n");
+                _noticeBlock.RaiseCommonEvent("【警告!解析器未配置!】\r\n");
                 return;
         }
 

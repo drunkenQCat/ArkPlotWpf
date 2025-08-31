@@ -26,9 +26,9 @@ public partial class TagProcessor
 
     private MediaType? GetMediaType(string newTag)
     {
-        if (newTag.Contains("背景") || newTag.Contains("图片")) return MediaType.Image;
-        if (newTag.Contains("立绘")) return MediaType.Portrait;
-        if (newTag.Contains("音乐")) return MediaType.Music;
+        if (newTag.Contains('图') || newTag.Contains('景')) return MediaType.Image;
+        if (newTag.Contains('绘')) return MediaType.Portrait;
+        if (newTag.Contains('音')) return MediaType.Music;
         return null;
     }
 

@@ -1,70 +1,52 @@
-using System.Diagnostics;
 using System.IO;
+using Typst;
 
 namespace ArkPlot.Core.Utilities.TypstComponents;
 
-// 这个类是用来�?Typst 代码渲染为图片的�?
 public class TypstRenderer
 {
-    private readonly string chapterName;
+    private readonly string _chapterName;
+    private readonly string _typstCode;
 
-    private TypstRenderer(string name, string code)
+    // 构造函数直接接收 TypstTranslator 对象
+    public TypstRenderer(TypstTranslator translator)
     {
-        chapterName = name;
-        File.WriteAllText(TypPath, code);
+        _chapterName = translator.ChapterName;
+        _typstCode = translator.TypCode;
     }
 
-    private TypstRenderer(TypstTranslator trans)
+    // 这个方法现在返回一个图片字节数组的列表
+    // 每一项代表一页渲染出的图片
+    public List<byte[]> RenderToPngs()
     {
-        chapterName = trans.ChapterName;
-        // 在构造函数中�?typst 代码写入 output 文件夹�?
-        File.WriteAllText(TypPath, trans.TypCode);
-    }
+        // 直接使用 Typst.Net 库
+        // 无需创建临时文件，也无需调用外部进程
+        using var compiler = new TypstCompiler(_typstCode);
+        var (pages, warnings) = compiler.Compile(format: "png", ppi: 72.0f);
 
-    // TODO:根据当前输出文件结构，修改渲染图片路�?
-    private string TypPath => $".\\output\\{chapterName}.typ";
-    public string GetPngByIndex(int index) => $".\\output\\{chapterName}_Seq\\" + $"pic{index}.typ";
-
-    // 这个方法用来渲染 typst 代码为图片�?
-    private void ExportPngSequence()
-    {
-        string ExportPngPath(string chapter) => $".\\output\\{chapter}_Seq\\" + "pic{n}.typ";
-
-        string ExportCommand() => "typst c -f png --ppi 72 "
-                                             + $"'{TypPath}' "
-                                             + $"'{ExportPngPath(chapterName)}'";
-        using var process = new Process();
-        ProcessStartInfo startInfo = new()
+        // 可以选择在这里处理警告信息
+        foreach (var warning in warnings)
         {
-            FileName = @"powershell.exe",
-            Arguments = ExportCommand()
-        };
-        Process.Start(startInfo);
-        process.WaitForExit();
+            // 例如：System.Diagnostics.Debug.WriteLine($"Typst warning: {warning.Message}");
+        }
+
+        return pages;
     }
-    public void Render()
+
+    // 提供一个辅助方法来保存渲染结果
+    public void SavePngsToDirectory(string outputDirectory)
     {
-        // 设置命令行程序的名称或路�?
-        var command = "typst";
+        var pngs = RenderToPngs();
 
-        // 设置命令行参�?
-        var args = $"c -f png --ppi 72 '{TypPath}' \"pic{{n}}.png\"";
-
-        // 创建一个新的进�?
-        var startInfo = new ProcessStartInfo
+        if (!Directory.Exists(outputDirectory))
         {
-            FileName = command,
-            Arguments = args,
-            RedirectStandardOutput = true, // 允许读取输出
-            UseShellExecute = false, // 不使用系统外壳启动进�?
-            CreateNoWindow = true // 不创建窗�?
-        };
+            Directory.CreateDirectory(outputDirectory);
+        }
 
-        using var process = Process.Start(startInfo);
-        // 读取命令的输�?
-        Debug.Assert(process != null, nameof(process) + " != null");
-        var result = process.StandardOutput.ReadToEnd();
-        Debug.Print(result);
-        process.WaitForExit(); // 等待进程结束
+        for (int i = 0; i < pngs.Count; i++)
+        {
+            string outputPath = Path.Combine(outputDirectory, $"pic{i + 1}.png");
+            File.WriteAllBytes(outputPath, pngs[i]);
+        }
     }
 }

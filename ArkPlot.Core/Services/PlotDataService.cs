@@ -19,13 +19,13 @@ public class PlotDataService : IDisposable
 
         var rootPath = AppDomain.CurrentDomain.BaseDirectory;
         var dataDir = Path.Combine(rootPath, "Data");
-        // 要是没有，就创建 Data 文件�?
+        // 要是没有，就创建 Data 文件夹
         if (!Directory.Exists(dataDir))
         {
             Directory.CreateDirectory(dataDir);
         }
 
-        // 数据库文件路�?
+        // 数据库文件路径
         var dbPath = Path.Combine(dataDir, "PlotData.db");
         _connectionString = $"Data Source={dbPath}";
         Console.WriteLine($"DB path: {_connectionString}");
@@ -102,7 +102,7 @@ public class PlotDataService : IDisposable
         {
             Console.WriteLine($"Act \"{actName}\" not found. Creating a new one...");
 
-            // 插入�?Act
+            // 插入新 Act
             using var insertCommand = _connection.CreateCommand();
             insertCommand.CommandText = "INSERT INTO Acts (Title) VALUES (@title)";
             insertCommand.Parameters.AddWithValue("@title", actName);
@@ -212,11 +212,11 @@ public class PlotDataService : IDisposable
                 Dialog = entryReader.GetString(entryReader.GetOrdinal("Dialog")),
                 PngIndex = entryReader.GetInt32(entryReader.GetOrdinal("PngIndex")),
                 Bg = entryReader.GetString(entryReader.GetOrdinal("Bg")),
-                // 处理可能�?null 引用赋值，若反序列化结果为 null，则使用默认�?
+                // 处理可能的 null 引用赋值，若反序列化结果为 null，则使用默认值
                 ResourceUrls = JsonSerializer.Deserialize<List<string>>(entryReader.GetString(entryReader.GetOrdinal("ResourceUrls"))) ?? [],
-                // 处理可能�?null 引用赋值，若反序列化结果为 null，则使用默认�?
+                // 处理可能的 null 引用赋值，若反序列化结果为 null，则使用默认值
                 PortraitsInfo = JsonSerializer.Deserialize<PortraitInfo>(entryReader.GetString(entryReader.GetOrdinal("PortraitsInfo"))) ?? new PortraitInfo([], 0),
-                // 处理可能�?null 引用赋值，若反序列化结果为 null，则使用默认�?
+                // 处理可能的 null 引用赋值，若反序列化结果为 null，则使用默认值
                 CommandSet = JsonSerializer.Deserialize<StringDict>(entryReader.GetString(entryReader.GetOrdinal("CommandSet"))) ?? []
             };
 

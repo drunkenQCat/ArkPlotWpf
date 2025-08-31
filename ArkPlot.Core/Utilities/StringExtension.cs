@@ -8,7 +8,7 @@ namespace ArkPlot.Core.Utilities;
 public static class StringExtensions
 {
     /// <summary>
-    /// ½âÎöÃüÁîÖĞµÄ¸÷¸öÔªËØ²¢·µ»ØÒ»¸ö´æ´¢×Ö·û´®¼üÖµ¶ÔµÄ×Öµä¡£
+    /// è§£æå‘½ä»¤ä¸­çš„å„ä¸ªå…ƒç´ å¹¶è¿”å›ä¸€ä¸ªå­˜å‚¨å­—ç¬¦ä¸²é”®å€¼å¯¹çš„å­—å…¸ã€‚
     /// </summary>
     private static readonly Regex CommandRegex = new Regex(
       @"\s*(.*?)\s*=\s*(?:['""](.*?)['""]|([\w.-]+))\s*(?:,|$)",

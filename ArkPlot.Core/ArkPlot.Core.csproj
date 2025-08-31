@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="sqlsugarcore" Version="5.1.4.199" />
+    <PackageReference Include="Typst.Net" Version="0.1.1-typst0.13.1" />
   </ItemGroup>
 
 </Project>

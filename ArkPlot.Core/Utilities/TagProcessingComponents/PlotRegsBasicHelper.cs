@@ -15,12 +15,12 @@ internal static class PlotRegsBasicHelper
     public static string ProcessDialog(FormattedTextEntry entry)
     {
         var name = entry.CharacterName;
-        if (name == "£ø£ø£ø" || string.IsNullOrWhiteSpace(name)) name = "…Ò√ÿ»À ø";
+        if (name == "ÔºüÔºüÔºü" || string.IsNullOrWhiteSpace(name)) name = "Á•ûÁßò‰∫∫Â£´";
         if (entry.Type == "multiline")
             name = GetMultiLineName(entry);
         var dialog = entry.Dialog;
-        var dialogWithName = $"**{name}**`Ω≤µ¿£∫`{dialog}";
-        if (dialog == "......") dialogWithName = $"**{name}**`œ›»Î¡À≥¡ƒ¨`";
+        var dialogWithName = $"**{name}**`ËÆ≤ÈÅìÔºö`{dialog}";
+        if (dialog == "......") dialogWithName = $"**{name}**`Èô∑ÂÖ•‰∫ÜÊ≤âÈªò`";
         return dialogWithName;
     }
 

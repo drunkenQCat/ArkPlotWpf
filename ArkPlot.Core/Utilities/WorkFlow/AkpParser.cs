@@ -5,7 +5,7 @@ using ArkPlot.Core.Utilities.TagProcessingComponents;
 namespace ArkPlot.Core.Utilities.WorkFlow;
 
 /// <summary>
-/// AkpParser 类用于解析明日方舟剧情文本文件，并将其转换为 Markdown 文件�?
+/// AkpParser 类用于解析明日方舟剧情文本文件，并将其转换为 Markdown 文件。
 /// </summary>
 public class AkpParser
 {
@@ -26,7 +26,7 @@ public class AkpParser
     /// </summary>
     public void InitializeParser()
     {
-        // 每一章的第一个有效句一定是分隔�?
+        // 每一章的第一个有效句一定是分隔线
         _prevLine = new FormattedTextEntry { MdText = SeparateLine };
         IsInitialized = true;
     }
@@ -48,10 +48,10 @@ public class AkpParser
     }
 
     /// <summary>
-    /// 对给定的行进行分类和处理�?
+    /// 对给定的行进行分类和处理。
     /// </summary>
-    /// <param name="line">要处理的行�?/param>
-    /// <returns>处理后的行�?/returns>
+    /// <param name="line">要处理的行。</param>
+    /// <returns>处理后的行。</returns>
     private string ClassifyAndProcess(FormattedTextEntry line)
     {
         var sentenceProcessor = _tagProcessor.Rules.RegexAndMethods
@@ -72,7 +72,7 @@ public class AkpParser
     FormattedTextEntry CombineDuplicateLines(FormattedTextEntry currentLine)
     {
         if (currentLine.MdDuplicateCounter <= 1 || _prevLine.MdText == SeparateLine) return currentLine;
-        // 先对输入量深拷贝�?
+        // 先对输入量深拷贝。
         /* FormattedTextEntry newLine = new(currentLine.MdText); */
         FormattedTextEntry newLine = new(currentLine)
         {

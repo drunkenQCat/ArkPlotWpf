@@ -17,7 +17,7 @@ public class HtmlTagParser
 
     private void ParseHtml()
     {
-        // 使用正则表达式匹配HTML标签及其属�?
+        // 使用正则表达式匹配HTML标签及其属性
         var tagPattern = new Regex(@"<(\w+)([^>]*)>");
         var attrPattern = new Regex(@"(\w+)=""([^""]*)""");
 

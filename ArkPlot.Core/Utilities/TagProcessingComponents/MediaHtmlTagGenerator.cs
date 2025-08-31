@@ -16,7 +16,7 @@ public partial class TagProcessor
     private string GetImageUrl(string newTag, string newValueTrimed)
     {
         // in csv, the background is bg_bg, fuck
-        if (newTag.Contains("背景")) newValueTrimed = $"bg_{newValueTrimed}";
+        if (newTag.Contains('景')) newValueTrimed = $"bg_{newValueTrimed}";
         return GetUrlFromPreloaded(newValueTrimed);
     }
 
@@ -31,7 +31,7 @@ public partial class TagProcessor
         var url = GetUrlFromPreloaded(newValue);
         url =
             $"<audio controls class=\"lazy-audio\" width=\"300\" alt=\"{newValue}\"><source src=\"{url}\" type=\"audio/mpeg\"></audio>";
-        if (newTag.Contains("音乐"))
+        if (newTag.Contains('乐'))
         {
             var urlParts = url.Split(" ");
             urlParts[0] += " class=\"music\"";

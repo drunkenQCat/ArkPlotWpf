@@ -11,7 +11,7 @@ using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic
 namespace ArkPlot.Core.Utilities.WorkFlow;
 
 /// <summary>
-/// 从GitHub获取明日方舟各个章节数据的类�?
+/// 从GitHub获取明日方舟各个章节数据的类。
 /// </summary>
 public class AkpStoryLoader
 {
@@ -20,7 +20,7 @@ public class AkpStoryLoader
 
     private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
 
-    // 从GitHub拿到章节的文件名以及相应的所有内�?
+    // 从GitHub拿到章节的文件名以及相应的所有内容
     private readonly JToken storyTokens;
     private readonly List<Task> tasks = new();
 
@@ -32,14 +32,14 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 当前，活动内所有章节的内容�?
+    /// 当前，活动内所有章节的内容。
     /// </summary>
     public List<PlotManager> ContentTable { get; private set; } = new();
 
     /// <summary>
-    /// 获取GitHub 上对应本次活动的 RAW 数据URL的开头�?
+    /// 获取GitHub 上对应本次活动的 RAW 数据URL的开头。
     /// </summary>
-    /// <returns>GitHub 上的 RAW 数据 URL�?/returns>
+    /// <returns>GitHub 上的 RAW 数据 URL。</returns>
     private string GetRawUrl()
     {
         if (lang == "zh_CN")
@@ -49,9 +49,9 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 下载所有章节的文本�?
+    /// 下载所有章节的文本。
     /// </summary>
-    /// <returns>表示异步操作的任务�?/returns>
+    /// <returns>表示异步操作的任务。</returns>
     public async Task GetAllChapters()
     {
         var chapterUrlTable = GetChapterUrls();
@@ -78,9 +78,9 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 获取预加载信息�?
+    /// 获取预加载信息。
     /// </summary>
-    /// <returns>预加载信息�?/returns>
+    /// <returns>预加载信息。</returns>
     public PreloadSet GetPreloadInfo()
     {
         var resourceSets = ContentTable.Select(c =>
@@ -97,13 +97,13 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 预加载所有章节相关的资源�?
+    /// 预加载所有章节相关的资源。
     /// </summary>
-    /// <returns>表示异步操作的任务�?/returns>
+    /// <returns>表示异步操作的任务。</returns>
     public async Task PreloadAssetsForAllChapters()
     {
         var toPreLoad = GetPreloadInfo();
-        // 下载所有资�?
+        // 下载所有资源
         await PrtsResLoader.DownloadAssets(StoryName, toPreLoad);
     }
 
@@ -117,9 +117,9 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 获取活动内每个章节URL�?
+    /// 获取活动内每个章节URL。
     /// </summary>
-    /// <returns>包含章节URL的字典�?/returns>
+    /// <returns>包含章节URL的字典。</returns>
     private Dictionary<string, string> GetChapterUrls()
     {
         var plots = storyTokens["infoUnlockDatas"]?.ToObject<JArray>();
