@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -68,6 +69,42 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private ActInfo CurrentAct => currentActInfos[SelectedIndex];
 
+    [ObservableProperty]
+    private ObservableCollection<ChapterSelectionViewModel> _chapters = new();
+
+    // 当用户切换主活动时，需要清空旧的章节列表，以便下次点击按钮时重新加载
+    partial void OnSelectedIndexChanged(int value)
+    {
+        Chapters.Clear();
+    }
+
+    [RelayCommand]
+    private async Task LoadChapters()
+    {
+        // 如果当前活动没有章节，则加载它们
+        if (CurrentAct != null && Chapters.Count == 0)
+        {
+            await LoadChaptersForCurrentAct();
+        }
+    }
+
+    private async Task LoadChaptersForCurrentAct()
+    {
+        Chapters.Clear();
+        Status = "正在加载章节列表...";
+
+        var storyLoader = new AkpStoryLoader(CurrentAct);
+        // FIXME: AkpStoryLoader does not have GetChapterNamesAsync method
+        var chapterNames = await storyLoader.GetChapterNamesAsync(); // 假设 AkpStoryLoader 有一个新方法
+
+        foreach (var name in chapterNames)
+        {
+            Chapters.Add(new ChapterSelectionViewModel(name));
+        }
+        Status = "章节列表加载完成。";
+    }
+
+
     [RelayCommand]
     private async Task LoadInitResource()
     {
@@ -100,7 +137,7 @@ public partial class MainWindowViewModel : ViewModelBase
             .Dismiss().After(TimeSpan.FromSeconds(2))
             .Queue();
         await LoadLangTable(language);
-        Status = $"初始化已完成";
+        Status = "初始化已完成";
         ToastManager.CreateToast()
             .WithTitle("初始化中")
             .OfType(NotificationType.Success)
@@ -236,7 +273,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ExportMdAndHtmlFiles(string mdWithTitle)
     {
         if (!Directory.Exists(outputPathOfCurrentStory)) Directory.CreateDirectory(outputPathOfCurrentStory);
-        var rawMarkdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
+        var rawMarkdown = new Plot(activeTitle ?? "", new System.Text.StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPathOfCurrentStory, rawMarkdown);
         if (IsLocalResChecked)
         {
@@ -306,7 +343,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            ProcessStartInfo startInfo = new()
+            ProcessStartInfo startInfo = new() 
             {
                 Arguments = OutputPath, // Changed outputPath to OutputPath
                 FileName = "explorer.exe",
@@ -369,6 +406,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\r\n{args}";
     }
+
+
 
     private void SubscribeNetErrorNotification()
     {

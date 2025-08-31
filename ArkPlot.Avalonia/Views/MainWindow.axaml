@@ -129,10 +129,33 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Button Grid.Row="0" Grid.Column="0"
-                        Content="当前活动" 
-                        VerticalAlignment="Center" 
-                        HorizontalAlignment="Right" 
-                    />
+                            Content="当前活动" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Right"
+                            Command="{Binding LoadChaptersCommand}">
+                        <Button.Flyout>
+                            <Flyout>
+                                <StackPanel Margin="15" MaxWidth="300">
+                                    <TextBlock Text="选择导出章节" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <Border BorderThickness="1" BorderBrush="LightGray" MaxHeight="400">
+                                        <ScrollViewer>
+                                            <ItemsControl ItemsSource="{Binding Chapters}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox 
+                                                            Content="{Binding ChapterName}" 
+                                                            IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                                            Margin="4"
+                                                        />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Border>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
                     <Button Grid.Row="1" Grid.Column="0"
                         Content="Tags文件"
                         Command="{Binding PickTagFileCommand}"
@@ -219,4 +242,3 @@
         </Grid>
     </StackPanel>
 </sukiUi:SukiWindow>
-

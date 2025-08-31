@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
@@ -51,11 +53,37 @@ public class AkpStoryLoader
     /// <summary>
     /// 下载所有章节的文本。
     /// </summary>
+    /// <returns>表示异步操作的任务�?/returns>
+    /// <returns>包含所有章节名称的集合。</returns>
+    public Task<IEnumerable<string>> GetChapterNamesAsync()
+    {
+        var chapterUrlTable = GetChapterUrls();
+        return Task.FromResult(chapterUrlTable.Keys.AsEnumerable());
+    }
+
+    /// <summary>
+    /// 下载所有章节的文本。
+    /// </summary>
     /// <returns>表示异步操作的任务。</returns>
     public async Task GetAllChapters()
     {
         var chapterUrlTable = GetChapterUrls();
-        foreach (var chapter in chapterUrlTable)
+        await GetAllChapters(chapterUrlTable.Keys);
+    }
+
+    /// <summary>
+    /// 下载指定章节的文本内容。
+    /// </summary>
+    /// <param name="chaptersToLoad">需要加载的章节名称列表。</param>
+    /// <returns>表示异步操作的任务。</returns>
+    public async Task GetAllChapters(IEnumerable<string> chaptersToLoad)
+    {
+        var chapterUrlTable = GetChapterUrls();
+        var filteredChapters = chapterUrlTable
+            .Where(kvp => chaptersToLoad.Contains(kvp.Key))
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        foreach (var chapter in filteredChapters)
         {
             async Task GetSingleChapter()
             {
