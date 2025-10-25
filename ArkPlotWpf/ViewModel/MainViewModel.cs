@@ -17,6 +17,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
+
 // ReSharper disable InconsistentNaming
 
 namespace ArkPlotWpf.ViewModel;
@@ -28,7 +29,9 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
 
-    [ObservableProperty] private string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
+    [ObservableProperty]
+    private string consoleOutput =
+        @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
 
     - 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；
     - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
@@ -36,22 +39,29 @@ public partial class MainWindowViewModel : ObservableObject
 
     private List<ActInfo> currentActInfos = new();
 
-    [ObservableProperty] private bool isInitialized;
+    [ObservableProperty]
+    private bool isInitialized;
 
-    [ObservableProperty] private bool isLocalResChecked;
+    [ObservableProperty]
+    private bool isLocalResChecked;
 
-    [ObservableProperty] private string jsonPath = Environment.CurrentDirectory + @"\tags.json";
+    [ObservableProperty]
+    private string jsonPath = Path.Combine(Environment.CurrentDirectory, "tags.json");
 
     private string language = "zh_CN";
 
-    [ObservableProperty] private string outputPath = Environment.CurrentDirectory + @"\output";
+    [ObservableProperty]
+    private string outputPath = Path.Combine(Environment.CurrentDirectory, "output");
 
-    private string outputPathOfCurrentStory => outputPath + @"\" + activeTitle;
-
-    [ObservableProperty] private int selectedIndex;
+    private string outputPathOfCurrentStory => Path.Combine(outputPath, activeTitle);
 
     [ObservableProperty]
-    private ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(new[] { "加载中，请稍等..." });
+    private int selectedIndex;
+
+    [ObservableProperty]
+    private ICollectionView? storiesNames = CollectionViewSource.GetDefaultView(
+        new[] { "加载中，请稍等..." }
+    );
 
     private string storyType = "ACTIVITY_STORY";
     private string? activeTitle;
@@ -113,12 +123,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         storyType = type;
         var currentTokens = actsTable.GetStories(type);
-        currentActInfos =
-            (from act in currentTokens
-             let name = act["name"]!.ToString()
-             let info = new ActInfo(language, storyType, name, act)
-             select info
-            ).ToList();
+        currentActInfos = (
+            from act in currentTokens
+            let name = act["name"]!.ToString()
+            let info = new ActInfo(language, storyType, name, act)
+            select info
+        ).ToList();
         StoriesNames = CollectionViewSource.GetDefaultView(
             from info in currentActInfos
             select info.Name
@@ -172,7 +182,6 @@ public partial class MainWindowViewModel : ObservableObject
         await Task.Run(() => content.ParseAllDocuments(jsonPath));
     }
 
-
     private async Task ExportDocuments(AkpStoryLoader contentLoader)
     {
         noticeBlock.RaiseCommonEvent("正在导出文档....");
@@ -187,7 +196,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void ExportMdAndHtmlFiles(string mdWithTitle)
     {
-        if (!Directory.Exists(outputPathOfCurrentStory)) Directory.CreateDirectory(outputPathOfCurrentStory);
+        if (!Directory.Exists(outputPathOfCurrentStory))
+            Directory.CreateDirectory(outputPathOfCurrentStory);
         var rawMarkdown = new Plot(activeTitle ?? "", new StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPathOfCurrentStory, rawMarkdown);
         if (IsLocalResChecked)
@@ -200,7 +210,11 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void CompleteLoading()
     {
-        var result = MessageBox.Show("生成完成。是否打开文件夹？", "markdown/html文件生成完成！", MessageBoxButton.OKCancel);
+        var result = MessageBox.Show(
+            "生成完成。是否打开文件夹？",
+            "markdown/html文件生成完成！",
+            MessageBoxButton.OKCancel
+        );
         if (result == MessageBoxResult.OK)
         {
             OpenOutputFolder();
@@ -216,7 +230,7 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 Arguments = outputPath,
                 FileName = "explorer.exe",
-                Verb = "runas"
+                Verb = "runas",
             };
             Process.Start(startInfo);
         }
@@ -229,7 +243,9 @@ public partial class MainWindowViewModel : ObservableObject
     public async Task<string> LoadSingleMd()
     {
         List<PlotManager> allPlots;
-        var plotsJsonFile = new FileInfo("C:\\TechnicalProjects\\ArkPlot\\ArkPlotWpf\\all_plots.json");
+        var plotsJsonFile = new FileInfo(
+            "C:\\TechnicalProjects\\ArkPlot\\ArkPlotWpf\\all_plots.json"
+        );
         if (!plotsJsonFile.Exists)
         {
             var content = new AkpStoryLoader(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
@@ -262,7 +278,6 @@ public partial class MainWindowViewModel : ObservableObject
         var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots));
         return output;
     }
-
 
     [RelayCommand]
     private void OpenTagEditor()
@@ -303,7 +318,6 @@ public partial class MainWindowViewModel : ObservableObject
             ConsoleOutput += s;
         };
     }
-
 
     public void SelectJsonFile(string path)
     {

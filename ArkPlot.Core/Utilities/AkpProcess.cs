@@ -36,7 +36,7 @@ public abstract class AkpProcessor
     /// <param name="markdown">要写入为 Markdown 的 Plot 对象。</param>
     public static void WriteMd(string path, Plot markdown)
     {
-        var mdOutPath = path + "\\" + markdown.Title + ".md";
+        var mdOutPath = Path.Combine(path, markdown.Title + ".md");
         File.WriteAllText(mdOutPath, markdown.Content.ToString());
     }
 
@@ -47,7 +47,7 @@ public abstract class AkpProcessor
     /// <param name="markdown">包含 markdown 内容的 Plot 对象。</param>
     public static void WriteHtml(string path, Plot markdown)
     {
-        var htmlPath = path + "\\" + markdown.Title + ".html";
+        var htmlPath = Path.Combine(path, markdown.Title + ".html");
         var htmlContent = GetHtmlContent(markdown);
         var result = FormatHtmlBody(htmlContent, markdown.Title);
         File.WriteAllText(htmlPath, result);
@@ -60,7 +60,7 @@ public abstract class AkpProcessor
     /// <param name="markdown">要转换为HTML的Plot对象。</param>
     public static void WriteHtmlWithLocalRes(string path, Plot markdown)
     {
-        var htmlPath = path + "\\" + markdown.Title + ".html";
+        var htmlPath = Path.Combine(path, markdown.Title + ".html");
         var htmlContent = GetHtmlContent(markdown);
         var htmlWithLocalRes = htmlContent.Replace("https://", "");
         var result = FormatHtmlBody(htmlWithLocalRes, markdown.Title);
@@ -74,9 +74,7 @@ public abstract class AkpProcessor
     /// <returns>Markdown 内容的 HTML 表示。</returns>
     private static string GetHtmlContent(Plot markdown)
     {
-        var pipeline = new MarkdownPipelineBuilder()
-            .UseAdvancedExtensions()
-            .Build();
+        var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
         new MarkdownPipelineBuilder()
             .UseAdvancedExtensions() // Add most of all advanced extensions
             .Build();
@@ -115,7 +113,10 @@ public abstract class AkpProcessor
         foreach (var plot in plotList)
         {
             var result = "#import \"./template.typ\": arknights_sim, arknights_sim_2p\n";
-            var content = string.Join("\n", plot.CurrentPlot.TextVariants.Select(x => x.TypText).ToList());
+            var content = string.Join(
+                "\n",
+                plot.CurrentPlot.TextVariants.Select(x => x.TypText).ToList()
+            );
             result += content;
             var currentTyp = Path.Join(typFolder, $"{fileIndex}_{plot.CurrentPlot.Title}.typ");
             File.WriteAllText(currentTyp, result);

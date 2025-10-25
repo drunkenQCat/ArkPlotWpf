@@ -12,17 +12,16 @@ using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
+using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using SukiUI.Toasts;
+using Newtonsoft.Json;
 using SukiUI.Controls;
-using Avalonia.Controls.Notifications;
-
+using SukiUI.Toasts;
 
 // ReSharper disable InconsistentNaming
 
@@ -34,9 +33,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
-    [ObservableProperty] private ISukiToastManager toastManager = new SukiToastManager();  // public, 只读属性
 
-    [ObservableProperty] private string consoleOutput = @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
+    [ObservableProperty]
+    private ISukiToastManager toastManager = new SukiToastManager(); // public, 只读属性
+
+    [ObservableProperty]
+    private string consoleOutput =
+        @"这是一个生成明日方舟剧情markdown/html文件的生成器，使用时有以下注意事项:
 
         - 因为下载剧情文本需要连接GitHub的服务器，所以在使用时务必先科学上网；
             - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
@@ -44,25 +47,30 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private List<ActInfo> currentActInfos = new();
 
-    [ObservableProperty] private bool isInitialized;
+    [ObservableProperty]
+    private bool isInitialized;
 
-    [ObservableProperty] private bool isLocalResChecked;
+    [ObservableProperty]
+    private bool isLocalResChecked;
 
-    [ObservableProperty] private string jsonPath = AppContext.BaseDirectory + @"\tags.json";
+    [ObservableProperty]
+    private string jsonPath = Path.Combine(AppContext.BaseDirectory, "tags.json");
 
     private string language = "zh_CN";
 
-    [ObservableProperty] private string outputPath = Environment.CurrentDirectory + @"\output";
+    [ObservableProperty]
+    private string outputPath = Path.Combine(AppContext.BaseDirectory, "output");
 
-    private string outputPathOfCurrentStory => OutputPath + @"\" + activeTitle; // Changed outputPath to OutputPath
+    private string outputPathOfCurrentStory => Path.Combine(OutputPath, activeTitle!);
 
-    [ObservableProperty] private int selectedIndex;
+    [ObservableProperty]
+    private int selectedIndex;
 
     [ObservableProperty]
     private System.Collections.Generic.IEnumerable<string>? storiesNames; // Changed ICollectionView to IEnumerable and removed CollectionViewSource.GetDefaultView
+
     [ObservableProperty]
     private string status = "准备中...";
-
 
     private string storyType = "ACTIVITY_STORY";
     private string? activeTitle;
@@ -76,7 +84,6 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedIndexChanged(int value)
     {
         Chapters.Clear();
-        
     }
 
     [RelayCommand]
@@ -122,45 +129,52 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-
     [RelayCommand]
     private async Task LoadInitResource()
     {
         SubscribeAll();
         await Task.Yield();
         Status = $"正在加载Prts资源索引...";
-        ToastManager.CreateToast()
+        ToastManager
+            .CreateToast()
             .WithTitle("初始化中")
             .WithContent(Status)
             .WithLoadingState(true)
-            .Dismiss().After(TimeSpan.FromSeconds(7))
+            .Dismiss()
+            .After(TimeSpan.FromSeconds(7))
             .Queue();
 
         var sw = Stopwatch.StartNew();
         await LoadResourceTable();
         sw.Stop();
         Status = $"Prts资源索引加载完成，耗时：{sw.ElapsedMilliseconds / 1000} s";
-        ToastManager.CreateToast()
+        ToastManager
+            .CreateToast()
             .WithTitle("初始化中")
             .OfType(NotificationType.Success)
             .WithContent(Status)
-            .Dismiss().After(TimeSpan.FromSeconds(1))
+            .Dismiss()
+            .After(TimeSpan.FromSeconds(1))
             .Queue();
 
         Status = $"正在加载活动列表...";
-        ToastManager.CreateToast()
+        ToastManager
+            .CreateToast()
             .WithTitle("初始化中")
             .WithContent(Status)
             .WithLoadingState(true)
-            .Dismiss().After(TimeSpan.FromSeconds(2))
+            .Dismiss()
+            .After(TimeSpan.FromSeconds(2))
             .Queue();
         await LoadLangTable(language);
         Status = $"初始化已完成";
-        ToastManager.CreateToast()
+        ToastManager
+            .CreateToast()
             .WithTitle("初始化中")
             .OfType(NotificationType.Success)
             .WithContent(Status)
-            .Dismiss().After(TimeSpan.FromSeconds(3))
+            .Dismiss()
+            .After(TimeSpan.FromSeconds(3))
             .Queue();
         IsInitialized = true;
     }
@@ -186,11 +200,11 @@ public partial class MainWindowViewModel : ViewModelBase
             noticeBlock.RaiseCommonEvent(s);
             // Removed MessageBox.Show(s);
             MessageBoxManager.GetMessageBoxStandard(
-                    title: "网络异常",
-                    text: s,
-                    @enum: ButtonEnum.Ok,
-                    icon: Icon.Error
-                    );
+                title: "网络异常",
+                text: s,
+                @enum: ButtonEnum.Ok,
+                icon: Icon.Error
+            );
         }
     }
 
@@ -217,15 +231,14 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         storyType = type;
         var currentTokens = actsTable.GetStories(type);
-        currentActInfos =
-            (from act in currentTokens
-             let name = act["name"]!.ToString()
-             let info = new ActInfo(language, storyType, name, act)
-             select info
-            ).ToList();
+        currentActInfos = (
+            from act in currentTokens
+            let name = act["name"]!.ToString()
+            let info = new ActInfo(language, storyType, name, act)
+            select info
+        ).ToList();
         StoriesNames = // Changed StoriesNames to storiesNames (field)
-            from info in currentActInfos
-            select info.Name;
+            from info in currentActInfos select info.Name;
         SelectedIndex = 0;
     }
 
@@ -236,7 +249,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await LoadChapters();
         }
-        var selectedChapters = Chapters.Where(c => c.IsSelected).Select(c => c.ChapterName).ToList();
+        var selectedChapters = Chapters
+            .Where(c => c.IsSelected)
+            .Select(c => c.ChapterName)
+            .ToList();
         if (!selectedChapters.Any())
         {
             ToastManager
@@ -244,7 +260,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 .OfType(NotificationType.Information)
                 .WithTitle("选择出错")
                 .WithContent("您没有选择任何章节")
-                .Dismiss().After(TimeSpan.FromSeconds(7)).Queue();
+                .Dismiss()
+                .After(TimeSpan.FromSeconds(7))
+                .Queue();
             return;
         }
 
@@ -291,7 +309,6 @@ public partial class MainWindowViewModel : ViewModelBase
         await Task.Run(() => content.ParseAllDocuments(JsonPath)); // Changed jsonPath to JsonPath
     }
 
-
     private async Task ExportDocuments(AkpStoryLoader contentLoader)
     {
         noticeBlock.RaiseCommonEvent("正在导出文档....");
@@ -306,7 +323,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ExportMdAndHtmlFiles(string mdWithTitle)
     {
-        if (!Directory.Exists(outputPathOfCurrentStory)) Directory.CreateDirectory(outputPathOfCurrentStory);
+        if (!Directory.Exists(outputPathOfCurrentStory))
+            Directory.CreateDirectory(outputPathOfCurrentStory);
         var rawMarkdown = new Plot(activeTitle ?? "", new System.Text.StringBuilder(mdWithTitle));
         AkpProcessor.WriteMd(outputPathOfCurrentStory, rawMarkdown);
         if (IsLocalResChecked)
@@ -317,25 +335,24 @@ public partial class MainWindowViewModel : ViewModelBase
             AkpProcessor.WriteHtml(outputPathOfCurrentStory, rawMarkdown);
     }
 
-
     [RelayCommand]
     private async Task PickTagFile()
     {
         var storageProvider = GlobalStorageProvider.StorageProvider;
         var resultFile = await storageProvider.OpenFilePickerAsync(
-                new FilePickerOpenOptions()
+            new FilePickerOpenOptions()
+            {
+                Title = "选取json文件",
+                FileTypeFilter = new[]
                 {
-                    Title = "选取json文件",
-                    FileTypeFilter = new[] {
-                new FilePickerFileType("tag 文件")
-                {
-                Patterns = new[]{"*.json"}
-                }
-                }
-                }
-                );
-        if (resultFile is null || resultFile.FirstOrDefault() is null) return;
-        else JsonPath = resultFile.FirstOrDefault()!.Path.LocalPath;
+                    new FilePickerFileType("tag 文件") { Patterns = new[] { "*.json" } },
+                },
+            }
+        );
+        if (resultFile is null || resultFile.FirstOrDefault() is null)
+            return;
+        else
+            JsonPath = resultFile.FirstOrDefault()!.Path.LocalPath;
     }
 
     [RelayCommand]
@@ -343,24 +360,22 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var storageProvider = GlobalStorageProvider.StorageProvider;
         var resultFolder = await storageProvider.OpenFolderPickerAsync(
-                new FolderPickerOpenOptions()
-                {
-                    Title = "选择输出文件夹",
-                }
-                );
-        if (resultFolder is null || resultFolder.FirstOrDefault() is null) return;
-        else OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
-
+            new FolderPickerOpenOptions() { Title = "选择输出文件夹" }
+        );
+        if (resultFolder is null || resultFolder.FirstOrDefault() is null)
+            return;
+        else
+            OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
     }
 
     private async Task CompleteLoading()
     {
-        var messageBox = MessageBoxManager
-            .GetMessageBoxStandard(
-                    title: "提示",
-                    text: "生成完成。是否打开文件夹？",
-                    @enum: ButtonEnum.OkCancel,
-                    icon: Icon.Info);
+        var messageBox = MessageBoxManager.GetMessageBoxStandard(
+            title: "提示",
+            text: "生成完成。是否打开文件夹？",
+            @enum: ButtonEnum.OkCancel,
+            icon: Icon.Info
+        );
 
         // 2. 以 Popup 形式展示，并等待用户点击结果
         var result = await messageBox.ShowAsync();
@@ -381,7 +396,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 Arguments = OutputPath, // Changed outputPath to OutputPath
                 FileName = "explorer.exe",
-                Verb = "runas"
+                Verb = "runas",
             };
             Process.Start(startInfo);
         }
@@ -394,7 +409,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task<string> LoadSingleMd()
     {
         List<PlotManager> allPlots;
-        var plotsJsonFile = new FileInfo(Path.Combine(Environment.CurrentDirectory, "all_plots.json")); // Changed hardcoded path
+        var plotsJsonFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, "all_plots.json")); // Changed hardcoded path
         if (!plotsJsonFile.Exists)
         {
             var content = new AkpStoryLoader(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
@@ -428,7 +443,6 @@ public partial class MainWindowViewModel : ViewModelBase
         return output;
     }
 
-
     [RelayCommand]
     private void OpenTagEditor()
     {
@@ -440,8 +454,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\n{args}";
     }
-
-
 
     private void SubscribeNetErrorNotification()
     {
@@ -470,7 +482,6 @@ public partial class MainWindowViewModel : ViewModelBase
             ConsoleOutput += s;
         };
     }
-
 
     public void SelectJsonFile(string path)
     {
