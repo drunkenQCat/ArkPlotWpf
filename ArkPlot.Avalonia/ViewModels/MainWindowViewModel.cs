@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Model;
@@ -392,17 +393,35 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            ProcessStartInfo startInfo = new()
+            string command = string.Empty;
+            string arguments = OutputPath;
+
+            // 检查当前操作系统并选择适当的命令
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Arguments = OutputPath, // Changed outputPath to OutputPath
-                FileName = "explorer.exe",
-                Verb = "runas",
-            };
+                command = "explorer.exe";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                command = "open";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                command = "xdg-open";
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("Unsupported platform.");
+            }
+
+            // 执行打开文件夹命令
+            ProcessStartInfo startInfo = new() { FileName = command, Arguments = arguments };
+
             Process.Start(startInfo);
         }
-        catch (System.ComponentModel.Win32Exception win32Exception)
+        catch (Exception ex)
         {
-            noticeBlock.RaiseCommonEvent(win32Exception.Message); // Changed MessageBox.Show to noticeBlock.RaiseCommonEvent
+            noticeBlock.RaiseCommonEvent(ex.Message); // 处理异常
         }
     }
 
