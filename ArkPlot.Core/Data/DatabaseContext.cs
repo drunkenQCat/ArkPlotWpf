@@ -2,6 +2,7 @@ using SqlSugar;
 using ArkPlot.Core.Model;
 using System;
 using System.Linq;
+using System.IO;
 
 namespace ArkPlot.Core.Data;
 
@@ -17,9 +18,13 @@ public class DatabaseContext
 
     private DatabaseContext()
     {
+        // 获取当前应用程序的执行目录
+        var baseDirectory = AppContext.BaseDirectory;
+        var dbPath = Path.Combine(baseDirectory, "arkplot.db");
+        
         Db = new SqlSugarClient(new ConnectionConfig
         {
-            ConnectionString = "Data Source=arkplot.db",
+            ConnectionString = $"Data Source={dbPath}",
             DbType = DbType.Sqlite,
             IsAutoCloseConnection = true,
             ConfigureExternalServices = new ConfigureExternalServices(),

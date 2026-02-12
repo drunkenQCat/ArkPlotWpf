@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
@@ -9,6 +7,7 @@ using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using Newtonsoft.Json.Linq;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
+
 
 namespace ArkPlot.Core.Utilities.WorkFlow;
 
@@ -151,12 +150,28 @@ public class AkpStoryLoader
     private Dictionary<string, string> GetChapterUrls()
     {
         var plots = storyTokens["infoUnlockDatas"]?.ToObject<JArray>();
+
         var collection =
             from chapter in plots
-            let title = $"{chapter["storyCode"]} {chapter["storyName"]} {chapter["avgTag"]}"
+            let storyId = chapter["storyId"]?.Value<string>()
+            let variation = storyId.Contains("variation") ? ExtractVariationNumber(storyId) : "" 
+            let title = $"{chapter["storyCode"]} {chapter["storyName"]} {chapter["avgTag"]}{variation}"
             let txt = $"{GetRawUrl()}{chapter["storyTxt"]}.txt"
             let plot = new KeyValuePair<string, string>(title, txt)
             select plot;
         return collection.ToDictionary(pair => pair.Key, pair => pair.Value);
+    }
+    private static string ExtractVariationNumber(string storyCode)
+    {
+        // 正则表达式匹配 "variation" 后跟的数字
+        // 模式解释：
+        // - "variation" : 匹配字面量
+        // - \d+         : 匹配一个或多个数字
+        Regex regex = new Regex(@"variation(\d+)");
+        Match match = regex.Match(storyCode);
+        
+        // 如果匹配成功，返回第一个捕获组（即数字部分）
+        // 否则返回空字符串
+        return match.Success ? match.Groups[1].Value : "";
     }
 }

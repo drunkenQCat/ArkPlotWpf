@@ -60,8 +60,56 @@ public class PrtsDataRepository : BaseRepository<PrtsData>
     /// <param name="tag">标签</param>
     /// <param name="data">新数据</param>
     /// <returns>是否更新成功</returns>
-    public bool UpdateDataByTag(string tag, StringDict data) =>
-        Update(x => new PrtsData { Data = data }, x => x.Tag == tag);
+    public bool UpdateDataByTag(string tag, StringDict data)
+    {
+        // 获取现有记录，只更新DataJson字段，避免更新主键
+        var existing = GetByTag(tag);
+        if (existing == null) return false;
+        
+        existing.DataJson = System.Text.Json.JsonSerializer.Serialize(data);
+        existing.UpdateDataHash(); // 更新哈希值
+        return Update(existing);
+    }
+
+    /// <summary>
+    /// 智能更新数据 - 仅在数据发生变化时更新
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <param name="data">新数据</param>
+    /// <returns>更新结果：0-无变化，1-更新成功，-1-更新失败</returns>
+    public int SmartUpdateDataByTag(string tag, StringDict data)
+    {
+        var existing = GetByTag(tag);
+        if (existing == null) return -1;
+
+        // 计算新数据的哈希值
+        var newDataJson = System.Text.Json.JsonSerializer.Serialize(data);
+        var tempPrtsData = new PrtsData { DataJson = newDataJson };
+        var newHash = tempPrtsData.CalculateDataHash();
+
+        // 检查哈希值是否相同
+        if (existing.DataHash == newHash)
+        {
+            // 数据无变化，无需更新
+            return 0;
+        }
+
+        // 数据有变化，执行更新
+        existing.DataJson = newDataJson;
+        existing.DataHash = newHash;
+        return Update(existing) ? 1 : -1;
+    }
+
+    /// <summary>
+    /// 验证数据完整性
+    /// </summary>
+    /// <param name="tag">标签</param>
+    /// <returns>数据是否完整（哈希值匹配）</returns>
+    public bool VerifyDataIntegrity(string tag)
+    {
+        var data = GetByTag(tag);
+        return data?.VerifyDataHash() ?? false;
+    }
 
     /// <summary>
     /// 批量更新数据

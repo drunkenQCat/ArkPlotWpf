@@ -1,5 +1,8 @@
 using SqlSugar;
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
+using System;
 
 namespace ArkPlot.Core.Model;
 
@@ -17,6 +20,8 @@ public class PrtsData
     public string Tag { get; set; }
     [SugarColumn(IsNullable = false, ColumnDataType = "TEXT")]
     public string DataJson { get; set; }
+    [SugarColumn(IsNullable = true, Length = 64)]
+    public string? DataHash { get; set; }
     [SugarColumn(IsIgnore = true)]
     public StringDict Data
     {
@@ -40,6 +45,40 @@ public class PrtsData
         }
     }
 
+    /// <summary>
+    /// 计算当前数据的哈希值
+    /// </summary>
+    /// <returns>数据的SHA256哈希值</returns>
+    public string CalculateDataHash()
+    {
+        var jsonToHash = string.IsNullOrEmpty(DataJson) ? "{}" : DataJson;
+        using (var sha256 = SHA256.Create())
+        {
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(jsonToHash));
+            return Convert.ToHexString(hashBytes);
+        }
+    }
+
+    /// <summary>
+    /// 验证数据哈希值是否匹配
+    /// </summary>
+    /// <returns>如果哈希值匹配返回true，否则返回false</returns>
+    public bool VerifyDataHash()
+    {
+        if (string.IsNullOrEmpty(DataHash))
+            return false;
+        
+        var currentHash = CalculateDataHash();
+        return DataHash.Equals(currentHash, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 更新数据哈希值
+    /// </summary>
+    public void UpdateDataHash()
+    {
+        DataHash = CalculateDataHash();
+    }
 
     /// <summary>
     /// 使用指定的标签初始化 <see cref="PrtsData"/> 类的不使用字典的实例。
