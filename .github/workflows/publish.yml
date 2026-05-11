@@ -1,0 +1,134 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            archive: zip
+            artifact_name: ArkPlot-win-x64
+            archive_ext: .zip
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive: tar
+            artifact_name: ArkPlot-linux-x64
+            archive_ext: .tar.gz
+          - os: macos-latest
+            rid: osx-x64
+            archive: tar
+            artifact_name: ArkPlot-osx-x64
+            archive_ext: .tar.gz
+    runs-on: ${{ matrix.os }}
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      Project_Path: ArkPlot.Avalonia/ArkPlot.Avalonia.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.Project_Path }} -r ${{ matrix.rid }}
+
+      - name: Build
+        run: dotnet build ${{ env.Project_Path }} -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ${{ env.Project_Path }} -c Release --no-build -r ${{ matrix.rid }} --self-contained false -o publish/${{ matrix.rid }}
+
+      - name: Package (Windows zip)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          Compress-Archive -Path publish/${{ matrix.rid }}/* -DestinationPath ArkPlot_${version}_${{ matrix.rid }}${{ matrix.archive_ext }}
+
+      - name: Package (Linux tar.gz)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          cd publish/${{ matrix.rid }} && tar czf ../../ArkPlot_${VERSION}_${{ matrix.rid }}${{ matrix.archive_ext }} *
+
+      - name: Package (macOS tar.gz)
+        if: matrix.os == 'macos-latest'
+        run: |
+          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          cd publish/${{ matrix.rid }} && tar czf ../../ArkPlot_${VERSION}_${{ matrix.rid }}${{ matrix.archive_ext }} *
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ArkPlot_*${{ matrix.rid }}${{ matrix.archive_ext }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            echo "body=🎉 首个发布版本" >> $GITHUB_OUTPUT
+          else
+            BODY=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            echo "body<<EOF" >> $GITHUB_OUTPUT
+            echo "## 自 ${PREV_TAG} 以来的更改" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "$BODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ArkPlot ${{ github.ref_name }}
+          body: ${{ steps.release_notes.outputs.body }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/*

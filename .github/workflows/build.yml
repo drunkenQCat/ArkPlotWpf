@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - ci/*
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            ext: .exe
+          - os: ubuntu-latest
+            rid: linux-x64
+            ext: ''
+          - os: macos-latest
+            rid: osx-x64
+            ext: ''
+    runs-on: ${{ matrix.os }}
+
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      Project_Path: ArkPlot.Avalonia/ArkPlot.Avalonia.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.Project_Path }} -r ${{ matrix.rid }}
+
+      - name: Build
+        run: dotnet build ${{ env.Project_Path }} -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ${{ env.Project_Path }} -c Release --no-build -r ${{ matrix.rid }} --self-contained false -o publish/${{ matrix.rid }}
+
+      - name: Upload windows artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkPlot-win-x64
+          path: publish/win-x64/
+
+      - name: Upload linux artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkPlot-linux-x64
+          path: publish/linux-x64/
+
+      - name: Upload mac artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkPlot-osx-x64
+          path: publish/osx-x64/
