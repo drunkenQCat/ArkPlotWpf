@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ArkPlot.Avalonia.Services;
@@ -13,6 +14,7 @@ using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
+using ArkPlot.Novelizer;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -53,6 +55,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool isLocalResChecked;
+
+    [ObservableProperty]
+    private bool isNovelizerEnabled;
+
+    [ObservableProperty]
+    private string[] modelOptions = ["deepseek-v4-pro", "deepseek-v4-flash"];
+
+    [ObservableProperty]
+    private int selectedModelIndex;
 
     [ObservableProperty]
     private string jsonPath = Path.Combine(AppContext.BaseDirectory, "tags.json");
@@ -269,11 +280,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
         PrepareLoading();
         var content = new AkpStoryLoader(CurrentAct);
-        await LoadAllChapters(content, selectedChapters);
-        await PreloadResources(content);
-        await StartParseDocuments(content);
-        await ExportDocuments(content);
-        await CompleteLoading();
+        try
+        {
+            await LoadAllChapters(content, selectedChapters);
+            await PreloadResources(content);
+            await StartParseDocuments(content);
+            await ExportDocuments(content);
+            await RunNovelizerIfEnabled();
+            await CompleteLoading();
+        }
+        finally
+        {
+            IsInitialized = true;
+        }
     }
 
     private void PrepareLoading()
@@ -369,6 +388,47 @@ public partial class MainWindowViewModel : ViewModelBase
             OutputPath = resultFolder.FirstOrDefault()!.Path.LocalPath;
     }
 
+    private async Task RunNovelizerIfEnabled()
+    {
+        if (!IsNovelizerEnabled) return;
+
+        var apiKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            noticeBlock.RaiseCommonEvent("❌ 未配置 DASHSCOPE_API_KEY 环境变量，跳过小说生成。");
+            return;
+        }
+
+        if (SelectedModelIndex < 0 || SelectedModelIndex >= ModelOptions.Length)
+        {
+            noticeBlock.RaiseCommonEvent("❌ 未选择模型，跳过小说生成。");
+            return;
+        }
+
+        var model = ModelOptions[SelectedModelIndex];
+        noticeBlock.RaiseCommonEvent($"正在使用 {model} 生成小说...");
+
+        try
+        {
+            var config = new BailianConfig { ApiKey = apiKey };
+            using var http = new HttpClient();
+            var client = new BailianClient(http, config);
+            var pipeline = new NovelizerPipeline(client, config);
+
+            await pipeline.BatchProcessAsync(outputPathOfCurrentStory, [model], force: false);
+
+            noticeBlock.RaiseCommonEvent($"✅ 小说生成完成，已保存至 {outputPathOfCurrentStory}");
+        }
+        catch (BailianException ex)
+        {
+            noticeBlock.RaiseCommonEvent($"❌ 小说生成失败: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            noticeBlock.RaiseCommonEvent($"❌ 小说生成出错: {ex.Message}");
+        }
+    }
+
     private async Task CompleteLoading()
     {
         var messageBox = MessageBoxManager.GetMessageBoxStandard(
@@ -386,7 +446,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             OpenOutputFolder();
         }
-        IsInitialized = true;
     }
 
     private void OpenOutputFolder()

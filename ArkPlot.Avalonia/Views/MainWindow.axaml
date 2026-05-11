@@ -228,9 +228,22 @@
                 <CheckBox
                     Content="生成时使用本地资源"
                     IsChecked="{Binding IsLocalResChecked}"
-                    Margin="0 -6 16 11"
+                    Margin="0 -6 16 6"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
+                <CheckBox
+                    Content="使用DS生成小说"
+                    IsChecked="{Binding IsNovelizerEnabled}"
+                    Margin="0 0 16 6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+                <ComboBox
+                    ItemsSource="{Binding ModelOptions}"
+                    SelectedIndex="{Binding SelectedModelIndex}"
+                    IsVisible="{Binding IsNovelizerEnabled}"
+                    Width="180"
+                    Margin="0 0 0 11"
+                    HorizontalAlignment="Center" />
             </StackPanel>
             <Border
                 Grid.Row="4" Margin="7" BorderThickness="2" BorderBrush="#7001"
