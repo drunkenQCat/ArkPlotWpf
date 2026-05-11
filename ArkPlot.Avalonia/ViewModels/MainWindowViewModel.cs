@@ -390,44 +390,70 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RunNovelizerIfEnabled()
     {
-        if (!IsNovelizerEnabled) return;
+        LogDiag("[RunNovelizer] 入口。IsNovelizerEnabled={0}", IsNovelizerEnabled);
+
+        if (!IsNovelizerEnabled)
+        {
+            LogDiag("[RunNovelizer] IsNovelizerEnabled=false，直接返回");
+            return;
+        }
 
         var apiKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
         if (string.IsNullOrEmpty(apiKey))
         {
             noticeBlock.RaiseCommonEvent("❌ 未配置 DASHSCOPE_API_KEY 环境变量，跳过小说生成。");
+            LogDiag("[RunNovelizer] API Key 为空，返回");
             return;
         }
+        LogDiag("[RunNovelizer] API Key 已获取，长度={0}", apiKey.Length);
 
         if (SelectedModelIndex < 0 || SelectedModelIndex >= ModelOptions.Length)
         {
             noticeBlock.RaiseCommonEvent("❌ 未选择模型，跳过小说生成。");
+            LogDiag("[RunNovelizer] SelectedModelIndex={0} 无效，返回", SelectedModelIndex);
             return;
         }
 
         var model = ModelOptions[SelectedModelIndex];
+        LogDiag("[RunNovelizer] model={0}，outputDir={1}", model, outputPathOfCurrentStory);
         noticeBlock.RaiseCommonEvent($"正在使用 {model} 生成小说...");
 
         try
         {
+            LogDiag("[RunNovelizer] 开始创建 BailianClient + NovelizerPipeline");
             var config = new BailianConfig { ApiKey = apiKey };
             using var http = new HttpClient();
             var log = (string msg) => noticeBlock.RaiseCommonEvent(msg);
             var client = new BailianClient(http, config, onLog: log);
             var pipeline = new NovelizerPipeline(client, config, onLog: log);
+            LogDiag("[RunNovelizer] 对象创建完成，即将调用 BatchProcessAsync");
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             await pipeline.BatchProcessAsync(outputPathOfCurrentStory, [model], force: false);
+            sw.Stop();
+            LogDiag("[RunNovelizer] BatchProcessAsync 返回，耗时 {0}s", sw.Elapsed.TotalSeconds);
 
             noticeBlock.RaiseCommonEvent($"✅ 小说生成完成，已保存至 {outputPathOfCurrentStory}");
         }
         catch (BailianException ex)
         {
+            LogDiag("[RunNovelizer] 捕获 BailianException: {0}", ex.Message);
             noticeBlock.RaiseCommonEvent($"❌ 小说生成失败: {ex.Message}");
         }
         catch (Exception ex)
         {
+            LogDiag("[RunNovelizer] 捕获 Exception({1}): {0}", ex.Message, ex.GetType().Name);
             noticeBlock.RaiseCommonEvent($"❌ 小说生成出错: {ex.Message}");
         }
+
+        LogDiag("[RunNovelizer] 执行完毕，即将返回到 LoadMd");
+    }
+
+    // 纯诊断日志，加 [DIAG] 标记，仅用于排查问题
+    private void LogDiag(string format, params object?[] args)
+    {
+        var msg = "[DIAG] " + string.Format(format, args);
+        noticeBlock.RaiseCommonEvent(msg);
     }
 
     private async Task CompleteLoading()

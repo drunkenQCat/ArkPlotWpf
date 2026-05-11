@@ -57,16 +57,25 @@ public partial class NovelizerPipeline
     /// </summary>
     public async Task<string> ProcessMdFileAsync(string mdPath, string model, string outputDir)
     {
+        Log($"[DIAG] ProcessMdFileAsync 开始。file={Path.GetFileName(mdPath)}, model={model}");
+
+        Log($"[DIAG] 读取文件...");
         var mdContent = File.ReadAllText(mdPath);
+        Log($"[DIAG] 文件读取完成，{mdContent.Length} 字符");
+
         var novelPath = ChapterCache.GetNovelPath(mdPath, model);
 
+        Log($"[DIAG] 预处理（去 HTML）...");
         var processed = MarkdownBuilder.PreprocessMdContent(mdContent);
+        Log($"[DIAG] 预处理完成，{processed.Length} 字符（原始 {mdContent.Length}）");
 
         // 拆章
+        Log($"[DIAG] 按 ## 标题拆章...");
         var rawChapters = ChapterSplitRegex().Split(processed)
             .Select(s => s.Trim())
             .Where(s => s.Length > 0)
             .ToList();
+        Log($"[DIAG] 拆分为 {rawChapters.Count} 章");
 
         Log($"\n{'='*60}");
         Log($"📖 模型: {model}");
@@ -80,22 +89,28 @@ public partial class NovelizerPipeline
         for (int i = 0; i < rawChapters.Count; i++)
         {
             var chunk = rawChapters[i];
-            // 第一行是 ## 标题
             var lines = chunk.Split('\n', 2);
             var title = lines[0].TrimStart('#', ' ').Trim();
             var body = lines.Length > 1 ? lines[1].Trim() : "";
 
+            Log($"[DIAG] 第 {i+1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
+
             if (string.IsNullOrEmpty(body))
             {
                 Log($"⏭️  第 {i + 1}/{rawChapters.Count} 章「{title}」无正文，跳过。");
+                Log($"[DIAG] 跳过（无正文）");
                 continue;
             }
 
             Log($"\n--- 第 {i + 1}/{rawChapters.Count} 章: {title} ({body.Length} 字符) ---");
+            Log($"[DIAG] 即将调用 ChatAsync for 第 {i+1} 章「{title}」");
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 var result = await _client.ChatAsync(model, SystemPrompt, body);
+                sw.Stop();
+                Log($"[DIAG] ChatAsync 返回，耗时 {sw.Elapsed.TotalSeconds:F1}s");
 
                 allParts.Add($"## {title}\n\n{result.AnswerContent}");
 
@@ -104,16 +119,21 @@ public partial class NovelizerPipeline
                     totalPrompt += result.Usage.PromptTokens;
                     totalCompletion += result.Usage.CompletionTokens;
                     Log($"✅ Token: 入 {result.Usage.PromptTokens} / 出 {result.Usage.CompletionTokens}");
+                    Log($"[DIAG] 第 {i+1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
                 }
             }
             catch (BailianException ex)
             {
+                sw.Stop();
+                Log($"[DIAG] ChatAsync 抛出 BailianException（{sw.Elapsed.TotalSeconds:F1}s）: {ex.Message}");
                 LogError($"❌ 第 {i + 1} 章失败: {ex.Message}");
                 allParts.Add($"## {title}\n\n> *（本章生成失败：{ex.Message}）*");
             }
         }
 
+        Log($"[DIAG] 所有章节处理完成，共 {rawChapters.Count} 章，开始写入文件...");
         File.WriteAllText(novelPath, string.Join("\n\n", allParts));
+        Log($"[DIAG] 写入完成: {novelPath}");
 
         Log($"\n{'='*60}");
         Log($"📊 总计 Token: 入 {totalPrompt} / 出 {totalCompletion} / 共 {totalPrompt + totalCompletion}");
@@ -158,35 +178,49 @@ public partial class NovelizerPipeline
         string inputDir, string[] models, bool force, string? outputDir = null)
     {
         outputDir ??= inputDir;
+        Log($"[DIAG] BatchProcessAsync 开始。dir={inputDir}, models=[{string.Join(", ", models)}], force={force}");
+
         var cache = new ChapterCache(outputDir);
 
+        Log($"[DIAG] 扫描 .md 文件: {inputDir}");
         var mdFiles = Directory.GetFiles(inputDir, "*.md", SearchOption.TopDirectoryOnly);
         if (mdFiles.Length == 0)
         {
             Log($"❌ 目录中没有 .md 文件: {inputDir}");
+            Log($"[DIAG] 无 .md 文件，BatchProcessAsync 返回");
             return;
         }
 
         Log($"📂 发现 {mdFiles.Length} 个 .md 文件");
+        Log($"[DIAG] 文件列表: {string.Join(", ", mdFiles.Select(Path.GetFileName))}");
 
         foreach (var mdFile in mdFiles.OrderBy(f => f))
         {
+            var fn = Path.GetFileName(mdFile);
             foreach (var model in models)
             {
+                Log($"[DIAG] Batch 处理: file={fn}, model={model}");
+
                 var cached = cache.Check(mdFile, model, force);
                 if (cached is not null)
                 {
                     Log($"⏭️  跳过（缓存命中）: {Path.GetFileName(cached)}");
+                    Log($"[DIAG] 缓存命中，跳过: {fn}");
                     continue;
                 }
 
+                Log($"[DIAG] 调用 ProcessMdFileAsync: {fn}, {model}");
                 try
                 {
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
                     await ProcessMdFileAsync(mdFile, model, outputDir);
+                    sw.Stop();
+                    Log($"[DIAG] ProcessMdFileAsync 返回成功，{fn} 耗时 {sw.Elapsed.TotalSeconds:F1}s");
                     cache.Update(mdFile, model);
                 }
                 catch (BailianException ex)
                 {
+                    Log($"[DIAG] ProcessMdFileAsync 抛出 BailianException: {fn}, {model}, {ex.Message}");
                     LogError($"❌ [{model}] 失败: {ex.Message}");
                     var failedLog = Path.Combine(outputDir, "failed.txt");
                     File.AppendAllText(failedLog,
@@ -196,5 +230,6 @@ public partial class NovelizerPipeline
         }
 
         Log("\n🏁 批处理完成");
+        Log("[DIAG] BatchProcessAsync 执行完毕");
     }
 }
