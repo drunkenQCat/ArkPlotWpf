@@ -92,11 +92,11 @@ public abstract class AkpProcessor
         body = $"<body>{body}</body>";
         title = $"<title>{title}</title>";
         // 读取头部和尾部
-        var head = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "assets/head.html"));
+        var head = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Assets/head.html"));
         head = $"<head>{head}{title}</head>";
         var html = $"<html>{head}{body}</html>";
         html = "<!doctype html>" + html;
-        var tail = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "assets/tail.html"));
+        var tail = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Assets/tail.html"));
         html += tail;
         return html;
     }
