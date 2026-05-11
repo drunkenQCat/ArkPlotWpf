@@ -9,6 +9,7 @@ public class BailianClient
 {
     private readonly HttpClient _http;
     private readonly BailianConfig _config;
+    private readonly Action<string>? _onLog;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -16,14 +17,28 @@ public class BailianClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public BailianClient(HttpClient http, BailianConfig config)
+    /// <param name="onLog">可选日志回调，同时写入 Console 和此回调（用于 Avalonia UI 同步）</param>
+    public BailianClient(HttpClient http, BailianConfig config, Action<string>? onLog = null)
     {
         _http = http;
         _config = config;
+        _onLog = onLog;
         _http.BaseAddress = new Uri(config.BaseUrl.EndsWith('/') ? config.BaseUrl : config.BaseUrl + "/");
         _http.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", config.ApiKey);
         _http.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
+    }
+
+    private void Log(string msg)
+    {
+        Console.WriteLine(msg);
+        _onLog?.Invoke(msg);
+    }
+
+    private void LogError(string msg)
+    {
+        Console.Error.WriteLine(msg);
+        _onLog?.Invoke(msg);
     }
 
     /// <summary>
@@ -67,7 +82,7 @@ public class BailianClient
             if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
             {
                 var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
-                Console.Error.WriteLine($"  [{model}] {response.StatusCode}，{delay.TotalSeconds}s 后重试 ({attempt}/{_config.MaxRetries})...");
+                LogError($"  [{model}] {response.StatusCode}，{delay.TotalSeconds}s 后重试 ({attempt}/{_config.MaxRetries})...");
                 await Task.Delay(delay);
                 continue;
             }

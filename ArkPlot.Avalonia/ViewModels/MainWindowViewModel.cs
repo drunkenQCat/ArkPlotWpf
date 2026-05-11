@@ -412,8 +412,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var config = new BailianConfig { ApiKey = apiKey };
             using var http = new HttpClient();
-            var client = new BailianClient(http, config);
-            var pipeline = new NovelizerPipeline(client, config);
+            var log = (string msg) => noticeBlock.RaiseCommonEvent(msg);
+            var client = new BailianClient(http, config, onLog: log);
+            var pipeline = new NovelizerPipeline(client, config, onLog: log);
 
             await pipeline.BatchProcessAsync(outputPathOfCurrentStory, [model], force: false);
 
