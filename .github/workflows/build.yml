@@ -13,6 +13,7 @@ jobs:
   build:
     name: Build (${{ matrix.os }})
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -51,17 +52,8 @@ jobs:
       - name: Restore
         run: dotnet restore ${{ env.Project_Path }} -r ${{ matrix.rid }}
 
-      - name: Build & Publish (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Build & Publish
         run: dotnet publish ${{ env.Project_Path }} -c Release -r ${{ matrix.rid }} --self-contained false -o publish/${{ matrix.rid }}
-
-      - name: Build & Publish (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: dotnet publish ${{ env.Project_Path }} -c Release -r ${{ matrix.rid }} -p:OutputType=Exe --self-contained false -o publish/${{ matrix.rid }}
-
-      - name: Build & Publish (macOS)
-        if: matrix.os == 'macos-latest'
-        run: dotnet publish ${{ env.Project_Path }} -c Release -r ${{ matrix.rid }} -p:OutputType=Exe --self-contained false -o publish/${{ matrix.rid }}
 
       - name: Upload windows artifact
         if: matrix.os == 'windows-latest'
