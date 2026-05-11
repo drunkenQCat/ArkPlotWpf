@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Model;
@@ -17,6 +18,7 @@ using ArkPlot.Core.Utilities.WorkFlow;
 using ArkPlot.Novelizer;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -291,7 +293,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         finally
         {
-            IsInitialized = true;
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(() => IsInitialized = true);
         }
     }
 
@@ -423,7 +425,10 @@ public partial class MainWindowViewModel : ViewModelBase
             LogDiag("[RunNovelizer] 开始创建 BailianClient + NovelizerPipeline");
             var config = new BailianConfig { ApiKey = apiKey };
             using var http = new HttpClient();
-            var log = (string msg) => noticeBlock.RaiseCommonEvent(msg);
+            var log = (string msg) =>
+            {
+                global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => noticeBlock.RaiseCommonEvent(msg));
+            };
             var client = new BailianClient(http, config, onLog: log);
             var pipeline = new NovelizerPipeline(client, config, onLog: log);
             LogDiag("[RunNovelizer] 对象创建完成，即将调用 BatchProcessAsync");
@@ -434,6 +439,32 @@ public partial class MainWindowViewModel : ViewModelBase
             LogDiag("[RunNovelizer] BatchProcessAsync 返回，耗时 {0}s", sw.Elapsed.TotalSeconds);
 
             noticeBlock.RaiseCommonEvent($"✅ 小说生成完成，已保存至 {outputPathOfCurrentStory}");
+
+            // 将小说 MD 也转换为 HTML
+            try
+            {
+                var novelMdFiles = Directory.GetFiles(outputPathOfCurrentStory, "*_novel_*.md");
+                LogDiag("[RunNovelizer] 找到 {0} 个小说 MD，开始转 HTML", novelMdFiles.Length);
+                foreach (var mdPath in novelMdFiles)
+                {
+                    var novelTitle = Path.GetFileNameWithoutExtension(mdPath);
+                    var novelContent = File.ReadAllText(mdPath);
+                    var novelPlot = new Plot(novelTitle, new StringBuilder(novelContent));
+
+                    if (IsLocalResChecked)
+                        AkpProcessor.WriteHtmlWithLocalRes(outputPathOfCurrentStory, novelPlot);
+                    else
+                        AkpProcessor.WriteHtml(outputPathOfCurrentStory, novelPlot);
+
+                    LogDiag("[RunNovelizer] HTML 已生成: {0}.html", novelTitle);
+                    noticeBlock.RaiseCommonEvent($"📄 小说HTML已生成: {novelTitle}.html");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogDiag("[RunNovelizer] HTML 生成过程异常: {0}", ex.Message);
+                noticeBlock.RaiseCommonEvent($"⚠️ 小说HTML生成失败: {ex.Message}");
+            }
         }
         catch (BailianException ex)
         {

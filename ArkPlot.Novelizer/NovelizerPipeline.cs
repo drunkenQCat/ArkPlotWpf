@@ -83,53 +83,77 @@ public partial class NovelizerPipeline
         Log($"📝 输出: {Path.GetFileName(novelPath)}");
         Log($"{'='*60}");
 
-        var allParts = new List<string>();
+        var semaphore = new SemaphoreSlim(3);
+        var results = new Dictionary<int, string>();
+        var tasks = new List<Task>();
         int totalPrompt = 0, totalCompletion = 0;
+        var tokenLock = new object();
 
         for (int i = 0; i < rawChapters.Count; i++)
         {
-            var chunk = rawChapters[i];
+            var idx = i;
+            var chunk = rawChapters[idx];
             var lines = chunk.Split('\n', 2);
             var title = lines[0].TrimStart('#', ' ').Trim();
             var body = lines.Length > 1 ? lines[1].Trim() : "";
 
-            Log($"[DIAG] 第 {i+1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
+            Log($"[DIAG] 第 {idx+1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
 
             if (string.IsNullOrEmpty(body))
             {
-                Log($"⏭️  第 {i + 1}/{rawChapters.Count} 章「{title}」无正文，跳过。");
+                Log($"⏭️  第 {idx + 1}/{rawChapters.Count} 章「{title}」无正文，跳过。");
                 Log($"[DIAG] 跳过（无正文）");
+                results[idx] = $"## {title}\n\n> *（本章无正文）*";
                 continue;
             }
 
-            Log($"\n--- 第 {i + 1}/{rawChapters.Count} 章: {title} ({body.Length} 字符) ---");
-            Log($"[DIAG] 即将调用 ChatAsync for 第 {i+1} 章「{title}」");
-
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            try
+            tasks.Add(Task.Run(async () =>
             {
-                var result = await _client.ChatAsync(model, SystemPrompt, body);
-                sw.Stop();
-                Log($"[DIAG] ChatAsync 返回，耗时 {sw.Elapsed.TotalSeconds:F1}s");
-
-                allParts.Add($"## {title}\n\n{result.AnswerContent}");
-
-                if (result.Usage is not null)
+                await semaphore.WaitAsync();
+                try
                 {
-                    totalPrompt += result.Usage.PromptTokens;
-                    totalCompletion += result.Usage.CompletionTokens;
-                    Log($"✅ Token: 入 {result.Usage.PromptTokens} / 出 {result.Usage.CompletionTokens}");
-                    Log($"[DIAG] 第 {i+1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
+                    Log($"\n--- 第 {idx + 1}/{rawChapters.Count} 章: {title} ({body.Length} 字符) ---");
+                    Log($"[DIAG] 即将调用 ChatAsync for 第 {idx+1} 章「{title}」");
+
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    try
+                    {
+                        var result = await _client.ChatAsync(model, SystemPrompt, body);
+                        sw.Stop();
+                        Log($"[DIAG] ChatAsync 返回，耗时 {sw.Elapsed.TotalSeconds:F1}s");
+
+                        results[idx] = $"## {title}\n\n{result.AnswerContent}";
+
+                        if (result.Usage is not null)
+                        {
+                            lock (tokenLock)
+                            {
+                                totalPrompt += result.Usage.PromptTokens;
+                                totalCompletion += result.Usage.CompletionTokens;
+                            }
+                            Log($"✅ Token: 入 {result.Usage.PromptTokens} / 出 {result.Usage.CompletionTokens}");
+                            Log($"[DIAG] 第 {idx+1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
+                        }
+                    }
+                    catch (BailianException ex)
+                    {
+                        sw.Stop();
+                        Log($"[DIAG] ChatAsync 抛出 BailianException（{sw.Elapsed.TotalSeconds:F1}s）: {ex.Message}");
+                        LogError($"❌ 第 {idx + 1} 章失败: {ex.Message}");
+                        results[idx] = $"## {title}\n\n> *（本章生成失败：{ex.Message}）*";
+                    }
                 }
-            }
-            catch (BailianException ex)
-            {
-                sw.Stop();
-                Log($"[DIAG] ChatAsync 抛出 BailianException（{sw.Elapsed.TotalSeconds:F1}s）: {ex.Message}");
-                LogError($"❌ 第 {i + 1} 章失败: {ex.Message}");
-                allParts.Add($"## {title}\n\n> *（本章生成失败：{ex.Message}）*");
-            }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }));
         }
+
+        await Task.WhenAll(tasks);
+
+        // 按原始顺序组装
+        var allParts = results.OrderBy(kv => kv.Key).Select(kv => kv.Value).ToList();
 
         Log($"[DIAG] 所有章节处理完成，共 {rawChapters.Count} 章，开始写入文件...");
         File.WriteAllText(novelPath, string.Join("\n\n", allParts));
