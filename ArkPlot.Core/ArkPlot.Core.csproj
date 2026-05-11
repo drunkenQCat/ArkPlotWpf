@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <IsPublishable>false</IsPublishable>
     <Title>ArkPlot.Core</Title>
     <Authors>QuantumCat</Authors>
     <Version>1.1.3</Version>
