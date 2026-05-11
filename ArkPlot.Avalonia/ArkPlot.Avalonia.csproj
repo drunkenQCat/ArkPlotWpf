@@ -45,8 +45,8 @@
   </Target>
   <Target Name="CopyFilesAfterPub" AfterTargets="Publish">
     <Copy SourceFiles="tags.json" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="assets\head.html" DestinationFolder="$(PublishDir)\assets" />
-    <Copy SourceFiles="assets\tail.html" DestinationFolder="$(PublishDir)\assets" />
+    <Copy SourceFiles="assets/head.html" DestinationFolder="$(PublishDir)/assets" />
+    <Copy SourceFiles="assets/tail.html" DestinationFolder="$(PublishDir)/assets" />
   </Target>
 
   <Target Name="CopyTypstTemplate" AfterTargets="Build">
