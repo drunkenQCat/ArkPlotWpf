@@ -10,7 +10,7 @@ namespace ArkPlot.Novelizer;
 public partial class NovelizerPipeline
 {
     private readonly BailianClient _client;
-    private readonly BailianConfig _config;
+    private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
 
     private const string SystemPrompt = """
@@ -29,7 +29,7 @@ public partial class NovelizerPipeline
     private static partial Regex ChapterSplitRegex();
 
     /// <param name="onLog">可选日志回调，同时写入 Console 和此回调（用于 Avalonia UI 同步）</param>
-    public NovelizerPipeline(BailianClient client, BailianConfig config, Action<string>? onLog = null)
+    public NovelizerPipeline(BailianClient client, ApiConfig config, Action<string>? onLog = null)
     {
         _client = client;
         _config = config;

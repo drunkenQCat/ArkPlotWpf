@@ -8,7 +8,7 @@ namespace ArkPlot.Novelizer;
 public class BailianClient
 {
     private readonly HttpClient _http;
-    private readonly BailianConfig _config;
+    private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -17,8 +17,7 @@ public class BailianClient
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    /// <param name="onLog">可选日志回调，同时写入 Console 和此回调（用于 Avalonia UI 同步）</param>
-    public BailianClient(HttpClient http, BailianConfig config, Action<string>? onLog = null)
+    public BailianClient(HttpClient http, ApiConfig config, Action<string>? onLog = null)
     {
         _http = http;
         _config = config;
@@ -57,7 +56,12 @@ public class BailianClient
                 new { role = "user", content = userContent }
             },
             max_tokens = _config.MaxTokens,
-            extra_body = new { enable_thinking = _config.EnableThinking }
+            reasoning_effort = _config.Provider == ApiProvider.DeepSeek ? "high" : null,
+            extra_body = _config.Provider switch
+            {
+                ApiProvider.DeepSeek => (object)new { thinking = new { type = "enabled" } },
+                _ => new { enable_thinking = _config.EnableThinking }
+            }
         };
 
         var json = JsonSerializer.Serialize(requestBody, JsonOptions);

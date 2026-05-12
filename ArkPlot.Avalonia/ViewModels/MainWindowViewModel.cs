@@ -68,6 +68,22 @@ public partial class MainWindowViewModel : ViewModelBase
     private int selectedModelIndex;
 
     [ObservableProperty]
+    private string[] providerOptions = [];
+
+    [ObservableProperty]
+    private int selectedProviderIndex;
+
+    /// <summary>
+    /// DeepSeek 官方 API Key（从环境变量 DEEPSEEK_API_KEY 读取）
+    /// </summary>
+    public string DeepSeekApiKey { get; private set; } = "";
+
+    /// <summary>
+    /// 百炼平台 API Key（从环境变量 DASHSCOPE_API_KEY 读取）
+    /// </summary>
+    public string BailianApiKey { get; private set; } = "";
+
+    [ObservableProperty]
     private string jsonPath = Path.Combine(AppContext.BaseDirectory, "tags.json");
 
     private string language = "zh_CN";
@@ -146,6 +162,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadInitResource()
     {
+        // 初始化 API Key
+        DeepSeekApiKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY") ?? "";
+        BailianApiKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
+        RefreshProviderOptions();
+
         SubscribeAll();
         await Task.Yield();
         Status = $"正在加载Prts资源索引...";
@@ -400,14 +421,21 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var apiKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
-        if (string.IsNullOrEmpty(apiKey))
+        if (ProviderOptions.Length == 0)
         {
-            noticeBlock.RaiseCommonEvent("❌ 未配置 DASHSCOPE_API_KEY 环境变量，跳过小说生成。");
-            LogDiag("[RunNovelizer] API Key 为空，返回");
+            noticeBlock.RaiseCommonEvent("❌ 未配置 DEEPSEEK_API_KEY 或 DASHSCOPE_API_KEY 环境变量。");
+            LogDiag("[RunNovelizer] 无可用平台");
             return;
         }
-        LogDiag("[RunNovelizer] API Key 已获取，长度={0}", apiKey.Length);
+
+        var selectedProviderName = SelectedProviderIndex >= 0 && SelectedProviderIndex < ProviderOptions.Length
+            ? ProviderOptions[SelectedProviderIndex] : ProviderOptions[0];
+        var (provider, apiKey, baseUrl) = selectedProviderName switch
+        {
+            "DeepSeek" => (ApiProvider.DeepSeek, DeepSeekApiKey, "https://api.deepseek.com"),
+            _ => (ApiProvider.Bailian, BailianApiKey, "https://dashscope.aliyuncs.com/compatible-mode/v1")
+        };
+        LogDiag("[RunNovelizer] provider={0}, apiKey长度={1}", provider, apiKey.Length);
 
         if (SelectedModelIndex < 0 || SelectedModelIndex >= ModelOptions.Length)
         {
@@ -423,7 +451,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             LogDiag("[RunNovelizer] 开始创建 BailianClient + NovelizerPipeline");
-            var config = new BailianConfig { ApiKey = apiKey };
+            var config = new ApiConfig { Provider = provider, ApiKey = apiKey, BaseUrl = baseUrl };
             using var http = new HttpClient();
             var log = (string msg) =>
             {
@@ -485,6 +513,19 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var msg = "[DIAG] " + string.Format(format, args);
         noticeBlock.RaiseCommonEvent(msg);
+    }
+
+    /// <summary>
+    /// 根据 DeepSeekApiKey / BailianApiKey 刷新 ProviderOptions 列表
+    /// </summary>
+    private void RefreshProviderOptions()
+    {
+        var available = new List<string>();
+        if (!string.IsNullOrEmpty(DeepSeekApiKey)) available.Add("DeepSeek");
+        if (!string.IsNullOrEmpty(BailianApiKey)) available.Add("百炼");
+        ProviderOptions = available.ToArray();
+        if (available.Count > 0)
+            SelectedProviderIndex = 0;
     }
 
     private async Task CompleteLoading()

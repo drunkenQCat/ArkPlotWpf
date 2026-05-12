@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 **/.vscode/
 **/output/
 *.db
+.env

@@ -8,6 +8,8 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
+        LoadEnvFile();
+
         if (args.Length == 0)
         {
             PrintUsage();
@@ -26,16 +28,17 @@ class Program
 
     static async Task<int> RunAsync(string[] args)
     {
-        var (input, compare, force) = ParseRunArgs(args);
-        var config = LoadConfig();
+        var (input, compare, force, model, provider) = ParseRunArgs(args);
+        var config = LoadConfig(provider);
 
         if (string.IsNullOrEmpty(config.ApiKey))
         {
-            Console.Error.WriteLine("❌ 未配置 API Key。请在 appsettings.json 中设置 Bailian:ApiKey 或设置环境变量 DASHSCOPE_API_KEY");
+            Console.Error.WriteLine("❌ 未配置 API Key。请设置 DEEPSEEK_API_KEY 或 DASHSCOPE_API_KEY 环境变量");
             return 1;
         }
 
-        var models = compare ? config.Models : [config.Models[0]];
+        var models = model is not null ? [model] : (compare ? config.Models : [config.Models[0]]);
+        Console.WriteLine($"🔌 平台: {config.Provider}, 模型: {string.Join(", ", models)}");
 
         using var http = new HttpClient();
         var client = new BailianClient(http, config);
@@ -49,14 +52,13 @@ class Program
         {
             if (input.EndsWith(".json"))
             {
-                // JSON 格式：反序列化为 FormattedTextEntry[] 后处理
                 var json = File.ReadAllText(input);
                 var entries = JsonSerializer.Deserialize<List<FormattedTextEntry>>(json) ?? [];
 
-                foreach (var model in models)
+                foreach (var m in models)
                 {
-                    var outputPath = Path.ChangeExtension(input, null) + $"_novel_{(model.Contains("flash") ? "flash" : "pro")}.md";
-                    await pipeline.ProcessEntriesAsync(entries, model, outputPath, Path.GetFileName(input));
+                    var outputPath = Path.ChangeExtension(input, null) + $"_novel_{(m.Contains("flash") ? "flash" : "pro")}.md";
+                    await pipeline.ProcessEntriesAsync(entries, m, outputPath, Path.GetFileName(input));
                 }
             }
             else if (input.EndsWith(".md"))
@@ -64,9 +66,9 @@ class Program
                 var dir = Path.GetDirectoryName(input) ?? ".";
                 var cache = new ChapterCache(dir);
 
-                foreach (var model in models)
+                foreach (var m in models)
                 {
-                    var cached = cache.Check(input, model, force);
+                    var cached = cache.Check(input, m, force);
                     if (cached is not null)
                     {
                         Console.WriteLine($"⏭️  跳过（缓存命中）: {Path.GetFileName(cached)}");
@@ -75,12 +77,12 @@ class Program
 
                     try
                     {
-                        await pipeline.ProcessMdFileAsync(input, model, dir);
-                        cache.Update(input, model);
+                        await pipeline.ProcessMdFileAsync(input, m, dir);
+                        cache.Update(input, m);
                     }
                     catch (BailianException ex)
                     {
-                        Console.Error.WriteLine($"❌ [{model}] 失败: {ex.Message}");
+                        Console.Error.WriteLine($"❌ [{m}] 失败: {ex.Message}");
                     }
                 }
             }
@@ -101,10 +103,10 @@ class Program
 
     static async Task<int> TestAsync(string[] args)
     {
-        var input = args.FirstOrDefault();
+        var (input, _, _, model, provider) = ParseRunArgs(args);
         if (string.IsNullOrEmpty(input))
         {
-            Console.Error.WriteLine("用法: Novelizer test <example_data.json>");
+            Console.Error.WriteLine("用法: Novelizer test <example_data.json> [--model flash|pro] [--provider deepseek|bailian]");
             return 1;
         }
 
@@ -114,12 +116,14 @@ class Program
             return 1;
         }
 
-        var config = LoadConfig();
+        var config = LoadConfig(provider);
         if (string.IsNullOrEmpty(config.ApiKey))
         {
             Console.Error.WriteLine("❌ 未配置 API Key");
             return 1;
         }
+
+        Console.WriteLine($"🔌 平台: {config.Provider}");
 
         var json = File.ReadAllText(input);
         var entries = JsonSerializer.Deserialize<List<FormattedTextEntry>>(json) ?? [];
@@ -135,42 +139,82 @@ class Program
         var client = new BailianClient(http, config);
         var pipeline = new NovelizerPipeline(client, config);
 
-        var proOutput = Path.ChangeExtension(input, null) + "_novel_pro.md";
-        await pipeline.ProcessEntriesAsync(entries, config.Models[0], proOutput, Path.GetFileName(input));
-
-        if (config.Models.Length > 1)
+        if (model is not null)
         {
-            var flashOutput = Path.ChangeExtension(input, null) + "_novel_flash.md";
-            await pipeline.ProcessEntriesAsync(entries, config.Models[1], flashOutput, Path.GetFileName(input));
+            // 单模型测试
+            var m = model.Contains("flash") ? config.Models.Last(m => m.Contains("flash")) : config.Models.First(m => !m.Contains("flash"));
+            var outputPath = Path.ChangeExtension(input, null) + $"_novel_{model}.md";
+            await pipeline.ProcessEntriesAsync(entries, m, outputPath, Path.GetFileName(input));
+        }
+        else
+        {
+            // 双模型对比
+            var proOutput = Path.ChangeExtension(input, null) + "_novel_pro.md";
+            await pipeline.ProcessEntriesAsync(entries, config.Models[0], proOutput, Path.GetFileName(input));
+
+            if (config.Models.Length > 1)
+            {
+                var flashOutput = Path.ChangeExtension(input, null) + "_novel_flash.md";
+                await pipeline.ProcessEntriesAsync(entries, config.Models[1], flashOutput, Path.GetFileName(input));
+            }
         }
 
         return 0;
     }
 
-    static BailianConfig LoadConfig()
+    static ApiConfig LoadConfig(string? providerOverride)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var dsKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY") ?? "";
+        var blKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
 
-        var config = new BailianConfig();
-        configuration.GetSection("Bailian").Bind(config);
+        var provider = providerOverride?.ToLowerInvariant() switch
+        {
+            "deepseek" or "ds" => ApiProvider.DeepSeek,
+            "bailian" or "bl" => ApiProvider.Bailian,
+            _ => (ApiProvider?)null
+        };
 
-        // 环境变量优先
-        var envKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY");
-        if (!string.IsNullOrEmpty(envKey))
-            config.ApiKey = envKey;
+        if (provider is null)
+        {
+            // 未指定 provider，自动检测
+            var bothAvailable = !string.IsNullOrEmpty(dsKey) && !string.IsNullOrEmpty(blKey);
+            if (bothAvailable)
+            {
+                throw new InvalidOperationException(
+                    "检测到 DEEPSEEK_API_KEY 和 DASHSCOPE_API_KEY 均已配置。请使用 --provider deepseek 或 --provider bailian 明确指定平台。");
+            }
 
-        return config;
+            if (!string.IsNullOrEmpty(dsKey))
+                provider = ApiProvider.DeepSeek;
+            else if (!string.IsNullOrEmpty(blKey))
+                provider = ApiProvider.Bailian;
+        }
+
+        return provider switch
+        {
+            ApiProvider.DeepSeek => new ApiConfig
+            {
+                Provider = ApiProvider.DeepSeek,
+                ApiKey = dsKey,
+                BaseUrl = "https://api.deepseek.com"
+            },
+            ApiProvider.Bailian => new ApiConfig
+            {
+                Provider = ApiProvider.Bailian,
+                ApiKey = blKey,
+                BaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+            },
+            _ => new ApiConfig()
+        };
     }
 
-    static (string input, bool compare, bool force) ParseRunArgs(string[] args)
+    static (string input, bool compare, bool force, string? model, string? provider) ParseRunArgs(string[] args)
     {
         var input = "";
         var compare = false;
         var force = false;
+        string? model = null;
+        string? provider = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -185,33 +229,76 @@ class Program
                 case "--force" or "-f":
                     force = true;
                     break;
+                case "--model" or "-m" when i + 1 < args.Length:
+                    model = args[++i].ToLowerInvariant();
+                    break;
+                case "--provider" or "-p" when i + 1 < args.Length:
+                    provider = args[++i].ToLowerInvariant();
+                    break;
                 default:
-                    // 可能是位置参数
                     if (!args[i].StartsWith("-") && string.IsNullOrEmpty(input))
                         input = args[i];
                     break;
             }
         }
 
-        return (input, compare, force);
+        return (input, compare, force, model, provider);
+    }
+
+    /// <summary>
+    /// 加载项目根目录下的 .env 文件，将 KEY=VALUE 行设为环境变量（不覆盖已存在的）
+    /// </summary>
+    static void LoadEnvFile()
+    {
+        // 从当前目录向上查找 .env
+        var dir = AppContext.BaseDirectory;
+        while (dir is not null)
+        {
+            var envPath = Path.Combine(dir, ".env");
+            if (File.Exists(envPath))
+            {
+                foreach (var line in File.ReadAllLines(envPath))
+                {
+                    var trimmed = line.Trim();
+                    if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#'))
+                        continue;
+                    var eq = trimmed.IndexOf('=');
+                    if (eq <= 0) continue;
+                    var key = trimmed[..eq].Trim();
+                    var value = trimmed[(eq + 1)..].Trim();
+                    if (Environment.GetEnvironmentVariable(key) is null)
+                        Environment.SetEnvironmentVariable(key, value);
+                }
+                Console.WriteLine($"📄 已加载 .env: {envPath}");
+                return;
+            }
+            dir = Path.GetDirectoryName(dir);
+        }
     }
 
     static void PrintUsage()
     {
-        Console.WriteLine("ArkPlot.Novelizer — 百炼 DeepSeek V4 小说化工具");
+        Console.WriteLine("ArkPlot.Novelizer — 百炼 / DeepSeek 小说化工具");
         Console.WriteLine();
         Console.WriteLine("用法:");
-        Console.WriteLine("  Novelizer run --input <path> [--compare] [--force]");
-        Console.WriteLine("  Novelizer test <example_data.json>");
+        Console.WriteLine("  Novelizer run --input <path> [--compare] [--force] [--model flash|pro] [--provider deepseek|bailian]");
+        Console.WriteLine("  Novelizer test <example_data.json> [--model flash|pro] [--provider deepseek|bailian]");
         Console.WriteLine();
         Console.WriteLine("命令:");
         Console.WriteLine("  run   从 .md 文件或 .json (FormattedTextEntry[]) 生成小说");
-        Console.WriteLine("  test  用 example_data.json 测试（生成 pro + flash 两个版本）");
+        Console.WriteLine("  test  用 example_data.json 测试");
         Console.WriteLine();
         Console.WriteLine("选项:");
-        Console.WriteLine("  --input, -i   输入文件(.md/.json) 或目录");
-        Console.WriteLine("  --compare, -c 并行调用 pro 和 flash 两个模型进行对比");
-        Console.WriteLine("  --force, -f   忽略缓存，强制重新生成");
+        Console.WriteLine("  --input, -i    输入文件(.md/.json) 或目录");
+        Console.WriteLine("  --compare, -c  并行调用 pro 和 flash 两个模型进行对比");
+        Console.WriteLine("  --force, -f    忽略缓存，强制重新生成");
+        Console.WriteLine("  --model, -m    指定模型 (flash / pro)");
+        Console.WriteLine("  --provider, -p 指定平台 (deepseek / bailian)");
+        Console.WriteLine();
+        Console.WriteLine("平台自动检测:");
+        Console.WriteLine("  仅 DEEPSEEK_API_KEY     → 自动使用 DeepSeek (api.deepseek.com)");
+        Console.WriteLine("  仅 DASHSCOPE_API_KEY    → 自动使用百炼 (dashscope.aliyuncs.com)");
+        Console.WriteLine("  两者都配置              → 必须用 --provider 显式指定");
     }
 
     static int PrintUsageWithError(string error)

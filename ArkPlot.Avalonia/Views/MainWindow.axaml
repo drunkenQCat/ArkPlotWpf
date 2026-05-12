@@ -242,6 +242,13 @@
                     SelectedIndex="{Binding SelectedModelIndex}"
                     IsVisible="{Binding IsNovelizerEnabled}"
                     Width="180"
+                    Margin="0 0 0 6"
+                    HorizontalAlignment="Center" />
+                <ComboBox
+                    ItemsSource="{Binding ProviderOptions}"
+                    SelectedIndex="{Binding SelectedProviderIndex}"
+                    IsVisible="{Binding IsNovelizerEnabled}"
+                    Width="180"
                     Margin="0 0 0 11"
                     HorizontalAlignment="Center" />
             </StackPanel>

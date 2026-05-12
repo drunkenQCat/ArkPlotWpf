@@ -1,9 +1,12 @@
 namespace ArkPlot.Novelizer;
 
-public class BailianConfig
+public enum ApiProvider { Bailian, DeepSeek }
+
+public class ApiConfig
 {
+    public ApiProvider Provider { get; set; } = ApiProvider.DeepSeek;
     public string ApiKey { get; set; } = "";
-    public string BaseUrl { get; set; } = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    public string BaseUrl { get; set; } = "https://api.deepseek.com";
     public string[] Models { get; set; } = ["deepseek-v4-pro", "deepseek-v4-flash"];
     public bool EnableThinking { get; set; } = true;
     public int MaxRetries { get; set; } = 3;
