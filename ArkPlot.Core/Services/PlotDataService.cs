@@ -78,6 +78,7 @@ public class PlotDataService : IDisposable
             Dialog TEXT,
             PngIndex INTEGER,
             Bg TEXT,
+            PicDesc TEXT,
             ResourceUrls TEXT,
             PortraitsInfo TEXT,
             CommandSet TEXT,
@@ -85,6 +86,19 @@ public class PlotDataService : IDisposable
         );
         """;
         entryCommand.ExecuteNonQuery();
+
+        // 如果表已存在但没有 PicDesc 列，添加它
+        using var alterCommand = _connection.CreateCommand();
+        alterCommand.CommandText = """
+        SELECT COUNT(*) FROM pragma_table_info('FormattedTextEntries') WHERE name='PicDesc'
+        """;
+        var columnExists = Convert.ToInt64(alterCommand.ExecuteScalar()) > 0;
+        if (!columnExists)
+        {
+            using var addColumnCommand = _connection.CreateCommand();
+            addColumnCommand.CommandText = "ALTER TABLE FormattedTextEntries ADD COLUMN PicDesc TEXT DEFAULT ''";
+            addColumnCommand.ExecuteNonQuery();
+        }
     }
 
     private long GetActId(string actName)
@@ -148,9 +162,9 @@ public class PlotDataService : IDisposable
             var entryCommand = _connection.CreateCommand();
             entryCommand.CommandText = """
             INSERT INTO FormattedTextEntries
-            (PlotId, IndexNo, OriginalText, MdText, MdDuplicateCounter, TypText, Type, IsTagOnly, CharacterName, Dialog, PngIndex, Bg, ResourceUrls, PortraitsInfo, CommandSet)
+            (PlotId, IndexNo, OriginalText, MdText, MdDuplicateCounter, TypText, Type, IsTagOnly, CharacterName, Dialog, PngIndex, Bg, PicDesc, ResourceUrls, PortraitsInfo, CommandSet)
             VALUES
-            (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type, @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @ResourceUrls, @PortraitsInfo, @CommandSet)
+            (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type, @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @PicDesc, @ResourceUrls, @PortraitsInfo, @CommandSet)
             """;
             entryCommand.Parameters.AddWithValue("@PlotId", plotId);
             entryCommand.Parameters.AddWithValue("@IndexNo", entry.Index);
@@ -164,6 +178,7 @@ public class PlotDataService : IDisposable
             entryCommand.Parameters.AddWithValue("@Dialog", entry.Dialog);
             entryCommand.Parameters.AddWithValue("@PngIndex", entry.PngIndex);
             entryCommand.Parameters.AddWithValue("@Bg", entry.Bg);
+            entryCommand.Parameters.AddWithValue("@PicDesc", entry.PicDesc);
             entryCommand.Parameters.AddWithValue("@ResourceUrls", JsonSerializer.Serialize(entry.ResourceUrls));
             entryCommand.Parameters.AddWithValue("@PortraitsInfo", JsonSerializer.Serialize(entry.PortraitsInfo));
             entryCommand.Parameters.AddWithValue("@CommandSet", JsonSerializer.Serialize(entry.CommandSet));
@@ -212,6 +227,7 @@ public class PlotDataService : IDisposable
                 Dialog = entryReader.GetString(entryReader.GetOrdinal("Dialog")),
                 PngIndex = entryReader.GetInt32(entryReader.GetOrdinal("PngIndex")),
                 Bg = entryReader.GetString(entryReader.GetOrdinal("Bg")),
+                PicDesc = entryReader.IsDBNull(entryReader.GetOrdinal("PicDesc")) ? "" : entryReader.GetString(entryReader.GetOrdinal("PicDesc")),
                 // 处理可能的 null 引用赋值，若反序列化结果为 null，则使用默认值
                 ResourceUrls = JsonSerializer.Deserialize<List<string>>(entryReader.GetString(entryReader.GetOrdinal("ResourceUrls"))) ?? [],
                 // 处理可能的 null 引用赋值，若反序列化结果为 null，则使用默认值
@@ -266,11 +282,11 @@ public class PlotDataService : IDisposable
                 var entryCommand = _connection.CreateCommand();
                 entryCommand.CommandText = """
                 INSERT INTO FormattedTextEntries
-                (PlotId, IndexNo, OriginalText, MdText, MdDuplicateCounter, TypText, Type, 
-                 IsTagOnly, CharacterName, Dialog, PngIndex, Bg, ResourceUrls, PortraitsInfo, CommandSet)
+                (PlotId, IndexNo, OriginalText, MdText, MdDuplicateCounter, TypText, Type,
+                 IsTagOnly, CharacterName, Dialog, PngIndex, Bg, PicDesc, ResourceUrls, PortraitsInfo, CommandSet)
                 VALUES
-                (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type, 
-                 @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @ResourceUrls, @PortraitsInfo, @CommandSet)
+                (@PlotId, @IndexNo, @OriginalText, @MdText, @MdDuplicateCounter, @TypText, @Type,
+                 @IsTagOnly, @CharacterName, @Dialog, @PngIndex, @Bg, @PicDesc, @ResourceUrls, @PortraitsInfo, @CommandSet)
                 """;
 
                 entryCommand.Parameters.AddWithValue("@PlotId", plotId);
@@ -285,6 +301,7 @@ public class PlotDataService : IDisposable
                 entryCommand.Parameters.AddWithValue("@Dialog", entry.Dialog);
                 entryCommand.Parameters.AddWithValue("@PngIndex", entry.PngIndex);
                 entryCommand.Parameters.AddWithValue("@Bg", entry.Bg);
+                entryCommand.Parameters.AddWithValue("@PicDesc", entry.PicDesc);
                 entryCommand.Parameters.AddWithValue("@ResourceUrls", JsonSerializer.Serialize(entry.ResourceUrls));
                 entryCommand.Parameters.AddWithValue("@PortraitsInfo", JsonSerializer.Serialize(entry.PortraitsInfo));
                 entryCommand.Parameters.AddWithValue("@CommandSet", JsonSerializer.Serialize(entry.CommandSet));

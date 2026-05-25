@@ -1,0 +1,267 @@
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace ArkPlot.Vision;
+
+/// <summary>
+/// 百炼平台（DashScope）视觉模型客户端，支持通过 HTTP URL 或 Base64 描述图片。
+/// 参照 ArkPlot.Novelizer.BailianClient 的调用模式，使用 OpenAI 兼容接口。
+/// </summary>
+public class BailianVisionClient : IDisposable
+{
+    private readonly HttpClient _http;
+    private readonly BailianVisionConfig _config;
+    private readonly Action<string>? _onLog;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
+    public BailianVisionClient(BailianVisionConfig? config = null, Action<string>? onLog = null)
+    {
+        _config = config ?? new BailianVisionConfig();
+        _onLog = onLog;
+        _http = new HttpClient
+        {
+            BaseAddress = new Uri(_config.BaseUrl.EndsWith('/') ? _config.BaseUrl : _config.BaseUrl + "/"),
+            Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds)
+        };
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config.ApiKey);
+    }
+
+    /// <summary>
+    /// 允许外部注入 HttpClient（用于依赖注入场景）
+    /// </summary>
+    public BailianVisionClient(HttpClient http, BailianVisionConfig config, Action<string>? onLog = null)
+    {
+        _http = http;
+        _config = config;
+        _onLog = onLog;
+        _http.Timeout = TimeSpan.FromSeconds(config.TimeoutSeconds);
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
+    }
+
+    private void Log(string msg)
+    {
+        Console.WriteLine(msg);
+        _onLog?.Invoke(msg);
+    }
+
+    private void LogError(string msg)
+    {
+        Console.Error.WriteLine(msg);
+        _onLog?.Invoke(msg);
+    }
+
+    /// <summary>
+    /// 通过图片 URL 描述图片（百炼支持直接传 HTTP URL，无需下载和 Base64 编码）
+    /// </summary>
+    /// <param name="imageUrl">图片的 HTTP URL</param>
+    /// <param name="userPrompt">可选的用户提示词，覆盖默认系统提示</param>
+    /// <returns>图片描述文本</returns>
+    public async Task<string> DescribeImageUrlAsync(string imageUrl, string? userPrompt = null)
+    {
+        var prompt = userPrompt ?? _config.SystemPrompt;
+
+        // 百炼 OpenAI 兼容格式：image_url 对象
+        var requestBody = new
+        {
+            model = _config.Model,
+            messages = new object[]
+            {
+                new
+                {
+                    role = "system",
+                    content = prompt
+                },
+                new
+                {
+                    role = "user",
+                    content = new object[]
+                    {
+                        new { type = "image_url", image_url = new { url = imageUrl } },
+                        new { type = "text", text = "请详细描述这张图片中的所有视觉元素。" }
+                    }
+                }
+            },
+            max_tokens = _config.MaxTokens
+        };
+
+        return await SendRequestAsync(requestBody, $"imageUrl={imageUrl.Truncate(80)}");
+    }
+
+    /// <summary>
+    /// 描述 Base64 编码的图片（作为 Data URL 发送）
+    /// </summary>
+    /// <param name="base64Image">Base64 编码的图片数据</param>
+    /// <param name="userPrompt">可选的用户提示词</param>
+    /// <returns>图片描述文本</returns>
+    public async Task<string> DescribeImageBase64Async(string base64Image, string? userPrompt = null)
+    {
+        var prompt = userPrompt ?? _config.SystemPrompt;
+
+        // 百炼支持 Data URL 格式
+        var requestBody = new
+        {
+            model = _config.Model,
+            messages = new object[]
+            {
+                new
+                {
+                    role = "system",
+                    content = prompt
+                },
+                new
+                {
+                    role = "user",
+                    content = new object[]
+                    {
+                        new { type = "image_url", image_url = new { url = $"data:image/jpeg;base64,{base64Image}" } },
+                        new { type = "text", text = "请详细描述这张图片中的所有视觉元素。" }
+                    }
+                }
+            },
+            max_tokens = _config.MaxTokens
+        };
+
+        return await SendRequestAsync(requestBody, "base64 image");
+    }
+
+    /// <summary>
+    /// 描述本地图片文件（内部转为 Base64 Data URL 发送）
+    /// </summary>
+    /// <param name="imagePath">本地图片路径</param>
+    /// <param name="userPrompt">可选的用户提示词</param>
+    /// <returns>图片描述文本</returns>
+    public async Task<string> DescribeImageAsync(string imagePath, string? userPrompt = null)
+    {
+        if (!File.Exists(imagePath))
+            throw new FileNotFoundException($"图片文件不存在: {imagePath}");
+
+        var imageBytes = await File.ReadAllBytesAsync(imagePath);
+        var base64Image = Convert.ToBase64String(imageBytes);
+        return await DescribeImageBase64Async(base64Image, userPrompt);
+    }
+
+    private async Task<string> SendRequestAsync(object requestBody, string logLabel)
+    {
+        var json = JsonSerializer.Serialize(requestBody, JsonOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        Log($"[BailianVision] 开始调用，model={_config.Model}, {logLabel}");
+
+        HttpResponseMessage response;
+        int attempt = 0;
+
+        while (true)
+        {
+            attempt++;
+            Log($"[BailianVision] 第 {attempt} 次请求尝试...");
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                response = await _http.PostAsync("chat/completions", content);
+                sw.Stop();
+                Log($"[BailianVision] 收到响应 status={response.StatusCode}，耗时 {sw.Elapsed.TotalSeconds:F1}s");
+            }
+            catch (TaskCanceledException)
+            {
+                sw.Stop();
+                var msg = $"[BailianVision] 请求超时！耗时 {sw.Elapsed.TotalSeconds:F1}s（Timeout={_config.TimeoutSeconds}s）";
+                LogError(msg);
+                throw new VisionException($"百炼 API 请求超时（{sw.Elapsed.TotalSeconds:F0}s）", new TimeoutException());
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                LogError($"[BailianVision] 网络异常({ex.GetType().Name}): {ex.Message}");
+                throw new VisionException($"百炼网络异常: {ex.Message}", ex);
+            }
+
+            if (response.IsSuccessStatusCode)
+                break;
+
+            if (attempt >= _config.MaxRetries)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                LogError($"[BailianVision] 重试耗尽。status={response.StatusCode}, body={errorBody.Truncate(200)}");
+                throw new VisionException($"百炼调用失败（{response.StatusCode}），已重试 {attempt} 次: {errorBody.Truncate(500)}");
+            }
+
+            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+            {
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                LogError($"[BailianVision] {response.StatusCode}，{delay.TotalSeconds}s 后重试 ({attempt}/{_config.MaxRetries})...");
+                await Task.Delay(delay);
+                continue;
+            }
+
+            var errBody = await response.Content.ReadAsStringAsync();
+            LogError($"[BailianVision] 不可重试错误。status={response.StatusCode}, body={errBody.Truncate(200)}");
+            throw new VisionException($"百炼调用失败（{response.StatusCode}）: {errBody.Truncate(500)}");
+        }
+
+        var responseJson = await response.Content.ReadAsStringAsync();
+        Log($"[BailianVision] 响应 {responseJson.Length} 字节，开始解析");
+
+        using var doc = JsonDocument.Parse(responseJson);
+        var choice = doc.RootElement.GetProperty("choices")[0];
+        var message = choice.GetProperty("message");
+        var description = message.TryGetProperty("content", out var c) ? c.GetString() ?? "" : "";
+
+        if (string.IsNullOrWhiteSpace(description))
+            throw new VisionException("百炼返回了空响应");
+
+        Log($"[BailianVision] 描述完成，{description.Length} 字符");
+        return description.Trim();
+    }
+
+    public void Dispose() => _http.Dispose();
+}
+
+/// <summary>
+/// 百炼视觉模型配置
+/// </summary>
+public record BailianVisionConfig
+{
+    /// <summary>
+    /// 百炼 API 基地址，默认 OpenAI 兼容接口
+    /// </summary>
+    public string BaseUrl { get; init; } = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+
+    /// <summary>
+    /// 百炼 API Key
+    /// </summary>
+    public string ApiKey { get; init; } = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
+
+    /// <summary>
+    /// 模型名称，默认 qwen-vl-plus（支持视觉理解）
+    /// 可选：qwen-vl-plus, qwen-vl-max, qwen3-vl-plus, qwen3-vl-flash 等
+    /// </summary>
+    public string Model { get; init; } = "qwen3-vl-flash";
+
+    /// <summary>
+    /// 请求超时秒数，默认 120 秒
+    /// </summary>
+    public int TimeoutSeconds { get; init; } = 120;
+
+    /// <summary>
+    /// 最大重试次数，默认 3 次
+    /// </summary>
+    public int MaxRetries { get; init; } = 3;
+
+    /// <summary>
+    /// 系统提示词
+    /// </summary>
+    public string SystemPrompt { get; init; } = "你是一个专业的图片描述助手。请仔细观察图片，用详细的中文描述图片中的内容、场景、角色和细节。";
+
+    /// <summary>
+    /// 最大生成 token 数，默认 2048
+    /// </summary>
+    public int MaxTokens { get; init; } = 2048;
+}

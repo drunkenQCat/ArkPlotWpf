@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Avalonia", "ArkPlot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Novelizer", "ArkPlot.Novelizer\ArkPlot.Novelizer.csproj", "{3C984B9E-A356-49CE-ABAA-33E362A9EDC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Vision", "ArkPlot.Vision\ArkPlot.Vision.csproj", "{4D985B0F-B467-50DF-BCCB-44F473B0FED1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkPlot.Cli", "ArkPlot.Cli\ArkPlot.Cli.csproj", "{30D5502C-85B5-4EC7-98C6-805615E0E7D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{3C984B9E-A356-49CE-ABAA-33E362A9EDC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C984B9E-A356-49CE-ABAA-33E362A9EDC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C984B9E-A356-49CE-ABAA-33E362A9EDC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D985B0F-B467-50DF-BCCB-44F473B0FED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D985B0F-B467-50DF-BCCB-44F473B0FED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D985B0F-B467-50DF-BCCB-44F473B0FED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D985B0F-B467-50DF-BCCB-44F473B0FED1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30D5502C-85B5-4EC7-98C6-805615E0E7D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30D5502C-85B5-4EC7-98C6-805615E0E7D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30D5502C-85B5-4EC7-98C6-805615E0E7D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30D5502C-85B5-4EC7-98C6-805615E0E7D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

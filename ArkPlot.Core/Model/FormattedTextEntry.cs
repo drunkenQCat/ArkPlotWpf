@@ -81,6 +81,14 @@ public class FormattedTextEntry
     public string Bg { get; set; } = "";
 
     /// <summary>
+    /// 图片描述（PicDesc）。
+    /// 每个 HTTP 图片链接只对应一条 desc，由 PicDescService 管理，保证不重复写入。
+    /// Debug 模式下强制重写。
+    /// </summary>
+    [SugarColumn(ColumnDataType = "TEXT")]
+    public string PicDesc { get; set; } = "";
+
+    /// <summary>
     /// 复制构造函数
     /// </summary>
     /// <param name="entry">要复制的 FormattedTextEntry 实例</param>
@@ -99,6 +107,7 @@ public class FormattedTextEntry
         Dialog = entry.CharacterName;
         Bg = entry.Bg;
         PortraitsInfo = entry.PortraitsInfo;
+        PicDesc = entry.PicDesc;
     }
 
     /// <summary>

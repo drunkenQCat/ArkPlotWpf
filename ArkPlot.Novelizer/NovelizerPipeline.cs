@@ -16,13 +16,16 @@ public partial class NovelizerPipeline
     private const string SystemPrompt = """
         你是一位精通明日方舟世界观的资深小说家。
         请将输入的剧情脚本转化为连贯、流畅的小说叙述。
-        要求：
+        文本要求：
         - 保持游戏原文的角色对话核心内容不变
         - 将舞台指示（立绘变化、背景切换、音乐提示、音效等）自然地融入叙事
         - 对话之间补充恰当的衔接描写（动作、心理、环境）
         - 语气符合明日方舟冷峻、克制的文学风格
         - 用第三人称叙述
         - 直接输出小说正文，不要前缀说明、不要后缀总结
+        格式要求：
+        - 输出时不许带任何# （标题）,无论几级都不需要
+        - 对于`音乐`，你可以结合全文，构建出相应的气氛。音乐永远不会出现在剧情里。
         """;
 
     [GeneratedRegex(@"^(?=## )", RegexOptions.Multiline)]
@@ -77,11 +80,11 @@ public partial class NovelizerPipeline
             .ToList();
         Log($"[DIAG] 拆分为 {rawChapters.Count} 章");
 
-        Log($"\n{'='*60}");
+        Log($"\n{'=' * 60}");
         Log($"📖 模型: {model}");
         Log($"📄 输入: {Path.GetFileName(mdPath)} → 共 {rawChapters.Count} 章");
         Log($"📝 输出: {Path.GetFileName(novelPath)}");
-        Log($"{'='*60}");
+        Log($"{'=' * 60}");
 
         var semaphore = new SemaphoreSlim(3);
         var results = new Dictionary<int, string>();
@@ -97,7 +100,7 @@ public partial class NovelizerPipeline
             var title = lines[0].TrimStart('#', ' ').Trim();
             var body = lines.Length > 1 ? lines[1].Trim() : "";
 
-            Log($"[DIAG] 第 {idx+1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
+            Log($"[DIAG] 第 {idx + 1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
 
             if (string.IsNullOrEmpty(body))
             {
@@ -113,7 +116,7 @@ public partial class NovelizerPipeline
                 try
                 {
                     Log($"\n--- 第 {idx + 1}/{rawChapters.Count} 章: {title} ({body.Length} 字符) ---");
-                    Log($"[DIAG] 即将调用 ChatAsync for 第 {idx+1} 章「{title}」");
+                    Log($"[DIAG] 即将调用 ChatAsync for 第 {idx + 1} 章「{title}」");
 
                     var sw = System.Diagnostics.Stopwatch.StartNew();
                     try
@@ -132,7 +135,7 @@ public partial class NovelizerPipeline
                                 totalCompletion += result.Usage.CompletionTokens;
                             }
                             Log($"✅ Token: 入 {result.Usage.PromptTokens} / 出 {result.Usage.CompletionTokens}");
-                            Log($"[DIAG] 第 {idx+1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
+                            Log($"[DIAG] 第 {idx + 1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
                         }
                     }
                     catch (BailianException ex)
@@ -159,7 +162,7 @@ public partial class NovelizerPipeline
         File.WriteAllText(novelPath, string.Join("\n\n", allParts));
         Log($"[DIAG] 写入完成: {novelPath}");
 
-        Log($"\n{'='*60}");
+        Log($"\n{'=' * 60}");
         Log($"📊 总计 Token: 入 {totalPrompt} / 出 {totalCompletion} / 共 {totalPrompt + totalCompletion}");
         Log($"✅ 已保存: {novelPath}\n");
 
@@ -176,11 +179,11 @@ public partial class NovelizerPipeline
     {
         var novelInput = MarkdownBuilder.BuildNovelInput(entries);
 
-        Log($"\n{'='*60}");
+        Log($"\n{'=' * 60}");
         Log($"📖 模型: {model}");
         Log($"📄 来源: {sourceLabel ?? "(entries)"} ({novelInput.Length} 字符)");
         Log($"📝 输出: {Path.GetFileName(outputPath)}");
-        Log($"{'='*60}");
+        Log($"{'=' * 60}");
 
         var result = await _client.ChatAsync(model, SystemPrompt, novelInput);
 
