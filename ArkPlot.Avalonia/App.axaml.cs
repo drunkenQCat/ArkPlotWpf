@@ -20,12 +20,12 @@ public partial class App : Application
         messenger.Register<OpenWindowMessage>(this, (recipient, message) =>
                 {
                     // 根据消息中的WindowName打开相应的窗口
-                    if (message.WindowName == "TagEditor")
+                    if (message.WindowName == "SettingsWindow")
                     {
-                        var editorView = new TagEditor();
-                        var editorViewModel = new TagEditorViewModel(message.JsonPath);
-                        editorView.DataContext = editorViewModel;
-                        editorView.Show();
+                        var settingsView = new SettingsWindow();
+                        var settingsViewModel = new ViewModels.SettingsViewModel(message.JsonPath);
+                        settingsView.DataContext = settingsViewModel;
+                        settingsView.Show();
                     }
                 });
 

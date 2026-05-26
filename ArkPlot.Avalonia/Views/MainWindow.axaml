@@ -13,27 +13,27 @@
     x:Class="ArkPlot.Avalonia.Views.MainWindow"
     x:DataType="vm:MainWindowViewModel"
     Title="ArkPlot"
-    Height="750"
+    Height="770"
     Width="400">
-  <Window.DataContext>
+    <Window.DataContext>
         <vm:MainWindowViewModel />
     </Window.DataContext>
     <Window.Styles>
         <Style Selector="RadioButton.Chips:disabled">
-            <Setter Property="Foreground" Value="Red"/>
-            <Setter Property="Background" Value="#CCC"/>
-            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+            <Setter Property="Foreground" Value="Red" />
+            <Setter Property="Background" Value="#CCC" />
+            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
             <Setter Property="Opacity" Value="0.3" />
         </Style>
         <Style Selector="RadioButton.Chips:disabled:checked">
             <Setter Property="Opacity" Value="0.2" />
-            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough"/>
+            <Setter Property="TextBlock.TextDecorations" Value="Strikethrough" />
         </Style>
 
     </Window.Styles>
 
     <sukiUi:SukiWindow.Hosts>
-      <sukiUi:SukiToastHost Manager="{Binding ToastManager}"/>
+        <sukiUi:SukiToastHost Manager="{Binding ToastManager}" />
     </sukiUi:SukiWindow.Hosts>
     <i:Interaction.Behaviors>
         <ia:EventTriggerBehavior EventName="Opened">
@@ -55,10 +55,10 @@
         <Grid
             Margin="10 42 10 0"
             RowDefinitions="*,*,*,*,*"
-            >
+        >
             <StackPanel
-                Spacing="6" 
-                Orientation="Horizontal" 
+                Spacing="6"
+                Orientation="Horizontal"
                 HorizontalAlignment="Center"
                 Margin="6"
                 Grid.Row="0">
@@ -83,9 +83,9 @@
                     CommandParameter="MAIN_STORY" />
             </StackPanel>
             <StackPanel
-                Spacing="5" 
+                Spacing="5"
                 HorizontalAlignment="Center"
-                Orientation="Horizontal" 
+                Orientation="Horizontal"
                 Grid.Row="1">
                 <RadioButton
                     Content="简中"
@@ -128,40 +128,50 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Button Grid.Row="0" Grid.Column="0"
-                            Content="当前活动🔻" 
-                            VerticalAlignment="Center" 
-                            HorizontalAlignment="Right"
-                            IsEnabled="{c:Binding IsInitialized}}"
-                            Command="{Binding LoadChaptersCommand}">
+                        Content="当前活动🔻"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        IsEnabled="{c:Binding IsInitialized}}"
+                        Command="{Binding LoadChaptersCommand}">
                         <Button.Flyout>
                             <Flyout>
-                              <Flyout.FlyoutPresenterTheme>
-                                <ControlTheme TargetType="FlyoutPresenter">
-                                  <Setter Property="Background" Value="{DynamicResource SukiInformationForeground}"/>
-                                  <Setter Property="CornerRadius" Value="8"/>
-                                  <Setter Property="BorderBrush" Value="Gray"/>
-                                  <Setter Property="BorderThickness" Value="1"/>
-                                  <Setter Property="Padding" Value="10"/>
-                                </ControlTheme>
-                              </Flyout.FlyoutPresenterTheme>
+                                <Flyout.FlyoutPresenterTheme>
+                                    <ControlTheme TargetType="FlyoutPresenter">
+                                        <Setter Property="Background"
+                                            Value="{DynamicResource SukiInformationForeground}" />
+                                        <Setter Property="CornerRadius" Value="8" />
+                                        <Setter Property="BorderBrush" Value="Gray" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                        <Setter Property="Padding" Value="10" />
+                                    </ControlTheme>
+                                </Flyout.FlyoutPresenterTheme>
                                 <StackPanel Margin="15" MaxWidth="300">
-                                    <TextBlock Text="选择导出章节" FontSize="16" FontWeight="Bold" Margin="0,0,0,10" />
-                                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center" Margin="0,0,0,10">
-                                        <Button Content="全选" Classes="Rounded Flat" Command="{Binding SelectAllChaptersCommand}" FontSize="12"/>
-                                        <Button Content="取消全选" Classes="Rounded Flat" Command="{Binding DeselectAllChaptersCommand}" FontSize="12"/>
+                                    <TextBlock Text="选择导出章节" FontSize="16" FontWeight="Bold"
+                                        Margin="0,0,0,10" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10"
+                                        HorizontalAlignment="Center" Margin="0,0,0,10">
+                                        <Button Content="全选" Classes="Rounded Flat"
+                                            Command="{Binding SelectAllChaptersCommand}"
+                                            FontSize="12" />
+                                        <Button Content="取消全选" Classes="Rounded Flat"
+                                            Command="{Binding DeselectAllChaptersCommand}"
+                                            FontSize="12" />
                                     </StackPanel>
-                                    <Border BorderThickness="1" BorderBrush="LightGray" MaxHeight="400">
+                                    <Border BorderThickness="1" BorderBrush="LightGray"
+                                        MaxHeight="400">
                                         <ScrollViewer>
                                             <ItemsControl ItemsSource="{Binding Chapters}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <ToggleButton 
+                                                        <ToggleButton
                                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                             FontSize="14"
                                                             Margin="2"
                                                             HorizontalAlignment="Stretch">
                                                             <DockPanel>
-                                                                <TextBlock Text="{Binding ChapterName}" VerticalAlignment="Center"/>
+                                                                <TextBlock
+                                                                    Text="{Binding ChapterName}"
+                                                                    VerticalAlignment="Center" />
                                                             </DockPanel>
                                                         </ToggleButton>
                                                     </DataTemplate>
@@ -216,14 +226,14 @@
                     IsEnabled="{c:Binding !LoadInitResourceCommand.IsRunning and IsInitialized}"
                     Margin="0 10 0 10"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center" Command="{Binding LoadMdCommand}"  Width="100">
+                    VerticalAlignment="Center" Command="{Binding LoadMdCommand}" Width="100">
                     开始
                 </Button>
                 <Button
                     Margin="0 0 0 10"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center" Command="{Binding OpenTagEditorCommand}"  Width="100">
-                    编辑tags
+                    VerticalAlignment="Center" Command="{Binding OpenSettingsCommand}" Width="100">
+                    设置
                 </Button>
                 <CheckBox
                     Content="生成时使用本地资源"
@@ -232,25 +242,11 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
                 <CheckBox
-                    Content="使用DS生成小说"
+                    Content="启用小说化生成"
                     IsChecked="{Binding IsNovelizerEnabled}"
-                    Margin="0 0 16 6"
+                    Margin="0 0 16 11"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
-                <ComboBox
-                    ItemsSource="{Binding ModelOptions}"
-                    SelectedIndex="{Binding SelectedModelIndex}"
-                    IsVisible="{Binding IsNovelizerEnabled}"
-                    Width="180"
-                    Margin="0 0 0 6"
-                    HorizontalAlignment="Center" />
-                <ComboBox
-                    ItemsSource="{Binding ProviderOptions}"
-                    SelectedIndex="{Binding SelectedProviderIndex}"
-                    IsVisible="{Binding IsNovelizerEnabled}"
-                    Width="180"
-                    Margin="0 0 0 11"
-                    HorizontalAlignment="Center" />
             </StackPanel>
             <Border
                 Grid.Row="4" Margin="7" BorderThickness="2" BorderBrush="#7001"
@@ -259,9 +255,9 @@
                     x:Name="ConsoleScrollViewer"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Top"
-                    >
+                >
                     <i:Interaction.Behaviors>
-                        <ba:AutoScrollBehavior Enabled="True"/>
+                        <ba:AutoScrollBehavior Enabled="True" />
                     </i:Interaction.Behaviors>
                     <!-- HorizontalAlignment="Stretch" -->
                     <!-- VerticalAlignment="Top" -->

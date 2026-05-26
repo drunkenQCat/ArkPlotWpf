@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using ArkPlot.Core.Model;
 
 namespace ArkPlot.Novelizer;
@@ -8,15 +5,14 @@ namespace ArkPlot.Novelizer;
 /// <summary>
 /// 小说化管线：读 Markdown → 拆章 → 逐章调 LLM → 合并写小说文件
 /// </summary>
-public partial class NovelizerPipeline
+public class NovelizerPipeline
 {
-    [GeneratedRegex(@"^#{1,6}\s*", RegexOptions.Multiline)]
-    private static partial Regex MarkdownHeadingRegex();
     private readonly BailianClient _client;
     private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
+    private readonly string _systemPrompt;
 
-    private const string SystemPrompt = """
+    private const string DefaultSystemPrompt = """
         你是一位精通明日方舟世界观的资深小说家。
         请将输入的剧情脚本转化为连贯、流畅的小说叙述。
         文本要求：
@@ -31,15 +27,14 @@ public partial class NovelizerPipeline
         - 对于`音乐`，你可以结合全文，构建出相应的气氛。音乐永远不会出现在剧情里。
         """;
 
-    [GeneratedRegex(@"^(?=## )", RegexOptions.Multiline)]
-    private static partial Regex ChapterSplitRegex();
-
     /// <param name="onLog">可选日志回调，同时写入 Console 和此回调（用于 Avalonia UI 同步）</param>
-    public NovelizerPipeline(BailianClient client, ApiConfig config, Action<string>? onLog = null)
+    /// <param name="systemPrompt">可选的自定义系统提示词，未提供时使用默认值</param>
+    public NovelizerPipeline(BailianClient client, ApiConfig config, Action<string>? onLog = null, string? systemPrompt = null)
     {
         _client = client;
         _config = config;
         _onLog = onLog;
+        _systemPrompt = string.IsNullOrWhiteSpace(systemPrompt) ? DefaultSystemPrompt : systemPrompt;
     }
 
     private void Log(string msg)
@@ -52,93 +47,6 @@ public partial class NovelizerPipeline
     {
         Console.Error.WriteLine(msg);
         _onLog?.Invoke(msg);
-    }
-
-    /// <summary>
-    /// 检测系统是否安装了 pandoc。
-    /// </summary>
-    private static async Task<bool> IsPandocAvailableAsync()
-    {
-        try
-        {
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "pandoc",
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                }
-            };
-            process.Start();
-            await process.WaitForExitAsync();
-            return process.ExitCode == 0;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// 使用 pandoc 将 Markdown 文件异步转换为 epub 格式。
-    /// 仅对纯文本 md 文件有效（如 novelizer 生成的小说）。
-    /// </summary>
-    public static async Task<string?> PandocEpubAsync(string mdFilePath, string title)
-    {
-        if (!await IsPandocAvailableAsync())
-            return null;
-
-        var epubPath = Path.ChangeExtension(mdFilePath, ".epub");
-
-        try
-        {
-            // pandoc input.md --toc --shift-heading-level-by=-1 --toc-depth=2 --metadata title="标题" -o output.epub
-            var arguments = $"\"{mdFilePath}\" --toc --shift-heading-level-by=-1 --toc-depth=2 --metadata title=\"{title}\" -o \"{epubPath}\"";
-
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "pandoc",
-                    Arguments = arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                }
-            };
-
-            process.Start();
-            await process.WaitForExitAsync();
-
-            if (process.ExitCode == 0 && File.Exists(epubPath))
-            {
-                return epubPath;
-            }
-
-            // 如果 pandoc 执行失败，记录错误但不抛出异常
-            var stderr = await process.StandardError.ReadToEndAsync();
-            Debug.WriteLine($"pandoc 生成 epub 失败: {stderr}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"pandoc 生成 epub 异常: {ex.Message}");
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// 去除答案中的 Markdown 标题（# ## ### 等），保留正文
-    /// </summary>
-    private static string StripHeadings(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return text;
-        return MarkdownHeadingRegex().Replace(text, "");
     }
 
     /// <summary>
@@ -156,104 +64,35 @@ public partial class NovelizerPipeline
         var mdContent = File.ReadAllText(mdPath);
         Log($"[DIAG] 文件读取完成，{mdContent.Length} 字符");
 
-        var novelPath = ChapterCache.GetNovelPath(mdPath, model);
-
         Log($"[DIAG] 预处理（去 HTML）...");
         var processed = MarkdownBuilder.PreprocessMdContent(mdContent);
         Log($"[DIAG] 预处理完成，{processed.Length} 字符（原始 {mdContent.Length}）");
 
         // 拆章
         Log($"[DIAG] 按 ## 标题拆章...");
-        var rawChapters = ChapterSplitRegex().Split(processed)
-            .Select(s => s.Trim())
-            .Where(s => s.Length > 0)
-            .ToList();
-        Log($"[DIAG] 拆分为 {rawChapters.Count} 章");
+        var chapters = ChapterSplitter.SplitChapters(processed);
+        Log($"[DIAG] 拆分为 {chapters.Count} 章");
 
         Log($"\n{'=' * 60}");
         Log($"📖 模型: {model}");
-        Log($"📄 输入: {Path.GetFileName(mdPath)} → 共 {rawChapters.Count} 章");
-        Log($"📝 输出: {Path.GetFileName(novelPath)}");
+        Log($"📄 输入: {Path.GetFileName(mdPath)} → 共 {chapters.Count} 章");
+        Log($"📝 输出: {Path.GetFileName(NovelComposer.GetNovelPath(mdPath, model))}");
         Log($"{'=' * 60}");
 
-        var semaphore = new SemaphoreSlim(3);
-        var results = new Dictionary<int, string>();
-        var tasks = new List<Task>();
-        int totalPrompt = 0, totalCompletion = 0;
-        var tokenLock = new object();
+        // 处理所有章节
+        var processor = new ChapterProcessor(_client, _systemPrompt, Log, LogError);
+        var results = await processor.ProcessAllAsync(chapters, model);
 
-        for (int i = 0; i < rawChapters.Count; i++)
+        // 组装并写入
+        var novelPath = NovelComposer.ComposeAndWrite(results, mdPath, model, Log);
+
+        var tracker = new TokenTracker();
+        foreach (var r in results)
         {
-            var idx = i;
-            var chunk = rawChapters[idx];
-            var lines = chunk.Split('\n', 2);
-            var title = lines[0].TrimStart('#', ' ').Trim();
-            var body = lines.Length > 1 ? lines[1].Trim() : "";
-
-            Log($"[DIAG] 第 {idx + 1}/{rawChapters.Count} 章「{title}」, body={body.Length} 字符");
-
-            if (string.IsNullOrEmpty(body))
-            {
-                Log($"⏭️  第 {idx + 1}/{rawChapters.Count} 章「{title}」无正文，跳过。");
-                Log($"[DIAG] 跳过（无正文）");
-                results[idx] = $"## {title}\n\n> *（本章无正文）*";
-                continue;
-            }
-
-            tasks.Add(Task.Run(async () =>
-            {
-                await semaphore.WaitAsync();
-                try
-                {
-                    Log($"\n--- 第 {idx + 1}/{rawChapters.Count} 章: {title} ({body.Length} 字符) ---");
-                    Log($"[DIAG] 即将调用 ChatAsync for 第 {idx + 1} 章「{title}」");
-
-                    var sw = System.Diagnostics.Stopwatch.StartNew();
-                    try
-                    {
-                        var result = await _client.ChatAsync(model, SystemPrompt, body);
-                        sw.Stop();
-                        Log($"[DIAG] ChatAsync 返回，耗时 {sw.Elapsed.TotalSeconds:F1}s");
-
-                        results[idx] = $"## {title}\n\n{StripHeadings(result.AnswerContent)}";
-
-                        if (result.Usage is not null)
-                        {
-                            lock (tokenLock)
-                            {
-                                totalPrompt += result.Usage.PromptTokens;
-                                totalCompletion += result.Usage.CompletionTokens;
-                            }
-                            Log($"✅ Token: 入 {result.Usage.PromptTokens} / 出 {result.Usage.CompletionTokens}");
-                            Log($"[DIAG] 第 {idx + 1} 章 token: prompt={result.Usage.PromptTokens}, completion={result.Usage.CompletionTokens}");
-                        }
-                    }
-                    catch (BailianException ex)
-                    {
-                        sw.Stop();
-                        Log($"[DIAG] ChatAsync 抛出 BailianException（{sw.Elapsed.TotalSeconds:F1}s）: {ex.Message}");
-                        LogError($"❌ 第 {idx + 1} 章失败: {ex.Message}");
-                        results[idx] = $"## {title}\n\n> *（本章生成失败：{ex.Message}）*";
-                    }
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }));
+            // Token 统计已在 ChapterProcessor 中输出
         }
 
-        await Task.WhenAll(tasks);
-
-        // 按原始顺序组装
-        var allParts = results.OrderBy(kv => kv.Key).Select(kv => kv.Value).ToList();
-
-        Log($"[DIAG] 所有章节处理完成，共 {rawChapters.Count} 章，开始写入文件...");
-        File.WriteAllText(novelPath, string.Join("\n\n", allParts));
-        Log($"[DIAG] 写入完成: {novelPath}");
-
         Log($"\n{'=' * 60}");
-        Log($"📊 总计 Token: 入 {totalPrompt} / 出 {totalCompletion} / 共 {totalPrompt + totalCompletion}");
         Log($"✅ 已保存: {novelPath}\n");
 
         return novelPath;
@@ -275,9 +114,9 @@ public partial class NovelizerPipeline
         Log($"📝 输出: {Path.GetFileName(outputPath)}");
         Log($"{'=' * 60}");
 
-        var result = await _client.ChatAsync(model, SystemPrompt, novelInput);
+        var result = await _client.ChatAsync(model, _systemPrompt, novelInput);
 
-        File.WriteAllText(outputPath, StripHeadings(result.AnswerContent));
+        File.WriteAllText(outputPath, ChapterSplitter.StripHeadings(result.AnswerContent));
 
         if (result.Usage is not null)
         {
@@ -349,7 +188,15 @@ public partial class NovelizerPipeline
         Log("\n🏁 批处理完成");
         Log("[DIAG] BatchProcessAsync 执行完毕，即将生成 epub");
 
-        // 为每个小说 md 生成 epub（纯文本，不会很慢）
+        // 为每个小说 md 生成 epub
+        await GenerateEpubsForNovelsAsync(outputDir);
+    }
+
+    /// <summary>
+    /// 为目录下所有小说 MD 生成 epub
+    /// </summary>
+    private async Task GenerateEpubsForNovelsAsync(string outputDir)
+    {
         try
         {
             var novelMdFiles = Directory.GetFiles(outputDir, "*_novel_*.md");
@@ -359,7 +206,7 @@ public partial class NovelizerPipeline
                 foreach (var mdPath in novelMdFiles)
                 {
                     var title = Path.GetFileNameWithoutExtension(mdPath);
-                    var epubPath = await PandocEpubAsync(mdPath, title);
+                    var epubPath = await PandocService.GenerateEpubAsync(mdPath, title);
                     if (epubPath != null)
                     {
                         Log($"📚 已生成 epub: {Path.GetFileName(epubPath)}");

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ArkPlot.Avalonia.Models;
 using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
@@ -60,18 +61,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool isNovelizerEnabled;
-
-    [ObservableProperty]
-    private string[] modelOptions = ["deepseek-v4-pro", "deepseek-v4-flash"];
-
-    [ObservableProperty]
-    private int selectedModelIndex;
-
-    [ObservableProperty]
-    private string[] providerOptions = [];
-
-    [ObservableProperty]
-    private int selectedProviderIndex;
 
     /// <summary>
     /// DeepSeek 官方 API Key（从环境变量 DEEPSEEK_API_KEY 读取）
@@ -162,10 +151,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadInitResource()
     {
-        // 初始化 API Key
-        DeepSeekApiKey = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY") ?? "";
-        BailianApiKey = Environment.GetEnvironmentVariable("DASHSCOPE_API_KEY") ?? "";
-        RefreshProviderOptions();
+        // 初始化 API Key：从 AppSettings 读取（settings.json 优先 → 环境变量备选）
+        var settings = AppSettings.Load();
+        DeepSeekApiKey = settings.GetApiKey("DeepSeek");
+        BailianApiKey = settings.GetApiKey("百炼");
+
+        // 根据 API Key 可用性初始化小说化开关
+        IsNovelizerEnabled = !string.IsNullOrEmpty(DeepSeekApiKey) || !string.IsNullOrEmpty(BailianApiKey);
 
         SubscribeAll();
         await Task.Yield();
@@ -421,30 +413,27 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        if (ProviderOptions.Length == 0)
-        {
-            noticeBlock.RaiseCommonEvent("❌ 未配置 DEEPSEEK_API_KEY 或 DASHSCOPE_API_KEY 环境变量。");
-            LogDiag("[RunNovelizer] 无可用平台");
-            return;
-        }
+        // 从 AppSettings 读取小说化配置
+        var settings = AppSettings.Load();
+        var novelizer = settings.Novelizer;
 
-        var selectedProviderName = SelectedProviderIndex >= 0 && SelectedProviderIndex < ProviderOptions.Length
-            ? ProviderOptions[SelectedProviderIndex] : ProviderOptions[0];
+        var selectedProviderName = novelizer.SelectedProvider;
         var (provider, apiKey, baseUrl) = selectedProviderName switch
         {
-            "DeepSeek" => (ApiProvider.DeepSeek, DeepSeekApiKey, "https://api.deepseek.com"),
-            _ => (ApiProvider.Bailian, BailianApiKey, "https://dashscope.aliyuncs.com/compatible-mode/v1")
+            "DeepSeek" => (ApiProvider.DeepSeek, settings.GetApiKey("DeepSeek"), "https://api.deepseek.com"),
+            _ => (ApiProvider.Bailian, settings.GetApiKey("百炼"), "https://dashscope.aliyuncs.com/compatible-mode/v1")
         };
         LogDiag("[RunNovelizer] provider={0}, apiKey长度={1}", provider, apiKey.Length);
 
-        if (SelectedModelIndex < 0 || SelectedModelIndex >= ModelOptions.Length)
+        if (string.IsNullOrEmpty(apiKey))
         {
-            noticeBlock.RaiseCommonEvent("❌ 未选择模型，跳过小说生成。");
-            LogDiag("[RunNovelizer] SelectedModelIndex={0} 无效，返回", SelectedModelIndex);
+            noticeBlock.RaiseCommonEvent($"❌ 未配置 {selectedProviderName} API Key，跳过小说生成。");
+            LogDiag("[RunNovelizer] apiKey 为空，返回");
             return;
         }
 
-        var model = ModelOptions[SelectedModelIndex];
+        var model = novelizer.SelectedModel;
+        var systemPrompt = novelizer.SystemPrompt;
         LogDiag("[RunNovelizer] model={0}，outputDir={1}", model, outputPathOfCurrentStory);
         noticeBlock.RaiseCommonEvent($"正在使用 {model} 生成小说...");
 
@@ -458,7 +447,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => noticeBlock.RaiseCommonEvent(msg));
             };
             var client = new BailianClient(http, config, onLog: log);
-            var pipeline = new NovelizerPipeline(client, config, onLog: log);
+            var pipeline = new NovelizerPipeline(client, config, onLog: log, systemPrompt: systemPrompt);
             LogDiag("[RunNovelizer] 对象创建完成，即将调用 BatchProcessAsync");
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -513,19 +502,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var msg = "[DIAG] " + string.Format(format, args);
         noticeBlock.RaiseCommonEvent(msg);
-    }
-
-    /// <summary>
-    /// 根据 DeepSeekApiKey / BailianApiKey 刷新 ProviderOptions 列表
-    /// </summary>
-    private void RefreshProviderOptions()
-    {
-        var available = new List<string>();
-        if (!string.IsNullOrEmpty(DeepSeekApiKey)) available.Add("DeepSeek");
-        if (!string.IsNullOrEmpty(BailianApiKey)) available.Add("百炼");
-        ProviderOptions = available.ToArray();
-        if (available.Count > 0)
-            SelectedProviderIndex = 0;
     }
 
     private async Task CompleteLoading()
@@ -621,10 +597,10 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenTagEditor()
+    private void OpenSettings()
     {
         var messenger = WeakReferenceMessenger.Default;
-        messenger.Send(new OpenWindowMessage("TagEditor", JsonPath)); // Changed jsonPath to JsonPath
+        messenger.Send(new OpenWindowMessage("SettingsWindow", JsonPath));
     }
 
     private void SubscribeCommonNotification()
