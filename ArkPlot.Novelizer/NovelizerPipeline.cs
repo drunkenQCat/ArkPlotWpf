@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using ArkPlot.Core.Model;
@@ -9,6 +10,8 @@ namespace ArkPlot.Novelizer;
 /// </summary>
 public partial class NovelizerPipeline
 {
+    [GeneratedRegex(@"^#{1,6}\s*", RegexOptions.Multiline)]
+    private static partial Regex MarkdownHeadingRegex();
     private readonly BailianClient _client;
     private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
@@ -49,6 +52,93 @@ public partial class NovelizerPipeline
     {
         Console.Error.WriteLine(msg);
         _onLog?.Invoke(msg);
+    }
+
+    /// <summary>
+    /// 检测系统是否安装了 pandoc。
+    /// </summary>
+    private static async Task<bool> IsPandocAvailableAsync()
+    {
+        try
+        {
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "pandoc",
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            await process.WaitForExitAsync();
+            return process.ExitCode == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 使用 pandoc 将 Markdown 文件异步转换为 epub 格式。
+    /// 仅对纯文本 md 文件有效（如 novelizer 生成的小说）。
+    /// </summary>
+    public static async Task<string?> PandocEpubAsync(string mdFilePath, string title)
+    {
+        if (!await IsPandocAvailableAsync())
+            return null;
+
+        var epubPath = Path.ChangeExtension(mdFilePath, ".epub");
+
+        try
+        {
+            // pandoc input.md --toc --shift-heading-level-by=-1 --toc-depth=2 --metadata title="标题" -o output.epub
+            var arguments = $"\"{mdFilePath}\" --toc --shift-heading-level-by=-1 --toc-depth=2 --metadata title=\"{title}\" -o \"{epubPath}\"";
+
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "pandoc",
+                    Arguments = arguments,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+
+            process.Start();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0 && File.Exists(epubPath))
+            {
+                return epubPath;
+            }
+
+            // 如果 pandoc 执行失败，记录错误但不抛出异常
+            var stderr = await process.StandardError.ReadToEndAsync();
+            Debug.WriteLine($"pandoc 生成 epub 失败: {stderr}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"pandoc 生成 epub 异常: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 去除答案中的 Markdown 标题（# ## ### 等），保留正文
+    /// </summary>
+    private static string StripHeadings(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        return MarkdownHeadingRegex().Replace(text, "");
     }
 
     /// <summary>
@@ -125,7 +215,7 @@ public partial class NovelizerPipeline
                         sw.Stop();
                         Log($"[DIAG] ChatAsync 返回，耗时 {sw.Elapsed.TotalSeconds:F1}s");
 
-                        results[idx] = $"## {title}\n\n{result.AnswerContent}";
+                        results[idx] = $"## {title}\n\n{StripHeadings(result.AnswerContent)}";
 
                         if (result.Usage is not null)
                         {
@@ -187,7 +277,7 @@ public partial class NovelizerPipeline
 
         var result = await _client.ChatAsync(model, SystemPrompt, novelInput);
 
-        File.WriteAllText(outputPath, result.AnswerContent);
+        File.WriteAllText(outputPath, StripHeadings(result.AnswerContent));
 
         if (result.Usage is not null)
         {
@@ -257,6 +347,33 @@ public partial class NovelizerPipeline
         }
 
         Log("\n🏁 批处理完成");
-        Log("[DIAG] BatchProcessAsync 执行完毕");
+        Log("[DIAG] BatchProcessAsync 执行完毕，即将生成 epub");
+
+        // 为每个小说 md 生成 epub（纯文本，不会很慢）
+        try
+        {
+            var novelMdFiles = Directory.GetFiles(outputDir, "*_novel_*.md");
+            if (novelMdFiles.Length > 0)
+            {
+                Log($"[DIAG] 找到 {novelMdFiles.Length} 个小说 MD，开始生成 epub");
+                foreach (var mdPath in novelMdFiles)
+                {
+                    var title = Path.GetFileNameWithoutExtension(mdPath);
+                    var epubPath = await PandocEpubAsync(mdPath, title);
+                    if (epubPath != null)
+                    {
+                        Log($"📚 已生成 epub: {Path.GetFileName(epubPath)}");
+                    }
+                    else
+                    {
+                        Log($"⚠️  epub 生成失败或 pandoc 不可用: {Path.GetFileName(mdPath)}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"[DIAG] epub 生成过程异常: {ex.Message}");
+        }
     }
 }

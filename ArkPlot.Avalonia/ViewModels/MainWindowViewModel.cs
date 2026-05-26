@@ -468,7 +468,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             noticeBlock.RaiseCommonEvent($"✅ 小说生成完成，已保存至 {outputPathOfCurrentStory}");
 
-            // 将小说 MD 也转换为 HTML
+            // 将小说 MD 也转换为 HTML（epub 已在 NovelizerPipeline 内部生成）
             try
             {
                 var novelMdFiles = Directory.GetFiles(outputPathOfCurrentStory, "*_novel_*.md");
