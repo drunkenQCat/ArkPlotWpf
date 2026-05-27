@@ -1,0 +1,309 @@
+@page "/pic"
+@inject StoryService StoryService
+@inject VisionService VisionService
+@inject ILogger<Pic> Logger
+@implements IDisposable
+
+<PageTitle>ArkPlot - Vision Preview</PageTitle>
+
+<h3 class="mb-4"><i class="bi bi-image-square"></i> ArkPlot Vision Preview</h3>
+
+@* 活动 & 章节选择 *@
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">活动</label>
+                <select class="form-select" @bind="selectedActIndex" disabled="@isLoading">
+                    @foreach (var act in activities)
+                    {
+                        <option value="@act.Index">@act.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">章节</label>
+                <select class="form-select" @bind="selectedChapter" disabled="@(isLoading || chapters.Count == 0)">
+                    @foreach (var ch in chapters)
+                    {
+                        <option value="@ch">@ch</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="LoadChapter" disabled="@(isLoading || selectedChapter == null)">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-download me-1"></i>
+                    }
+                    加载章节
+                </button>
+                <button class="btn btn-success" @onclick="DescribeAll" disabled="@(imageEntries.Count == 0 || isDescribingAll || !visionAvailable)">
+                    @if (isDescribingAll)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-stars me-1"></i>
+                    }
+                    全部描述
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="mt-3">
+                <span class="badge bg-secondary status-badge">@statusMessage</span>
+            </div>
+        }
+    </div>
+</div>
+
+@* 错误信息 *@
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+@* Vision 后端状态 *@
+<div class="mb-3 d-flex align-items-center gap-2">
+    <span class="badge @(visionAvailable ? "bg-success" : "bg-warning text-dark")">
+        <i class="bi @(visionAvailable ? "bi-check-circle" : "bi-exclamation-circle")"></i>
+        Vision: @visionBackendName
+    </span>
+    <span class="text-muted small">共 @imageEntries.Count 个图片条目</span>
+    @if (imageEntries.Count > 0)
+    {
+        var described = imageEntries.Count(e => e.Description != null);
+        <span class="text-muted small">| 已描述 @described / @imageEntries.Count</span>
+    }
+</div>
+
+@* 图片预览网格 *@
+@if (imageEntries.Count > 0)
+{
+    <div class="row g-3">
+        @foreach (var item in imageEntries)
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <span class="badge bg-info">@item.Type</span>
+                        <small class="text-muted">#@item.Index</small>
+                    </div>
+                    <div class="card-body p-2">
+                        @foreach (var url in item.Urls)
+                        {
+                            var proxyUrl = $"/api/image?url={Uri.EscapeDataString(url)}";
+                            <img src="@proxyUrl"
+                                 class="img-fluid w-100 mb-1 img-preview"
+                                 alt="@item.Type"
+                                 @onerror="() => { }" />
+                        }
+
+                        @if (!string.IsNullOrEmpty(item.CharacterName))
+                        {
+                            <div class="mt-2">
+                                <span class="badge bg-primary">@item.CharacterName</span>
+                                @if (!string.IsNullOrEmpty(item.Dialog))
+                                {
+                                    <span class="text-muted small ms-1">"@Truncate(item.Dialog, 60)"</span>
+                                }
+                            </div>
+                        }
+
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary w-100"
+                                    @onclick="() => DescribeSingle(item)"
+                                    disabled="@(item.IsDescribing || !visionAvailable)">
+                                @if (item.IsDescribing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                    <span>描述中...</span>
+                                }
+                                else if (item.Description != null)
+                                {
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                    <span>重新描述</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-eye me-1"></i>
+                                    <span>生成描述</span>
+                                }
+                            </button>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <div class="mt-2 p-2 bg-light rounded desc-box">
+                                <small class="text-success"><i class="bi bi-check-circle"></i> @item.Description</small>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(item.DescribeError))
+                        {
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small class="text-danger"><i class="bi bi-x-circle"></i> @item.DescribeError</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ActivityItem> activities = [];
+    private List<string> chapters = [];
+    private List<ImageEntry> imageEntries = [];
+
+    private int selectedActIndex;
+    private string? selectedChapter;
+    private bool isLoading;
+    private bool isDescribingAll;
+    private string? statusMessage;
+    private string? error;
+    private bool visionAvailable;
+    private string visionBackendName = "检测中...";
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                visionAvailable = VisionService.Initialize();
+                visionBackendName = VisionService.BackendName;
+
+                activities = StoryService.GetActivities();
+                if (activities.Count > 0)
+                    selectedActIndex = activities[0].Index;
+
+                await LoadChaptersAsync();
+            }
+            catch (Exception ex)
+            {
+                error = $"加载失败：{ex.Message}";
+            }
+
+            if (!_disposed)
+                await InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+    }
+
+    private async Task LoadChaptersAsync()
+    {
+        var act = activities.FirstOrDefault(a => a.Index == selectedActIndex);
+        if (act == null) return;
+
+        try
+        {
+            chapters = await StoryService.GetChapterNamesAsync(act);
+            selectedChapter = chapters.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            error = $"加载章节列表失败：{ex.Message}";
+            chapters = [];
+        }
+    }
+
+    private async Task LoadChapter()
+    {
+        var act = activities.FirstOrDefault(a => a.Index == selectedActIndex);
+        if (act == null || selectedChapter == null) return;
+
+        isLoading = true;
+        error = null;
+        imageEntries = [];
+        statusMessage = "正在加载...";
+        StateHasChanged();
+
+        try
+        {
+            var progress = new Progress<string>(msg =>
+            {
+                statusMessage = msg;
+                InvokeAsync(StateHasChanged);
+            });
+
+            var result = await StoryService.LoadChapterAsync(act, selectedChapter, progress);
+
+            if (result.Success)
+            {
+                imageEntries = result.ImageEntries;
+                statusMessage = $"加载完成：{imageEntries.Count} 个图片条目";
+            }
+            else
+            {
+                error = result.Error;
+                statusMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"加载失败：{ex.Message}";
+            statusMessage = null;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DescribeSingle(ImageEntry item)
+    {
+        item.IsDescribing = true;
+        item.DescribeError = null;
+        StateHasChanged();
+
+        try
+        {
+            var url = item.Urls.First();
+            item.Description = await VisionService.DescribeAsync(url);
+        }
+        catch (Exception ex)
+        {
+            item.DescribeError = ex.Message;
+        }
+        finally
+        {
+            item.IsDescribing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DescribeAll()
+    {
+        isDescribingAll = true;
+        StateHasChanged();
+
+        foreach (var item in imageEntries.Where(e => e.Description == null))
+        {
+            await DescribeSingle(item);
+        }
+
+        isDescribingAll = false;
+        StateHasChanged();
+    }
+
+    private static string Truncate(string text, int maxLen) =>
+        text.Length <= maxLen ? text : text[..maxLen] + "...";
+}

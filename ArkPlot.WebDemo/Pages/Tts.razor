@@ -1,0 +1,217 @@
+@page "/tts"
+@using ArkPlot.Core.Services
+@using ArkPlot.Core.Model
+@inject TtsService TtsSvc
+@implements IDisposable
+
+<PageTitle>ArkPlot - TTS 测试</PageTitle>
+
+<h3><i class="bi bi-volume-up"></i> EdgeTTS 测试面板</h3>
+<hr />
+
+@* 单句合成 *@
+<div class="card mb-4">
+    <div class="card-header"><strong>单句合成</strong></div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label">文本</label>
+            <textarea class="form-control" rows="3" @bind="singleText" placeholder="输入要合成的文本…"></textarea>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">音色</label>
+                <select class="form-select" @bind="selectedVoice">
+                    <option value="zh-CN-XiaoxiaoNeural">Xiaoxiao（温暖·女）</option>
+                    <option value="zh-CN-XiaoyiNeural">Xiaoyi（活泼·女）</option>
+                    <option value="zh-CN-liaoning-XiaobeiNeural">Xiaobei（幽默·女）</option>
+                    <option value="zh-CN-shaanxi-XiaoniNeural">Xiaoni（明亮·女）</option>
+                    <option value="zh-CN-YunxiNeural">Yunxi（阳光·男）</option>
+                    <option value="zh-CN-YunjianNeural">Yunjian（激情·男）</option>
+                    <option value="zh-CN-YunxiaNeural">Yunxia（可爱·男）</option>
+                    <option value="zh-CN-YunyangNeural">Yunyang（专业·男）</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">语速</label>
+                <select class="form-select" @bind="rate">
+                    <option value="-20%">-20%（慢）</option>
+                    <option value="-10%">-10%</option>
+                    <option value="+0%">+0%（默认）</option>
+                    <option value="+10%">+10%</option>
+                    <option value="+20%">+20%（快）</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">音量</label>
+                <select class="form-select" @bind="volume">
+                    <option value="-20%">-20%（低）</option>
+                    <option value="-10%">-10%</option>
+                    <option value="+0%">+0%（默认）</option>
+                    <option value="+10%">+10%</option>
+                    <option value="+20%">+20%（高）</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" @onclick="SynthesizeSingle" disabled="@isBusy">
+            @(isBusy ? "合成中…" : "🎤 合成")
+        </button>
+    </div>
+</div>
+
+@* 角色音色分配 *@
+<div class="card mb-4">
+    <div class="card-header"><strong>角色音色分配</strong></div>
+    <div class="card-body">
+        <div class="input-group mb-3">
+            <input class="form-control" @bind="characterName" placeholder="输入角色名，查看自动分配的音色" />
+            <button class="btn btn-outline-secondary" @onclick="LookupVoice">查询</button>
+        </div>
+        @if (!string.IsNullOrEmpty(voiceResult))
+        {
+            <div class="alert alert-info">@voiceResult</div>
+        }
+    </div>
+</div>
+
+@* 批量合成 *@
+<div class="card mb-4">
+    <div class="card-header"><strong>批量合成（章节音频）</strong></div>
+    <div class="card-body">
+        <p class="text-muted">使用预设对话列表，为每个角色自动分配音色并合并为单个 MP3。</p>
+        <button class="btn btn-success" @onclick="SynthesizeBatch" disabled="@isBusy">
+            @(isBusy ? "合成中…" : "🎬 批量合成示例对话")
+        </button>
+    </div>
+</div>
+
+@* 日志 & 播放 *@
+@if (!string.IsNullOrEmpty(audioUrl))
+{
+    <div class="card mb-4 border-success">
+        <div class="card-header bg-success text-white"><strong>✅ 音频播放</strong></div>
+        <div class="card-body">
+            <audio controls src="@audioUrl" class="w-100"></audio>
+            <a href="@audioUrl" download class="btn btn-sm btn-outline-success mt-2">⬇ 下载</a>
+        </div>
+    </div>
+}
+
+@if (logs.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header"><strong>📋 日志</strong></div>
+        <div class="card-body">
+            <pre class="mb-0" style="max-height:400px;overflow:auto;white-space:pre-wrap">@string.Join("\n", logs)</pre>
+        </div>
+    </div>
+}
+
+@code {
+    private string singleText = "你好，这是 EdgeTTS 的测试语音。希望你能听到清晰自然的中文发音。";
+    private string selectedVoice = "zh-CN-XiaoxiaoNeural";
+    private string rate = "+0%";
+    private string volume = "+0%";
+    private string characterName = "";
+    private string voiceResult = "";
+    private string? audioUrl;
+    private bool isBusy;
+    private readonly List<string> logs = new();
+
+    private string AudioDir => Path.Combine(
+        Directory.GetCurrentDirectory(), "wwwroot", "audio");
+
+    protected override void OnInitialized()
+    {
+        Directory.CreateDirectory(AudioDir);
+    }
+
+    private void Log(string msg)
+    {
+        logs.Insert(0, $"[{DateTime.Now:HH:mm:ss}] {msg}");
+    }
+
+    private async Task SynthesizeSingle()
+    {
+        if (string.IsNullOrWhiteSpace(singleText)) return;
+        isBusy = true;
+        audioUrl = null;
+        StateHasChanged();
+
+        try
+        {
+            var tts = new TtsService(rate, volume);
+            var fileName = $"single_{DateTime.Now:yyyyMMddHHmmss}.mp3";
+            var outputPath = Path.Combine(AudioDir, fileName);
+
+            Log($"开始合成: 音色={selectedVoice}, 语速={rate}, 音量={volume}");
+            Log($"文本: {singleText}");
+
+            await tts.SynthesizeAsync(singleText, selectedVoice, outputPath);
+
+            audioUrl = $"audio/{fileName}";
+            Log($"✅ 合成完成: {fileName}");
+        }
+        catch (Exception ex)
+        {
+            Log($"❌ 错误: {ex.Message}");
+        }
+        finally
+        {
+            isBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private void LookupVoice()
+    {
+        if (string.IsNullOrWhiteSpace(characterName)) return;
+        var voice = TtsSvc.GetVoiceForCharacter(characterName);
+        voiceResult = $"角色「{characterName}」→ 音色: {voice}";
+        Log(voiceResult);
+    }
+
+    private async Task SynthesizeBatch()
+    {
+        isBusy = true;
+        audioUrl = null;
+        StateHasChanged();
+
+        try
+        {
+            var entries = new List<FormattedTextEntry>
+            {
+                new() { Index = 1, CharacterName = "林晓", Dialog = "今天的天气真不错，我们出去走走吧。" },
+                new() { Index = 2, CharacterName = "陈风", Dialog = "好啊，我正想出去透透气呢。" },
+                new() { Index = 3, CharacterName = "林晓", Dialog = "那我们去公园怎么样？听说樱花开了。" },
+                new() { Index = 4, CharacterName = "陈风", Dialog = "太棒了！我最喜欢樱花了，走吧！" },
+                new() { Index = 5, CharacterName = "", Dialog = "两人一起走出了家门，向着公园的方向走去。" },
+            };
+
+            Log($"批量合成: {entries.Count} 条对话");
+            foreach (var e in entries)
+            {
+                var v = TtsSvc.GetVoiceForCharacter(e.CharacterName ?? "");
+                Log($"  [{e.Index}] {e.CharacterName ?? "(旁白)"} → {v}: {e.Dialog}");
+            }
+
+            var fileName = $"batch_{DateTime.Now:yyyyMMddHHmmss}.mp3";
+            var outputPath = Path.Combine(AudioDir, fileName);
+
+            await TtsSvc.GenerateChapterAudioAsync(entries, outputPath);
+
+            audioUrl = $"audio/{fileName}";
+            Log($"✅ 批量合成完成: {fileName}");
+        }
+        catch (Exception ex)
+        {
+            Log($"❌ 错误: {ex.Message}");
+        }
+        finally
+        {
+            isBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose() { }
+}
