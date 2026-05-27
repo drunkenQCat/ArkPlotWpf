@@ -105,15 +105,40 @@ public class TtsService : IDisposable
     /// <param name="text">台词文本。</param>
     /// <param name="voice">音色名称，如 "zh-CN-XiaoxiaoNeural"。</param>
     /// <param name="outputPath">输出 MP3 文件路径。</param>
-    public async Task SynthesizeAsync(string text, string voice, string outputPath)
+    public async Task SynthesizeAsync(string text, string voice, string outputPath, int maxRetries = 3)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
             throw new ArgumentException("台词文本不能为空", nameof(text));
         }
 
-        var request = new Communicate(text, voice: voice, rate: _rate, volume: _volume);
-        await request.SaveAsync(outputPath);
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                var request = new Communicate(text, voice: voice, rate: _rate, volume: _volume);
+                await request.SaveAsync(outputPath);
+                return;
+            }
+            catch (Exception ex) when (attempt < maxRetries && IsTransientError(ex))
+            {
+                var delay = attempt * 2000; // 2s, 4s, 6s 递增退避
+                Console.WriteLine($"  ⚠️ 合成失败(第{attempt}次): {ex.Message}，{delay / 1000}秒后重试…");
+                await Task.Delay(delay);
+            }
+        }
+    }
+
+    private static bool IsTransientError(Exception ex)
+    {
+        var msg = ex.Message.ToLower();
+        return msg.Contains("unable to connect") ||
+               msg.Contains("connection") ||
+               msg.Contains("timeout") ||
+               msg.Contains("reset") ||
+               ex is System.Net.Http.HttpRequestException ||
+               ex is System.Net.Sockets.SocketException ||
+               ex is TaskCanceledException;
     }
 
     /// <summary>
@@ -134,9 +159,17 @@ public class TtsService : IDisposable
             // 1. 为每个有对话的条目生成音频
             var audioFiles = new List<(string FilePath, int Index)>();
 
+            bool isFirst = true;
             foreach (var entry in entries.Where(e => !string.IsNullOrWhiteSpace(e.Dialog)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // 请求间隔，避免触发 EdgeTTS 限流
+                if (!isFirst)
+                {
+                    await Task.Delay(800, cancellationToken);
+                }
+                isFirst = false;
 
                 var voice = GetVoiceForCharacter(entry.CharacterName ?? "");
                 var tempFile = Path.Combine(_tempDir, $"dialog_{entry.Index:D6}.mp3");
@@ -186,46 +219,63 @@ public class TtsService : IDisposable
 
     /// <summary>
     /// 合并多个 MP3 文件为单个 MP3 文件。
+    /// 使用 Mp3FileReader 逐帧流式读取，内存恒定（每帧 ~1-4KB）。
+    /// 自动跳过 ID3 标签，过滤 Xing/VBRI 头帧。
     /// </summary>
     /// <param name="inputFiles">输入 MP3 文件列表（按顺序）。</param>
     /// <param name="outputFile">输出 MP3 文件路径。</param>
     private static void MergeAudioFiles(List<string> inputFiles, string outputFile)
     {
         using var outputStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write);
-        var readers = new List<AudioFileReader>();
 
-        try
+        foreach (var inputPath in inputFiles)
         {
-            foreach (var file in inputFiles)
+            using var reader = new Mp3FileReader(inputPath);
+
+            Mp3Frame? frame;
+            while ((frame = reader.ReadNextFrame()) != null)
             {
-                var reader = new AudioFileReader(file);
-                readers.Add(reader);
-            }
+                // 跳过 Xing/VBRI 头帧（VBR 索引帧，拼接后时长信息会错位）
+                if (IsXingOrVbriFrame(frame))
+                    continue;
 
-            // 使用第一个文件的格式创建转换器
-            var targetFormat = readers[0].WaveFormat;
-
-            // 逐个读取并写入
-            foreach (var reader in readers)
-            {
-                reader.Position = 0;
-                int bytesRead;
-                var buffer = new byte[targetFormat.AverageBytesPerSecond / 10]; // 100ms 缓冲区
-
-                while ((bytesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    outputStream.Write(buffer, 0, bytesRead);
-                }
+                outputStream.Write(frame.RawData, 0, frame.RawData.Length);
             }
         }
-        finally
+    }
+
+    /// <summary>
+    /// 判断是否为 Xing/VBRI 头帧。
+    /// Xing 和 Info 是 LAME 编码器的 VBR/CBR 标签，VBRI 是 Fraunhofer 的 VBR 标签。
+    /// </summary>
+    private static bool IsXingOrVbriFrame(Mp3Frame frame)
+    {
+        var data = frame.RawData;
+        if (data.Length < 40)
+            return false;
+
+        // Xing/Info 偏移：MPEG1 单声道=17，立体声=32；MPEG2 单声道=9，立体声=17
+        int xingOffset = frame.MpegVersion == MpegVersion.Version1
+            ? (frame.ChannelMode == ChannelMode.Mono ? 17 : 32)
+            : (frame.ChannelMode == ChannelMode.Mono ? 9 : 17);
+
+        if (xingOffset + 4 <= data.Length)
         {
-            foreach (var reader in readers)
-            {
-                reader.Dispose();
-            }
-            outputStream.Dispose();
+            // "Xing" = VBR，"Info" = CBR
+            if (data[xingOffset] == 'X' && data[xingOffset + 1] == 'i' &&
+                data[xingOffset + 2] == 'n' && data[xingOffset + 3] == 'g')
+                return true;
+            if (data[xingOffset] == 'I' && data[xingOffset + 1] == 'n' &&
+                data[xingOffset + 2] == 'f' && data[xingOffset + 3] == 'o')
+                return true;
         }
+
+        // VBRI 固定在 MPEG 帧头后偏移 36
+        if (data.Length >= 40 &&
+            data[36] == 'V' && data[37] == 'B' && data[38] == 'R' && data[39] == 'I')
+            return true;
+
+        return false;
     }
 
     /// <summary>
