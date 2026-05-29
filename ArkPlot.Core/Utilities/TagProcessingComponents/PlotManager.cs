@@ -18,6 +18,14 @@ public class PlotManager
         CurrentPlot = new Plot(title, content);
     }
 
+    /// <summary>
+    /// 用已有 Plot 实例构造（从缓存加载后使用）
+    /// </summary>
+    public PlotManager(Plot plot)
+    {
+        CurrentPlot = plot;
+    }
+
 
     public void InitializePlot()
     {

@@ -2,6 +2,7 @@ using System.Text;
 using ArkPlot.Avalonia.ViewModels;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
+using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
@@ -269,5 +270,86 @@ public class FullPipelineHeadlessTests
     {
         var vm = new ChapterSelectionViewModel("test_chapter");
         Assert.True(vm.IsSelected);
+    }
+
+    // ──────────────────────────────────────────────
+    //  PlotCache 层：缓存写入/读取/增量
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task PlotCache_SaveThenLoad_ReturnsCorrectData()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "cache_test", Name = "缓存测试", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+
+        var entries = new List<FormattedTextEntry>
+        {
+            new() { Index = 0, Type = "dialog", OriginalText = "行1", MdText = "**行1**", CommandSet = new StringDict { { "type", "dialog" } } },
+            new() { Index = 1, Type = "dialog", OriginalText = "行2", MdText = "**行2**", ResourceUrls = ["https://example.com/pic.png"] }
+        };
+
+        // 保存
+        await PlotCache.SaveAsync(new Plot("TS-1 测试", new StringBuilder()) { ActId = actId }, entries, db);
+
+        // 查缓存标题
+        var cachedTitles = await PlotCache.GetCachedTitlesAsync(actId, db);
+        Assert.Contains("TS-1 测试", cachedTitles);
+
+        // 加载
+        var loaded = await PlotCache.TryLoadAsync(actId, "TS-1 测试", db);
+        Assert.NotNull(loaded);
+        Assert.Equal(2, loaded.Value.Entries.Count);
+        Assert.Equal("**行1**", loaded.Value.Entries[0].MdText);
+        Assert.Equal("**行2**", loaded.Value.Entries[1].MdText);
+        Assert.Single(loaded.Value.Entries[1].ResourceUrls);
+
+        // Status 为 2
+        Assert.Equal(2, loaded.Value.Plot.Status);
+
+        db.Dispose();
+    }
+
+    [Fact]
+    public async Task PlotCache_Miss_ReturnsNull()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "miss_test", Name = "Miss测试", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+
+        // 没缓存的章节
+        var loaded = await PlotCache.TryLoadAsync(actId, "不存在的章节", db);
+        Assert.Null(loaded);
+
+        db.Dispose();
+    }
+
+    [Fact]
+    public async Task PlotCache_OnlyReturnsStatus2()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "status_test", Name = "状态测试", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+
+        // 写入 Status=1（未完成）
+        db.Insertable(new Plot("未完成章节", new StringBuilder()) { ActId = actId, Status = 1 }).ExecuteCommand();
+
+        // 应该查不到
+        var loaded = await PlotCache.TryLoadAsync(actId, "未完成章节", db);
+        Assert.Null(loaded);
+
+        db.Dispose();
+    }
+
+    [Fact]
+    public async Task PlotCache_SaveUpdatesStatusTo2()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "status2_test", Name = "状态测试2", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+
+        var plot = new Plot("状态测试章", new StringBuilder()) { ActId = actId, Status = 0 };
+        await PlotCache.SaveAsync(plot, new List<FormattedTextEntry>(), db);
+
+        var saved = db.Queryable<Plot>().First(p => p.Title == "状态测试章");
+        Assert.Equal(2, saved!.Status);
+
+        db.Dispose();
     }
 }

@@ -307,13 +307,56 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         PrepareLoading();
+        activeTitle = CurrentAct.Name;
         var chapters = storySync.GetChaptersByActId(CurrentAct.Id);
+
+        // 查缓存：哪些章节已经处理过
+        var cachedTitles = await PlotCache.GetCachedTitlesAsync(CurrentAct.Id);
+        var cached = selectedChapters.Where(c => cachedTitles.Contains(c)).ToList();
+        var uncached = selectedChapters.Where(c => !cachedTitles.Contains(c)).ToList();
+
+        // 从缓存加载
         var content = new AkpStoryLoader(CurrentAct, chapters);
+        var loadedFromCache = new List<(string Title, List<FormattedTextEntry> Entries)>();
+        foreach (var title in cached)
+        {
+            var loaded = await PlotCache.TryLoadAsync(CurrentAct.Id, title);
+            if (loaded.HasValue)
+                loadedFromCache.Add((title, loaded.Value.Entries));
+        }
+
         try
         {
-            await LoadAllChapters(content, selectedChapters);
-            await PreloadResources(content);
-            await StartParseDocuments(content);
+            // 只下载未缓存的章节
+            if (uncached.Any())
+            {
+                await LoadAllChapters(content, uncached);
+                await PreloadResources(content);
+                await StartParseDocuments(content);
+
+                // 处理后写库
+                foreach (var plotMgr in content.ContentTable)
+                {
+                    await PlotCache.SaveAsync(
+                        new Plot(plotMgr.CurrentPlot.Title, new StringBuilder()),
+                        plotMgr.CurrentPlot.TextVariants
+                    );
+                }
+            }
+
+            // 把缓存章节拼回 ContentTable（用于导出）
+            foreach (var (title, entries) in loadedFromCache)
+            {
+                var plot = new Plot(title, new StringBuilder());
+                plot.TextVariants = entries;
+                content.ContentTable.Add(new PlotManager(plot));
+            }
+            content.ContentTable = content.ContentTable
+                .OrderBy(c => chapters.FindIndex(ch =>
+                    $"{ch.StoryCode} {ch.StoryName} {ch.AvgTag}" == c.CurrentPlot.Title))
+                .ToList();
+
+            // 跳过 PreloadResources / StartParseDocuments（缓存章节已有完整数据）
             await ExportDocuments(content);
             await RunNovelizerIfEnabled();
             await CompleteLoading();

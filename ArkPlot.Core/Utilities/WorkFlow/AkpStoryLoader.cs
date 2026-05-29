@@ -31,7 +31,7 @@ public class AkpStoryLoader
     /// <summary>
     /// 当前活动内所有章节的内容。
     /// </summary>
-    public List<PlotManager> ContentTable { get; private set; } = new();
+    public List<PlotManager> ContentTable { get; set; } = new();
 
     /// <summary>
     /// 获取GitHub上对应本次活动的RAW数据URL的开头。

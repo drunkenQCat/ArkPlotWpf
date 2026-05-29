@@ -33,14 +33,19 @@ public class OrmCrudTests : IDisposable
     [Fact]
     public void Should_InsertAndQueryPlot()
     {
-        var plot = new Plot("测试标题", new StringBuilder("测试内容"));
+        var plot = new Plot("测试标题", new StringBuilder("测试内容"))
+        {
+            ActId = 42,
+            Status = 2
+        };
         var id = _db.Insertable(plot).ExecuteReturnIdentity();
 
         var retrieved = _db.Queryable<Plot>().First(it => it.Id == id);
 
         Assert.NotNull(retrieved);
         Assert.Equal("测试标题", retrieved.Title);
-        Assert.Equal("测试内容", retrieved.Content.ToString());
+        Assert.Equal(42, retrieved.ActId);
+        Assert.Equal(2, retrieved.Status);
     }
 
     [Fact]
