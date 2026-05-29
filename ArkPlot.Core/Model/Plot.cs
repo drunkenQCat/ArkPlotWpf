@@ -1,5 +1,4 @@
 using SqlSugar;
-using System.Text.Json;
 
 namespace ArkPlot.Core.Model;
 
@@ -18,39 +17,32 @@ public class Plot
     [SugarColumn(ColumnDataType = "INTEGER", IsNullable = true)]
     public long ActId { get; set; }
 
+    /// <summary>
+    /// 处理状态：0=未处理，1=处理中，2=已完成
+    /// </summary>
+    public int Status { get; set; }
+
     [SugarColumn(Length = 200)]
     public string Title { get; init; }
 
+    /// <summary>
+    /// 原始内容（运行时仅用于下载后、解析前的管道中转）
+    /// </summary>
     [SugarColumn(IsIgnore = true)]
     public StringBuilder Content { get; set; }
 
-    [SugarColumn(ColumnDataType = "TEXT")]
-    public string ContentText
-    {
-        get => Content?.ToString() ?? "";
-        set => Content = new StringBuilder(value);
-    }
-
+    /// <summary>
+    /// 解析后的文本条目列表（运行时使用，不存库；入库后在 FormattedTextEntry 表中）
+    /// </summary>
     [SugarColumn(IsIgnore = true)]
     public List<FormattedTextEntry> TextVariants { get; set; } = [];
 
-    [SugarColumn(ColumnDataType = "TEXT")]
-    public string TextVariantsJson
-    {
-        get => JsonSerializer.Serialize(TextVariants);
-        set => TextVariants = JsonSerializer.Deserialize<List<FormattedTextEntry>>(value) ?? [];
-    }
-
-    /// <summary>
-    /// 用来表示一个章节的类。
-    /// </summary>
-    /// <param name="title">类的标题。</param>
-    /// <param name="content">类的内容。</param>
     public Plot(string title, StringBuilder content)
     {
         Title = title;
         Content = content;
     }
+
     public Plot()
     {
         Title = string.Empty;

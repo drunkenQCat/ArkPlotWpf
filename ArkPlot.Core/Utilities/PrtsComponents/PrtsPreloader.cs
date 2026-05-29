@@ -22,8 +22,8 @@ public partial class PrtsPreloader
     private bool _isTweenNeedsOverride = true;
     private readonly List<FormattedTextEntry> _textList;
 
-    private static PortraitInfo CreateDefaultPortraitInfo() => new(["https://pics/transparent.png"], 0);
-    private PortraitInfo _currentPortraits = CreateDefaultPortraitInfo();
+    private List<string> _currentPortraits = ["https://pics/transparent.png"];
+    private int _currentPortraitFocus;
     private const string DefaultBg = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png";
     private string _currentBg = DefaultBg;
 
@@ -58,7 +58,8 @@ public partial class PrtsPreloader
             if (!match.Success)
             {
                 entry.Dialog = entry.OriginalText;
-                entry.PortraitsInfo = _currentPortraits;
+                entry.Portraits = _currentPortraits;
+                entry.PortraitFocus = _currentPortraitFocus;
                 entry.Bg = _currentBg;
                 continue;
             };
@@ -87,7 +88,8 @@ public partial class PrtsPreloader
                 }
                 entry.ResourceUrls = urlList;
             }
-            entry.PortraitsInfo = _currentPortraits;
+            entry.Portraits = _currentPortraits;
+            entry.PortraitFocus = _currentPortraitFocus;
             entry.Bg = _currentBg;
             _counter++;
         }
@@ -118,15 +120,15 @@ public partial class PrtsPreloader
                 goto case "character";
             case "character":
                 urls = ProcessPortraitCommand(commandDict);
-                _currentPortraits = GetCurrentPortraitsFromCharacter(commandDict, urls);
+                (_currentPortraits, _currentPortraitFocus) = GetCurrentPortraitsFromCharacter(commandDict, urls);
                 break;
             case "charactercutin":
                 urls = ProcessPortraitCommand(commandDict);
-                _currentPortraits = GetCurrentPortraitsFromCutin(commandDict, urls);
+                (_currentPortraits, _currentPortraitFocus) = GetCurrentPortraitsFromCutin(commandDict, urls);
                 break;
             case "charslot":
                 urls = ProcessPortraitCommand(commandDict);
-                _currentPortraits = GetCurrentPortraitsFromSlot(commandDict, urls);
+                (_currentPortraits, _currentPortraitFocus) = GetCurrentPortraitsFromSlot(commandDict, urls);
                 break;
             case "gridbg":
             case "verticalbg":
@@ -155,41 +157,43 @@ public partial class PrtsPreloader
     }
 
 
-    private static PortraitInfo GetCurrentPortraitsFromCutin(StringDict commandDict, List<string> urls)
+    private static (List<string>, int) GetCurrentPortraitsFromCutin(StringDict commandDict, List<string> urls)
     {
-        return new PortraitInfo(urls, 0);
+        return (urls, 0);
     }
 
-    private static PortraitInfo GetCurrentPortraitsFromCharacter(StringDict commandDict, List<string> inputUrls)
+    private static (List<string>, int) GetCurrentPortraitsFromCharacter(StringDict commandDict, List<string> inputUrls)
     {
         List<string> urls = new(inputUrls);
-        if (urls.Count == 0) return CreateDefaultPortraitInfo();
+        if (urls.Count == 0) return (["https://pics/transparent.png"], 0);
         if (commandDict.TryGetValue("focus", out string? position))
         {
-            return position switch
+            var focus = position switch
             {
-                "-1" => new PortraitInfo(urls, -1),
-                "1" => new PortraitInfo(urls, 1),
-                "2" => new PortraitInfo(urls, 2),
-                _ => new PortraitInfo(urls, 0)
+                "-1" => -1,
+                "1" => 1,
+                "2" => 2,
+                _ => 0
             };
+            return (urls, focus);
         }
-        return new PortraitInfo(urls, 0);
+        return (urls, 0);
     }
 
-    private static PortraitInfo GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
+    private static (List<string>, int) GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
     {
         if (commandDict.TryGetValue("slot", out string? position))
         {
-            return position switch
+            var focus = position switch
             {
-                "m" => new PortraitInfo(urls, 0),
-                "l" => new PortraitInfo(urls, 1),
-                "r" => new PortraitInfo(urls, 2),
-                _ => new PortraitInfo(urls, 0),
+                "m" => 0,
+                "l" => 1,
+                "r" => 2,
+                _ => 0,
             };
+            return (urls, focus);
         }
-        return new PortraitInfo(urls, 0);
+        return (urls, 0);
     }
 
     private void OverrideCurrentText()

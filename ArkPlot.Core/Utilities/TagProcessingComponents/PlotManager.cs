@@ -78,8 +78,8 @@ public class PlotManager
         string characterName = line.CharacterName;
         string dialog = line.Dialog;
         string bgImage = $"image(\"{line.Bg.Replace("https://", "")}\", width: 1440pt)";
-        List<string> portraits = line.PortraitsInfo.Portraits;
-        int focus = line.PortraitsInfo.FocusOn;
+        List<string> portraits = line.Portraits;
+        int focus = line.PortraitFocus;
 
         string FormatSinglePortrait(string portrait) =>
             $"#arknights_sim(\"{characterName}\", \"{dialog}\", image(\"{portrait.Replace("https://", "")}\", height: 135%), {bgImage}, focus: {focus})";

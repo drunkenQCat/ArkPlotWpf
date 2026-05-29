@@ -76,8 +76,11 @@ public class FormattedTextEntryDump
     [JsonProperty("resource_urls")]
     public List<string> ResourceUrls { get; init; } = new();
 
-    [JsonProperty("portraits_info")]
-    public PortraitInfo PortraitsInfo { get; init; } = new(new List<string>(), 0);
+    [JsonProperty("portraits")]
+    public List<string> Portraits { get; init; } = new();
+
+    [JsonProperty("portrait_focus")]
+    public int PortraitFocus { get; init; }
 
     [JsonProperty("command_set")]
     public StringDict CommandSet { get; init; } = new();

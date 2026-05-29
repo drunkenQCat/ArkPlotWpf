@@ -39,7 +39,8 @@ public static class DumpService
                 PngIndex = entry.PngIndex,
                 Bg = entry.Bg,
                 ResourceUrls = entry.ResourceUrls,
-                PortraitsInfo = entry.PortraitsInfo,
+                Portraits = entry.Portraits,
+                PortraitFocus = entry.PortraitFocus,
                 CommandSet = entry.CommandSet,
                 PicDesc = entry.PicDesc
             }).ToList()

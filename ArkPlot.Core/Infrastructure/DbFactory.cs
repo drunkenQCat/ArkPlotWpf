@@ -1,9 +1,20 @@
 using System;
 using System.IO;
+using System.Text.Json;
 using SqlSugar;
 using ArkPlot.Core.Model;
 
 namespace ArkPlot.Core.Infrastructure;
+
+/// <summary>
+/// 让 SqlSugar 的 IsJson=true 使用 System.Text.Json 而不是默认的 Newtonsoft.Json
+/// </summary>
+public class SystemTextJsonSerializer : ISerializeService
+{
+    public string SerializeObject(object value) => JsonSerializer.Serialize(value);
+    public string SugarSerializeObject(object value) => JsonSerializer.Serialize(value);
+    public T DeserializeObject<T>(string value) => JsonSerializer.Deserialize<T>(value) ?? default!;
+}
 
 public static class DbFactory
 {
@@ -19,7 +30,11 @@ public static class DbFactory
         {
             ConnectionString = $"Data Source={dbPath}",
             DbType = DbType.Sqlite,
-            IsAutoCloseConnection = true
+            IsAutoCloseConnection = true,
+            ConfigureExternalServices = new ConfigureExternalServices
+            {
+                SerializeService = new SystemTextJsonSerializer()
+            }
         });
 
         _client.CodeFirst.SetStringDefaultLength(200).InitTables(
