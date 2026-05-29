@@ -19,7 +19,7 @@ public static class ResourceLoader
         var prtsLoaded = false;
         try
         {
-            await prts.GetAllData();
+            await prts.EnsureSyncedAsync();
             prtsLoaded = true;
             Console.WriteLine("    Prts 资源索引加载完成");
         }

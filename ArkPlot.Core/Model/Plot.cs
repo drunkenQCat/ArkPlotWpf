@@ -12,6 +12,12 @@ public class Plot
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]
     public long Id { get; set; }
 
+    /// <summary>
+    /// 关联的活动 ID（Acts 表主键），0 表示未关联
+    /// </summary>
+    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = true)]
+    public long ActId { get; set; }
+
     [SugarColumn(Length = 200)]
     public string Title { get; init; }
 

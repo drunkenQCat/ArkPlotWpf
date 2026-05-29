@@ -1,9 +1,8 @@
 using ArkPlot.Core.Model;
-using ArkPlot.Core.Utilities.ArknightsDbComponents;
+using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
-using Newtonsoft.Json.Linq;
 
 namespace ArkPlot.WebDemo.Services;
 
@@ -14,6 +13,7 @@ public class StoryService
 {
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<StoryService> _logger;
+    private readonly StorySyncService _sync = new();
 
     public StoryService(IWebHostEnvironment env, ILogger<StoryService> logger)
     {
@@ -21,19 +21,21 @@ public class StoryService
         _logger = logger;
     }
 
-    /// <summary>获取所有指定类型的活动列表。</summary>
+    /// <summary>获取所有指定类型的活动列表（从数据库读取）。</summary>
     public List<ActivityItem> GetActivities(string actType = "ACTIVITY_STORY")
     {
-        var parser = new ReviewTableParser("zh_CN");
-        var stories = parser.GetStories(actType);
-        return stories.Select((s, i) => new ActivityItem(i, s["name"]?.ToString() ?? "未知", s)).ToList();
+        var acts = _sync.GetActsByType("zh_CN", actType);
+        return acts.Select((a, i) => new ActivityItem(i, a.Id, a.Name)).ToList();
     }
 
     /// <summary>加载指定活动的章节列表。</summary>
     public async Task<List<string>> GetChapterNamesAsync(ActivityItem activity)
     {
-        var actInfo = new ActInfo("zh_CN", "ACTIVITY_STORY", activity.Name, activity.RawToken);
-        var loader = new AkpStoryLoader(actInfo);
+        var chapters = _sync.GetChaptersByActId(activity.ActDbId);
+        var loader = new AkpStoryLoader(
+            _sync.GetActsFromDb("zh_CN").First(a => a.Id == activity.ActDbId),
+            chapters
+        );
         var names = await loader.GetChapterNamesAsync();
         return names.ToList();
     }
@@ -44,8 +46,9 @@ public class StoryService
     public async Task<ChapterResult> LoadChapterAsync(ActivityItem activity, string chapterName,
         IProgress<string>? progress = null)
     {
-        var actInfo = new ActInfo("zh_CN", "ACTIVITY_STORY", activity.Name, activity.RawToken);
-        var loader = new AkpStoryLoader(actInfo);
+        var act = _sync.GetActsFromDb("zh_CN").First(a => a.Id == activity.ActDbId);
+        var chapters = _sync.GetChaptersByActId(act.Id);
+        var loader = new AkpStoryLoader(act, chapters);
 
         // 1. 下载章节
         progress?.Report("正在下载章节内容...");
@@ -64,7 +67,7 @@ public class StoryService
         try
         {
             var prts = new PrtsDataProcessor();
-            await prts.GetAllData();
+            await prts.EnsureSyncedAsync();
             prtsLoaded = true;
         }
         catch (Exception ex)
@@ -121,7 +124,7 @@ public class StoryService
     }
 }
 
-public record ActivityItem(int Index, string Name, JToken RawToken);
+public record ActivityItem(int Index, long ActDbId, string Name);
 
 public class ChapterResult
 {

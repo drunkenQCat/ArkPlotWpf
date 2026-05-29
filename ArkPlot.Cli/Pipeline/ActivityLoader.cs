@@ -1,30 +1,56 @@
 using ArkPlot.Core.Model;
-using ArkPlot.Core.Utilities.ArknightsDbComponents;
+using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities.WorkFlow;
 
 namespace ArkPlot.Cli.Pipeline;
 
 /// <summary>
-/// Step 1-2: 加载活动列表 + 获取第一章名称。
+/// Step 1-2: SHA 验证 → 同步活动列表到数据库 → 加载第一个活动。
+/// CLI 为 debug 模式：始终从 GitHub 下载，不依赖缓存。
 /// </summary>
 public static class ActivityLoader
 {
-    public static (ActInfo ActInfo, string ActName, AkpStoryLoader StoryLoader) LoadFirstActivity()
+    public static async Task<(Act Act, List<StoryChapter> Chapters, string ActName, AkpStoryLoader StoryLoader)>
+        LoadFirstActivityAsync(string lang = "zh_CN")
     {
-        Console.WriteLine("[1/6] 正在加载活动列表...");
-        var actsTable = new ReviewTableParser("zh_CN");
-        var activities = actsTable.GetStories("ACTIVITY_STORY");
+        Console.WriteLine("[1/6] 正在同步活动列表...");
+        var sync = new StorySyncService();
 
-        if (activities.Count == 0)
+        // 获取远程 SHA（仅用于验证，不影响后续流程）
+        var repo = StorySyncService.GetRepoByLang(lang);
+        var remoteSha = await StorySyncService.GetLatestCommitShaAsync(repo);
+        var localSha = sync.GetSyncState(lang)?.LastCommitSha;
+
+        Console.WriteLine($"    仓库     ：{repo}");
+        Console.WriteLine($"    远程 SHA ：{remoteSha ?? "（获取失败）"}");
+        Console.WriteLine($"    本地 SHA ：{localSha ?? "（无缓存）"}");
+
+        // CLI debug 模式：始终从 GitHub 下载
+        Console.WriteLine("    CLI Debug 模式：强制从 GitHub 重新下载...");
+        var (acts, _) = await sync.DownloadAndSaveAsync(lang);
+        Console.WriteLine($"    同步完成：共 {acts.Count} 个活动");
+
+        // 更新 SHA（验证写入路径）
+        if (remoteSha != null)
+        {
+            sync.UpsertSyncState(lang, remoteSha);
+            Console.WriteLine($"    已更新本地 SHA");
+        }
+
+        // 取第一个 ACTIVITY_STORY 类型的活动
+        var activity = acts.FirstOrDefault(a => a.ActType == "ACTIVITY_STORY");
+        if (activity == null)
             throw new InvalidOperationException("未找到任何 ACTIVITY_STORY 类型的活动。");
 
-        var firstAct = activities[0];
-        var actName = firstAct["name"]?.ToString() ?? "未知活动";
-        Console.WriteLine($"    活动：{actName}");
+        var actName = activity.Name;
+        Console.WriteLine($"    活动     ：{actName}");
 
-        var actInfo = new ActInfo("zh_CN", "ACTIVITY_STORY", actName, firstAct);
-        var storyLoader = new AkpStoryLoader(actInfo);
-        return (actInfo, actName, storyLoader);
+        // 从 DB 读章节列表
+        var chapters = sync.GetChaptersByActId(activity.Id);
+        Console.WriteLine($"    章节数   ：{chapters.Count}");
+
+        var storyLoader = new AkpStoryLoader(activity, chapters);
+        return (activity, chapters, actName, storyLoader);
     }
 
     public static async Task<string?> GetFirstChapterAsync(AkpStoryLoader storyLoader)

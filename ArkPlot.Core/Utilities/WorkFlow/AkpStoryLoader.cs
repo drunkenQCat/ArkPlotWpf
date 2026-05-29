@@ -1,13 +1,9 @@
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
-using Newtonsoft.Json.Linq;
 using PreloadSet = System.Collections.Generic.HashSet<System.Collections.Generic.KeyValuePair<string, string>>;
-
 
 namespace ArkPlot.Core.Utilities.WorkFlow;
 
@@ -18,29 +14,28 @@ public class AkpStoryLoader
 {
     public string StoryName { get; }
     private readonly string lang;
+    private readonly List<StoryChapter> _chapters;
 
     private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
-
-    // 从GitHub拿到章节的文件名以及相应的所有内容
-    private readonly JToken storyTokens;
     private readonly List<Task> tasks = new();
 
-    public AkpStoryLoader(ActInfo info)
+    /// <param name="act">当前活动</param>
+    /// <param name="chapters">该活动下的章节列表</param>
+    public AkpStoryLoader(Act act, List<StoryChapter> chapters)
     {
-        StoryName = info.Name;
-        lang = info.Lang;
-        storyTokens = info.Tokens;
+        StoryName = act.Name;
+        lang = act.Lang;
+        _chapters = chapters;
     }
 
     /// <summary>
-    /// 当前，活动内所有章节的内容。
+    /// 当前活动内所有章节的内容。
     /// </summary>
     public List<PlotManager> ContentTable { get; private set; } = new();
 
     /// <summary>
-    /// 获取GitHub 上对应本次活动的 RAW 数据URL的开头。
+    /// 获取GitHub上对应本次活动的RAW数据URL的开头。
     /// </summary>
-    /// <returns>GitHub 上的 RAW 数据 URL。</returns>
     private string GetRawUrl()
     {
         if (lang == "zh_CN")
@@ -50,10 +45,8 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 下载所有章节的文本。
+    /// 获取所有章节名称。
     /// </summary>
-    /// <returns>表示异步操作的任务�?/returns>
-    /// <returns>包含所有章节名称的集合。</returns>
     public Task<IEnumerable<string>> GetChapterNamesAsync()
     {
         var chapterUrlTable = GetChapterUrls();
@@ -63,7 +56,6 @@ public class AkpStoryLoader
     /// <summary>
     /// 下载所有章节的文本。
     /// </summary>
-    /// <returns>表示异步操作的任务。</returns>
     public async Task GetAllChapters()
     {
         var chapterUrlTable = GetChapterUrls();
@@ -74,7 +66,6 @@ public class AkpStoryLoader
     /// 下载指定章节的文本内容。
     /// </summary>
     /// <param name="chaptersToLoad">需要加载的章节名称列表。</param>
-    /// <returns>表示异步操作的任务。</returns>
     public async Task GetAllChapters(IEnumerable<string> chaptersToLoad)
     {
         var chapterUrlTable = GetChapterUrls();
@@ -107,7 +98,6 @@ public class AkpStoryLoader
     /// <summary>
     /// 获取预加载信息。
     /// </summary>
-    /// <returns>预加载信息。</returns>
     public PreloadSet GetPreloadInfo()
     {
         var resourceSets = ContentTable.Select(c =>
@@ -118,7 +108,6 @@ public class AkpStoryLoader
         }).ToList();
         var toPreLoad = new PreloadSet();
         foreach (var res in resourceSets) toPreLoad.UnionWith(res.Assets);
-        // 将所有数据写入ResourceCsv.Instance.PreLoaded
         PrtsAssets.Instance.PreLoaded = StringDict.FromEnumerable(toPreLoad);
         return toPreLoad;
     }
@@ -126,52 +115,37 @@ public class AkpStoryLoader
     /// <summary>
     /// 预加载所有章节相关的资源。
     /// </summary>
-    /// <returns>表示异步操作的任务。</returns>
     public async Task PreloadAssetsForAllChapters()
     {
         var toPreLoad = GetPreloadInfo();
-        // 下载所有资源
         await PrtsResLoader.DownloadAssets(StoryName, toPreLoad);
     }
 
     public void ParseAllDocuments(string jsonPath)
     {
         var parser = new AkpParser(jsonPath);
-        ContentTable.ForEach(p =>
-        {
-            p.StartParseLines(parser);
-        });
+        ContentTable.ForEach(p => p.StartParseLines(parser));
     }
 
     /// <summary>
-    /// 获取活动内每个章节URL。
+    /// 构建章节 → 下载URL 的映射。
     /// </summary>
-    /// <returns>包含章节URL的字典。</returns>
     private Dictionary<string, string> GetChapterUrls()
     {
-        var plots = storyTokens["infoUnlockDatas"]?.ToObject<JArray>();
-
         var collection =
-            from chapter in plots
-            let storyId = chapter["storyId"]?.Value<string>()
-            let variation = storyId.Contains("variation") ? ExtractVariationNumber(storyId) : "" 
-            let title = $"{chapter["storyCode"]} {chapter["storyName"]} {chapter["avgTag"]}{variation}"
-            let txt = $"{GetRawUrl()}{chapter["storyTxt"]}.txt"
+            from chapter in _chapters
+            let variation = chapter.StoryId.Contains("variation") ? ExtractVariationNumber(chapter.StoryId) : ""
+            let title = $"{chapter.StoryCode} {chapter.StoryName} {chapter.AvgTag}{variation}"
+            let txt = $"{GetRawUrl()}{chapter.StoryTxt}.txt"
             let plot = new KeyValuePair<string, string>(title, txt)
             select plot;
         return collection.ToDictionary(pair => pair.Key, pair => pair.Value);
     }
+
     private static string ExtractVariationNumber(string storyCode)
     {
-        // 正则表达式匹配 "variation" 后跟的数字
-        // 模式解释：
-        // - "variation" : 匹配字面量
-        // - \d+         : 匹配一个或多个数字
-        Regex regex = new Regex(@"variation(\d+)");
-        Match match = regex.Match(storyCode);
-        
-        // 如果匹配成功，返回第一个捕获组（即数字部分）
-        // 否则返回空字符串
+        var regex = new Regex(@"variation(\d+)");
+        var match = regex.Match(storyCode);
         return match.Success ? match.Groups[1].Value : "";
     }
 }

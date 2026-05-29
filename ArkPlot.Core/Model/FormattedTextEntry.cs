@@ -16,6 +16,12 @@ public class FormattedTextEntry
     public long Id { get; set; }
 
     /// <summary>
+    /// 关联的章节 ID（Plot 表主键）
+    /// </summary>
+    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = true)]
+    public long PlotId { get; set; }
+
+    /// <summary>
     /// 文本行的索引号
     /// </summary>
     [SugarColumn(ColumnDataType = "INTEGER")]

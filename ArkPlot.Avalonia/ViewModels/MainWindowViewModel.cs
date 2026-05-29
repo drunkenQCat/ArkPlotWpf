@@ -35,7 +35,7 @@ namespace ArkPlot.Avalonia.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private readonly ReviewTableParser actsTable = new();
+    private readonly StorySyncService storySync = new();
 
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
     private readonly PrtsDataProcessor prts = new();
@@ -51,7 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
             - 如果遇到报错【出错的句子:****】，如过于影响阅读体验，需要结合报错信息填写相应正则表达式来规整，请点击“编辑Tags”按钮，添加相应tag的项目；
             - 如果有任何改进意见，欢迎Pr。";
 
-    private List<ActInfo> currentActInfos = new();
+    private List<Act> currentActs = new();
 
     [ObservableProperty]
     private bool isInitialized;
@@ -94,7 +94,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string storyType = "ACTIVITY_STORY";
     private string? activeTitle;
 
-    private ActInfo CurrentAct => currentActInfos[SelectedIndex];
+    private Act CurrentAct => currentActs[SelectedIndex];
 
     [ObservableProperty]
     private ObservableCollection<ChapterSelectionViewModel> _chapters = new();
@@ -120,7 +120,8 @@ public partial class MainWindowViewModel : ViewModelBase
         Chapters.Clear();
         Status = "正在加载章节列表...";
 
-        var storyLoader = new AkpStoryLoader(CurrentAct);
+        var chapters = storySync.GetChaptersByActId(CurrentAct.Id);
+        var storyLoader = new AkpStoryLoader(CurrentAct, chapters);
         var chapterNames = await storyLoader.GetChapterNamesAsync();
 
         foreach (var name in chapterNames)
@@ -218,7 +219,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            await prts.GetAllData();
+            await prts.EnsureSyncedAsync();
             noticeBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\n");
         }
         catch (Exception)
@@ -241,7 +242,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             language = lang;
-            await Task.Run(() => actsTable.Lang = lang);
+            await SyncActsAsync(lang);
             noticeBlock.RaiseCommonEvent("【剧情索引文件加载完成】\n");
             LoadActs(storyType);
         }
@@ -249,7 +250,26 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var s = "\n索引文件加载出错！请检查网络代理。\n";
             noticeBlock.RaiseCommonEvent(s);
-            // Removed MessageBox.Show(s);
+        }
+    }
+
+    private async Task SyncActsAsync(string lang)
+    {
+        var repo = StorySyncService.GetRepoByLang(lang);
+        var remoteSha = await StorySyncService.GetLatestCommitShaAsync(repo);
+        var localSha = storySync.GetSyncState(lang)?.LastCommitSha;
+
+        if (remoteSha != null && remoteSha != localSha)
+        {
+            await storySync.DownloadAndSaveAsync(lang);
+            storySync.UpsertSyncState(lang, remoteSha);
+        }
+        else if (remoteSha == null)
+        {
+            // GitHub API 失败时尝试从 DB 读取已有数据
+            var existing = storySync.GetActsFromDb(lang);
+            if (existing.Count == 0)
+                throw new Exception("无法连接到 GitHub，且本地无缓存数据。");
         }
     }
 
@@ -257,15 +277,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private void LoadActs(string type)
     {
         storyType = type;
-        var currentTokens = actsTable.GetStories(type);
-        currentActInfos = (
-            from act in currentTokens
-            let name = act["name"]!.ToString()
-            let info = new ActInfo(language, storyType, name, act)
-            select info
-        ).ToList();
-        StoriesNames = // Changed StoriesNames to storiesNames (field)
-            from info in currentActInfos select info.Name;
+        currentActs = storySync.GetActsByType(language, type);
+        StoriesNames = currentActs.Select(a => a.Name);
         SelectedIndex = 0;
     }
 
@@ -294,7 +307,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         PrepareLoading();
-        var content = new AkpStoryLoader(CurrentAct);
+        var chapters = storySync.GetChaptersByActId(CurrentAct.Id);
+        var content = new AkpStoryLoader(CurrentAct, chapters);
         try
         {
             await LoadAllChapters(content, selectedChapters);
@@ -319,7 +333,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task LoadAllChapters(AkpStoryLoader contentLoader, List<string> chapterNames)
     {
-        activeTitle = CurrentAct.Tokens["name"]?.ToString();
+        activeTitle = CurrentAct.Name;
         await contentLoader.GetAllChapters(chapterNames);
         noticeBlock.RaiseCommonEvent("章节加载完成。");
     }
@@ -565,7 +579,8 @@ public partial class MainWindowViewModel : ViewModelBase
         var plotsJsonFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, "all_plots.json")); // Changed hardcoded path
         if (!plotsJsonFile.Exists)
         {
-            var content = new AkpStoryLoader(currentActInfos[0]); // 假设currentActInfos[0]是合法的参数
+            var chapters = storySync.GetChaptersByActId(currentActs[0].Id);
+            var content = new AkpStoryLoader(currentActs[0], chapters);
             await content.GetAllChapters();
             allPlots = content.ContentTable;
             var plotJson = JsonConvert.SerializeObject(allPlots, Formatting.Indented); // 使用Newtonsoft.Json进行序列化

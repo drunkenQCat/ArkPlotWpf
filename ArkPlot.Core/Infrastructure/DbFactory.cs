@@ -27,7 +27,11 @@ public static class DbFactory
             typeof(FormattedTextEntry),
             typeof(PrtsData),
             typeof(Act),
-            typeof(PicDescription)
+            typeof(PicDescription),
+            typeof(StoryChapter),
+            typeof(SyncState),
+            typeof(PrtsResource),
+            typeof(PrtsPortraitLink)
         );
 
         return _client;

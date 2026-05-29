@@ -109,7 +109,7 @@ public class OrmCrudTests : IDisposable
     {
         _db.Insertable(new Plot("第一章 开始", new StringBuilder("内容1"))).ExecuteReturnIdentity();
         _db.Insertable(new Plot("第二章 发展", new StringBuilder("内容2"))).ExecuteReturnIdentity();
-        _db.Insertable(new Plot("其他章节", new StringBuilder("内容3"))).ExecuteReturnIdentity();
+        _db.Insertable(new Plot("其他剧情", new StringBuilder("内容3"))).ExecuteReturnIdentity();
 
         var result = _db.Queryable<Plot>()
             .Where(it => it.Title.Contains("章"))
@@ -121,12 +121,12 @@ public class OrmCrudTests : IDisposable
     [Fact]
     public void Should_InsertAndQueryAct()
     {
-        var act = new Act { Title = "测试幕" };
+        var act = new Act { Name = "测试幕", ActId = "test", Lang = "zh_CN", ActType = "ACTIVITY_STORY" };
         var id = _db.Insertable(act).ExecuteReturnIdentity();
 
         var retrieved = _db.Queryable<Act>().First(it => it.Id == id);
         Assert.NotNull(retrieved);
-        Assert.Equal("测试幕", retrieved.Title);
+        Assert.Equal("测试幕", retrieved.Name);
     }
 
     [Fact]

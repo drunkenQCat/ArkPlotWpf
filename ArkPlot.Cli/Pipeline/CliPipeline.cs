@@ -25,7 +25,7 @@ public class CliPipeline
         Console.WriteLine();
 
         // 1-2. 加载活动 & 获取第一章
-        var (_, actName, storyLoader) = ActivityLoader.LoadFirstActivity();
+        var (_, _, actName, storyLoader) = await ActivityLoader.LoadFirstActivityAsync();
         var firstChapter = await ActivityLoader.GetFirstChapterAsync(storyLoader);
         if (firstChapter == null) return;
 
