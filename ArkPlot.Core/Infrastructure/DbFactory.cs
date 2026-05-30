@@ -19,18 +19,22 @@ public class SystemTextJsonSerializer : ISerializeService
 public static class DbFactory
 {
     private static SqlSugarClient? _client;
+    private static string? _testConnectionString;
 
     public static SqlSugarClient GetClient()
     {
         if (_client != null) return _client;
 
-        var dbPath = Path.Combine(AppContext.BaseDirectory, "arkplot.db");
+        var connectionString = _testConnectionString
+            ?? $"Data Source={Path.Combine(AppContext.BaseDirectory, "arkplot.db")}";
+
+        var isMemoryDb = connectionString.Contains(":memory:");
 
         _client = new SqlSugarClient(new ConnectionConfig
         {
-            ConnectionString = $"Data Source={dbPath}",
+            ConnectionString = connectionString,
             DbType = DbType.Sqlite,
-            IsAutoCloseConnection = true,
+            IsAutoCloseConnection = !isMemoryDb,
             ConfigureExternalServices = new ConfigureExternalServices
             {
                 SerializeService = new SystemTextJsonSerializer()
@@ -38,17 +42,38 @@ public static class DbFactory
         });
 
         _client.CodeFirst.SetStringDefaultLength(200).InitTables(
+            typeof(Act),
+            typeof(StoryChapter),
             typeof(Plot),
             typeof(FormattedTextEntry),
-            typeof(PrtsData),
-            typeof(Act),
-            typeof(PicDescription),
-            typeof(StoryChapter),
             typeof(SyncState),
+            typeof(PicDescription),
+            typeof(PrtsData),
             typeof(PrtsResource),
             typeof(PrtsPortraitLink)
         );
 
         return _client;
+    }
+
+    /// <summary>
+    /// 测试用：设置连接字符串并重置单例，下次 GetClient() 将用新连接创建。
+    /// 传入 "Data Source=:memory:" 即可使用内存数据库。
+    /// </summary>
+    public static void ConfigureForTesting(string connectionString)
+    {
+        _client?.Dispose();
+        _client = null;
+        _testConnectionString = connectionString;
+    }
+
+    /// <summary>
+    /// 测试结束：清理单例，恢复默认行为。
+    /// </summary>
+    public static void Reset()
+    {
+        _client?.Dispose();
+        _client = null;
+        _testConnectionString = null;
     }
 }

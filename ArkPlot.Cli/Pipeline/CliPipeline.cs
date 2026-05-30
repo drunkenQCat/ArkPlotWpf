@@ -39,7 +39,7 @@ public class CliPipeline
         await ResourceLoader.LoadAsync(storyLoader, plotManager, processedEntries);
 
         // 6. 解析文档
-        DocumentParser.Parse(_tagsJsonPath, plotManager, processedEntries);
+        await DocumentParser.Parse(_tagsJsonPath, plotManager, processedEntries);
 
         // 6.5 Debug 模式 mock 注入
         if (CliOptions.DebugMode)

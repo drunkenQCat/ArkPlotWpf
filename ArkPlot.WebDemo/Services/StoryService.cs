@@ -102,7 +102,7 @@ public class StoryService
         if (File.Exists(tagsPath))
         {
             var parser = new AkpParser(tagsPath);
-            plotManager.StartParseLines(parser);
+            await plotManager.StartParseLines(parser);
         }
 
         // 5. 提取有图片的条目

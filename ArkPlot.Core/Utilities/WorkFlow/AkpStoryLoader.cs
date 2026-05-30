@@ -14,6 +14,7 @@ public class AkpStoryLoader
 {
     public string StoryName { get; }
     private readonly string lang;
+    private readonly long _actId;
     private readonly List<StoryChapter> _chapters;
 
     private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
@@ -25,6 +26,7 @@ public class AkpStoryLoader
     {
         StoryName = act.Name;
         lang = act.Lang;
+        _actId = act.Id;
         _chapters = chapters;
     }
 
@@ -54,7 +56,7 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 下载所有章节的文本。
+    /// 下载所有章节的文本。优先从 PlotCache 加载已缓存章节。
     /// </summary>
     public async Task GetAllChapters()
     {
@@ -63,25 +65,52 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 下载指定章节的文本内容。
+    /// 下载指定章节的文本内容。已缓存章节从 DB 加载（Status=2），
+    /// 未缓存章节从 GitHub 下载并写入 Status=1 缓存。
     /// </summary>
     /// <param name="chaptersToLoad">需要加载的章节名称列表。</param>
     public async Task GetAllChapters(IEnumerable<string> chaptersToLoad)
     {
         var chapterUrlTable = GetChapterUrls();
+        var chaptersList = chaptersToLoad.ToList();
         var filteredChapters = chapterUrlTable
-            .Where(kvp => chaptersToLoad.Contains(kvp.Key))
+            .Where(kvp => chaptersList.Contains(kvp.Key))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        // 查缓存
+        var cachedTitles = _actId != 0
+            ? await PlotCache.GetCachedTitlesAsync(_actId)
+            : new HashSet<string>();
 
         foreach (var chapter in filteredChapters)
         {
+            // 已缓存（Status=2）→ 从 DB 加载
+            if (cachedTitles.Contains(chapter.Key))
+            {
+                var loaded = await PlotCache.TryLoadAsync(_actId, chapter.Key);
+                if (loaded.HasValue)
+                {
+                    loaded.Value.Plot.Content = new StringBuilder();
+                    var pm = new PlotManager(loaded.Value.Plot);
+                    pm.CurrentPlot.TextVariants = loaded.Value.Entries;
+                    ContentTable.Add(pm);
+                    notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
+                    continue;
+                }
+            }
+
+            // 未缓存 → 从 GitHub 下载
             async Task GetSingleChapter()
             {
                 var content = await NetworkUtility.GetAsync(chapter.Value);
                 notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                var plot = new PlotManager(chapter.Key, new StringBuilder(content));
+                var plot = new PlotManager(chapter.Key, new StringBuilder(content), _actId);
                 plot.InitializePlot();
                 ContentTable.Add(plot);
+
+                // 写入 Status=1 缓存（基础下载，未解析）
+                if (_actId != 0)
+                    await PlotCache.SaveAsync(plot.CurrentPlot, plot.CurrentPlot.TextVariants, status: 1);
             }
 
             tasks.Add(GetSingleChapter());
@@ -121,10 +150,11 @@ public class AkpStoryLoader
         await PrtsResLoader.DownloadAssets(StoryName, toPreLoad);
     }
 
-    public void ParseAllDocuments(string jsonPath)
+    public async Task ParseAllDocuments(string jsonPath)
     {
         var parser = new AkpParser(jsonPath);
-        ContentTable.ForEach(p => p.StartParseLines(parser));
+        foreach (var pm in ContentTable)
+            await pm.StartParseLines(parser);
     }
 
     /// <summary>

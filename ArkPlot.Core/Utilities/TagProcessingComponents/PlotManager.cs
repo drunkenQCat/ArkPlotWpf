@@ -13,9 +13,9 @@ public class PlotManager
 
     private readonly NotificationBlock _noticeBlock = NotificationBlock.Instance;
 
-    public PlotManager(string title, StringBuilder content)
+    public PlotManager(string title, StringBuilder content, long actId = 0)
     {
-        CurrentPlot = new Plot(title, content);
+        CurrentPlot = new Plot(title, content) { ActId = actId };
     }
 
     /// <summary>
@@ -47,10 +47,9 @@ public class PlotManager
         CurrentPlot.TextVariants = textVariants;
     }
 
-    public void StartParseLines(AkpParser akpParser)
+    public async Task StartParseLines(AkpParser akpParser)
     {
         Parser = akpParser;
-        // 示例：假设每个文本段落是原始内容按行分割的结果
         switch (Parser)
         {
             case { IsInitialized: false }:
@@ -72,6 +71,10 @@ public class PlotManager
         }
 
         Parser.IsInitialized = false;
+
+        // 解析完成自动写入缓存（Status=2）
+        if (CurrentPlot.ActId != 0)
+            await PlotCache.SaveAsync(CurrentPlot, CurrentPlot.TextVariants);
     }
     private string ConvertToMarkdown(FormattedTextEntry line)
     {

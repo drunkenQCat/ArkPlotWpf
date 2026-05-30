@@ -193,7 +193,7 @@ public partial class MainWindowViewModel : ObservableObject
     private async Task StartParseDocuments(AkpStoryLoader content)
     {
         noticeBlock.RaiseCommonEvent("正在解析文档....");
-        await Task.Run(() => content.ParseAllDocuments(jsonPath));
+        await content.ParseAllDocuments(jsonPath);
     }
 
     private async Task ExportDocuments(AkpStoryLoader contentLoader)

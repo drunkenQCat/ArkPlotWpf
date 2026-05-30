@@ -42,13 +42,13 @@ public static class PlotCache
     }
 
     /// <summary>
-    /// 将已处理完成的章节写入缓存。
-    /// Plot.Status 会被设为 2。
+    /// 将章节写入缓存。
+    /// status=1 表示仅下载未解析，status=2 表示解析完成可直接使用。
     /// </summary>
-    public static async Task SaveAsync(Plot plot, List<FormattedTextEntry> entries, SqlSugarClient? db = null)
+    public static async Task SaveAsync(Plot plot, List<FormattedTextEntry> entries, int status = 2, SqlSugarClient? db = null)
     {
         db ??= DbFactory.GetClient();
-        plot.Status = 2;
+        plot.Status = status;
         var plotId = db.Insertable(plot).ExecuteReturnIdentity();
         foreach (var entry in entries)
             entry.PlotId = plotId;

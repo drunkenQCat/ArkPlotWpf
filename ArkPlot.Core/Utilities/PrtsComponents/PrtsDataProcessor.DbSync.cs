@@ -13,18 +13,45 @@ namespace ArkPlot.Core.Utilities.PrtsComponents;
 public partial class PrtsDataProcessor
 {
     /// <summary>
-    /// 入口：检查 PrtsResources 是否有数据 → 有则从 DB 加载，无则下载后落库。
-    /// 何时下载由外部调用方根据 commit SHA 决定，本方法只负责执行。
+    /// 入口：根据 GitHub commit SHA 判断是否需要刷新 PRTS 数据。
+    /// SHA 相同且 DB 有数据 → 从 DB 加载；SHA 变化或首次 → 重新下载并落库。
     /// </summary>
-    public async Task EnsureSyncedAsync(string lang = "zh_CN")
+    public async Task EnsureSyncedAsync(string lang = "zh_CN", string? commitSha = null)
     {
         var db = DbFactory.GetClient();
-        if (db.Queryable<PrtsResource>().Any())
+        var hasData = db.Queryable<PrtsResource>().Any();
+
+        if (hasData && commitSha != null)
         {
+            var storedSha = new StorySyncService().GetSyncState(lang)?.PrtsSyncedAtSha;
+            if (commitSha == storedSha)
+            {
+                await LoadFromDbAsync(db);
+                return;
+            }
+            // SHA 变了 → 重新下载
+        }
+        else if (hasData && commitSha == null)
+        {
+            // 未提供 SHA，兼容旧行为：有数据就加载
             await LoadFromDbAsync(db);
             return;
         }
 
+        await GetAllData();
+        await SaveToDbAsync(db, lang);
+
+        // 记录 PRTS 同步时的 SHA
+        if (commitSha != null)
+            new StorySyncService().UpdatePrtsSyncSha(lang, commitSha);
+    }
+
+    /// <summary>
+    /// 强制刷新：无视 SHA 门控，重新从 PRTS Wiki 下载全部数据并覆盖写入 DB。
+    /// </summary>
+    public async Task ForceRefreshAsync(string lang = "zh_CN")
+    {
+        var db = DbFactory.GetClient();
         await GetAllData();
         await SaveToDbAsync(db, lang);
     }
@@ -74,6 +101,15 @@ public partial class PrtsDataProcessor
             }
         }
         await db.Insertable(links).ExecuteCommandAsync();
+
+        // Data_Override → PrtsData 表
+        db.Deleteable<PrtsData>().Where(d => d.Tag == "Data_Override").ExecuteCommand();
+        var overrideJson = JsonSerializer.Serialize(Res.RideItems);
+        await db.Insertable(new PrtsData
+        {
+            Tag = "Data_Override",
+            Data = new StringDict { ["json"] = overrideJson }
+        }).ExecuteCommandAsync();
     }
 
     /// <summary>
@@ -119,9 +155,20 @@ public partial class PrtsDataProcessor
         ms.Position = 0;
         Res.PortraitLinkDocument = JsonDocument.Parse(ms);
 
-        // Data_Override：不存库，保留空文档（运行时 PrtsPreloader 降级处理）
-        Res.DataOverrideDocument = JsonDocument.Parse("{}");
-        Res.RideItems.Clear();
+        // Data_Override → RideItems + DataOverrideDocument
+        var overrideRow = await db.Queryable<PrtsData>().FirstAsync(d => d.Tag == "Data_Override");
+        if (overrideRow?.Data != null && overrideRow.Data.ContainsKey("json"))
+        {
+            var json = overrideRow.Data["json"];
+            Res.RideItems = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(json)
+                ?? new Dictionary<string, Dictionary<string, object>>();
+            Res.DataOverrideDocument = JsonDocument.Parse(json);
+        }
+        else
+        {
+            Res.DataOverrideDocument = JsonDocument.Parse("{}");
+            Res.RideItems.Clear();
+        }
     }
 
     private static StringDict ToStringDict(IEnumerable<PrtsResource> items)
