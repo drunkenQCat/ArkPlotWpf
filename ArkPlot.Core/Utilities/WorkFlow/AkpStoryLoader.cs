@@ -100,11 +100,15 @@ public class AkpStoryLoader
             }
 
             // 未缓存 → 从 GitHub 下载
+            var url = chapter.Value.Url;
+            var chapterId = chapter.Value.ChapterId;
+            var title = chapter.Key;
             async Task GetSingleChapter()
             {
-                var content = await NetworkUtility.GetAsync(chapter.Value);
-                notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(chapter.Key));
-                var plot = new PlotManager(chapter.Key, new StringBuilder(content), _actId);
+                var content = await NetworkUtility.GetAsync(url);
+                notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(title));
+                var plot = new PlotManager(title, new StringBuilder(content), _actId);
+                plot.CurrentPlot.StoryChapterId = chapterId;
                 plot.InitializePlot();
                 ContentTable.Add(plot);
 
@@ -158,18 +162,17 @@ public class AkpStoryLoader
     }
 
     /// <summary>
-    /// 构建章节 → 下载URL 的映射。
+    /// 构建章节 → (下载URL, StoryChapterId) 的映射。
     /// </summary>
-    private Dictionary<string, string> GetChapterUrls()
+    private Dictionary<string, (string Url, long ChapterId)> GetChapterUrls()
     {
         var collection =
             from chapter in _chapters
             let variation = chapter.StoryId.Contains("variation") ? ExtractVariationNumber(chapter.StoryId) : ""
             let title = $"{chapter.StoryCode} {chapter.StoryName} {chapter.AvgTag}{variation}"
-            let txt = $"{GetRawUrl()}{chapter.StoryTxt}.txt"
-            let plot = new KeyValuePair<string, string>(title, txt)
-            select plot;
-        return collection.ToDictionary(pair => pair.Key, pair => pair.Value);
+            let url = $"{GetRawUrl()}{chapter.StoryTxt}.txt"
+            select (title, url, chapter.Id);
+        return collection.ToDictionary(x => x.title, x => (x.url, x.Id));
     }
 
     private static string ExtractVariationNumber(string storyCode)

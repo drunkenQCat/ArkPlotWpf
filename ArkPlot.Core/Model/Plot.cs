@@ -18,6 +18,12 @@ public class Plot
     public long ActId { get; set; }
 
     /// <summary>
+    /// 关联的章节 ID（StoryChapters 表主键），0 表示未关联
+    /// </summary>
+    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = false)]
+    public long StoryChapterId { get; set; }
+
+    /// <summary>
     /// 处理状态：0=未处理，1=处理中，2=已完成
     /// </summary>
     public int Status { get; set; }
