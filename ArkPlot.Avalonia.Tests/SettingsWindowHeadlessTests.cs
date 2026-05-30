@@ -63,7 +63,7 @@ public class SettingsWindowHeadlessTests : IDisposable
             .OfType<TabControl>()
             .FirstOrDefault();
         Assert.NotNull(tabControl);
-        Assert.Equal(2, tabControl!.ItemCount);
+        Assert.Equal(3, tabControl!.ItemCount);
     }
 
     [AvaloniaFact]

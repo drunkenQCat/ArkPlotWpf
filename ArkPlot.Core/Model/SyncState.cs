@@ -7,6 +7,7 @@ namespace ArkPlot.Core.Model;
 /// 用于判断远程数据是否有更新。
 /// </summary>
 [SugarTable("SyncState")]
+[SugarIndex("uk_sync", nameof(Lang), OrderByType.Asc, nameof(Repo), OrderByType.Asc, isUnique: true)]
 public class SyncState
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]

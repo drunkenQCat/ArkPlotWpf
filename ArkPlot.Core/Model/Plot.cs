@@ -14,7 +14,7 @@ public class Plot
     /// <summary>
     /// 关联的活动 ID（Acts 表主键），0 表示未关联
     /// </summary>
-    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = true)]
+    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = false)]
     public long ActId { get; set; }
 
     /// <summary>

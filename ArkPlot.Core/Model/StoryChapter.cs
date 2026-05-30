@@ -6,6 +6,7 @@ namespace ArkPlot.Core.Model;
 /// 活动下的章节，对应 story_review_table 中 infoUnlockDatas 的每一项。
 /// </summary>
 [SugarTable("StoryChapters")]
+[SugarIndex("uk_chapter", nameof(ActId), OrderByType.Asc, nameof(StoryId), OrderByType.Asc, isUnique: true)]
 public class StoryChapter
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]

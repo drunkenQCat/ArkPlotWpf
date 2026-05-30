@@ -7,6 +7,7 @@ namespace ArkPlot.Core.Model;
 /// 跨语言时同一个 ActId 在不同 Lang 下有独立行。
 /// </summary>
 [SugarTable("Acts")]
+[SugarIndex("uk_act_id_lang", nameof(ActId), OrderByType.Asc, nameof(Lang), OrderByType.Asc, isUnique: true)]
 public class Act
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]

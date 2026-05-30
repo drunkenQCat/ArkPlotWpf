@@ -10,6 +10,7 @@ namespace ArkPlot.Core.Model;
 /// 表示用于临时存储PRTS数据的容器。
 /// </summary>
 [SugarTable("PrtsData")]
+[SugarIndex("uk_prts", nameof(Tag), OrderByType.Asc, isUnique: true)]
 public class PrtsData
 {
     private StringDict? _dataCache;

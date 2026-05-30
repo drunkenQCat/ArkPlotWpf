@@ -4,6 +4,7 @@ using SqlSugar;
 namespace ArkPlot.Core.Model;
 
 [SugarTable("PicDescriptions")]
+[SugarIndex("uk_pic", nameof(ImageUrl), OrderByType.Asc, isUnique: true)]
 public class PicDescription
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]

@@ -117,7 +117,7 @@ public class FullPipelineHeadlessTests
     // ──────────────────────────────────────────────
 
     [Fact]
-    public void FullChapter_Pipeline_FromDownloadToExport()
+    public async Task FullChapter_Pipeline_FromDownloadToExport()
     {
         var db = CreateMemoryDb();
 
@@ -190,7 +190,7 @@ public class FullPipelineHeadlessTests
         if (File.Exists(tagsPath))
         {
             var parser = new AkpParser(tagsPath);
-            plotMgr.StartParseLines(parser);
+            await plotMgr.StartParseLines(parser);
         }
 
         // 导出 + DB 写入
@@ -216,7 +216,7 @@ public class FullPipelineHeadlessTests
     }
 
     [Fact]
-    public void Pipeline_WithMinimalStoryText()
+    public async Task Pipeline_WithMinimalStoryText()
     {
         var db = CreateMemoryDb();
 
@@ -241,7 +241,7 @@ public class FullPipelineHeadlessTests
         if (File.Exists(tagsPath))
         {
             var parser = new AkpParser(tagsPath);
-            plotMgr.StartParseLines(parser);
+            await plotMgr.StartParseLines(parser);
         }
 
         Assert.NotEmpty(plotMgr.CurrentPlot.TextVariants);
@@ -289,7 +289,7 @@ public class FullPipelineHeadlessTests
         };
 
         // 保存
-        await PlotCache.SaveAsync(new Plot("TS-1 测试", new StringBuilder()) { ActId = actId }, entries, db);
+        await PlotCache.SaveAsync(new Plot("TS-1 测试", new StringBuilder()) { ActId = actId }, entries, db: db);
 
         // 查缓存标题
         var cachedTitles = await PlotCache.GetCachedTitlesAsync(actId, db);
@@ -345,7 +345,7 @@ public class FullPipelineHeadlessTests
         var actId = db.Insertable(new Act { ActId = "status2_test", Name = "状态测试2", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
 
         var plot = new Plot("状态测试章", new StringBuilder()) { ActId = actId, Status = 0 };
-        await PlotCache.SaveAsync(plot, new List<FormattedTextEntry>(), db);
+        await PlotCache.SaveAsync(plot, new List<FormattedTextEntry>(), db: db);
 
         var saved = db.Queryable<Plot>().First(p => p.Title == "状态测试章");
         Assert.Equal(2, saved!.Status);

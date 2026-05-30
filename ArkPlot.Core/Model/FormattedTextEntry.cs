@@ -15,7 +15,7 @@ public class FormattedTextEntry
     /// <summary>
     /// 关联的章节 ID（Plot 表主键）
     /// </summary>
-    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = true)]
+    [SugarColumn(ColumnDataType = "INTEGER", IsNullable = false)]
     public long PlotId { get; set; }
 
     /// <summary>

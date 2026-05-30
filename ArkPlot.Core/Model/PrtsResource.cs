@@ -7,6 +7,7 @@ namespace ArkPlot.Core.Model;
 /// 每条记录是一个 key → URL 映射。
 /// </summary>
 [SugarTable("PrtsResources")]
+[SugarIndex("uk_resource", nameof(ResourceType), OrderByType.Asc, nameof(ResourceKey), OrderByType.Asc, isUnique: true)]
 public class PrtsResource
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]
