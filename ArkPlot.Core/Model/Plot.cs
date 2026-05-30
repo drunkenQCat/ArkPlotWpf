@@ -6,6 +6,7 @@ namespace ArkPlot.Core.Model;
 /// 用来表示一个章节的类。
 /// </summary>
 [SugarTable("Plot")]
+// 索引由 DbFactory 按需创建（过滤索引 SQLite 不支持 Attribute 方式）
 public class Plot
 {
     [SugarColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDataType = "INTEGER")]
@@ -22,6 +23,18 @@ public class Plot
     /// </summary>
     [SugarColumn(ColumnDataType = "INTEGER", IsNullable = false)]
     public long StoryChapterId { get; set; }
+
+    /// <summary>
+    /// 导航到关联的 StoryChapter（一对一）
+    /// </summary>
+    [Navigate(NavigateType.OneToOne, nameof(StoryChapterId))]
+    public StoryChapter? Chapter { get; set; }
+
+    /// <summary>
+    /// 导航到解析后的 FormattedTextEntry 列表（一对多）
+    /// </summary>
+    [Navigate(NavigateType.OneToMany, nameof(FormattedTextEntry.PlotId))]
+    public List<FormattedTextEntry> Entries { get; set; } = [];
 
     /// <summary>
     /// 处理状态：0=未处理，1=处理中，2=已完成

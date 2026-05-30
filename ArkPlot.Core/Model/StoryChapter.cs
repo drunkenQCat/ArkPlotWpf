@@ -59,4 +59,10 @@ public class StoryChapter
     /// </summary>
     [SugarColumn(Length = 200, IsNullable = true)]
     public string? StoryDependence { get; set; }
+
+    /// <summary>
+    /// 导航到缓存状态（一对一）。未缓存时为 null。
+    /// </summary>
+    [Navigate(NavigateType.OneToOne, nameof(Plot.StoryChapterId))]
+    public Plot? CachedPlot { get; set; }
 }

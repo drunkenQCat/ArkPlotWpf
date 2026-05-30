@@ -53,6 +53,13 @@ public static class DbFactory
             typeof(PrtsPortraitLink)
         );
 
+        // 建唯一索引（仅约束 StoryChapterId > 0 的记录，避免与旧数据 StoryChapterId=0 冲突）
+        var indexExists = _client.Ado.GetInt(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='uk_plot_act_chapter'") > 0;
+        if (!indexExists)
+            _client.Ado.ExecuteCommand(
+                "CREATE UNIQUE INDEX uk_plot_act_chapter ON Plot(ActId, StoryChapterId) WHERE StoryChapterId > 0");
+
         return _client;
     }
 

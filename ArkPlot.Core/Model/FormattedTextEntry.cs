@@ -19,6 +19,12 @@ public class FormattedTextEntry
     public long PlotId { get; set; }
 
     /// <summary>
+    /// 导航到所属的 Plot（多对一）
+    /// </summary>
+    [Navigate(NavigateType.ManyToOne, nameof(PlotId))]
+    public Plot? Plot { get; set; }
+
+    /// <summary>
     /// 文本行的索引号
     /// </summary>
     [SugarColumn(ColumnDataType = "INTEGER")]

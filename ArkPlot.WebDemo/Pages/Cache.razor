@@ -1,0 +1,292 @@
+@page "/cache"
+@inject StoryService StoryService
+@inject ILogger<Cache> Logger
+
+<PageTitle>ArkPlot - 缓存浏览</PageTitle>
+
+<h3 class="mb-4"><i class="bi bi-database"></i> 缓存浏览</h3>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">活动</label>
+                <select class="form-select" @bind="selectedActIndex" disabled="@isLoading">
+                    @foreach (var act in activities)
+                    {
+                        <option value="@act.Index">@act.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary" @onclick="LoadAct" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                    }
+                    刷新
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+@if (stats != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-bg-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@stats.TotalActs</h5>
+                    <small>活动总数</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@stats.ParsedCount / @stats.TotalChapters</h5>
+                    <small>已解析章节</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@stats.PrtsResourceCount.ToString("N0")</h5>
+                    <small>PRTS 资源</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title">@stats.PicDescCount.ToString("N0")</h5>
+                    <small>图片描述</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (chapterStatuses.Count > 0)
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong><i class="bi bi-list-check"></i> 章节缓存状态</strong>
+            <span class="text-muted small">共 @chapterStatuses.Count 章</span>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>章节</th>
+                        <th>状态</th>
+                        <th class="text-end">对话行</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ch in chapterStatuses)
+                    {
+                        <tr>
+                            <td>@ch.DisplayName</td>
+                            <td><span class="badge @GetBadgeClass(ch.Status)">@ch.StatusBadge</span></td>
+                            <td class="text-end text-muted">@(ch.Status >= 1 ? ch.LineCount.ToString() : "—")</td>
+                            <td class="text-end">
+                                @if (ch.Status == 2)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            @onclick="() => ShowDetail(ch)">
+                                        <i class="bi bi-eye"></i> 查看
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (detail != null)
+{
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <strong><i class="bi bi-journal-text"></i> @detail.Title</strong>
+            <button class="btn btn-sm btn-outline-light" @onclick="() => detail = null">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <h5>@detail.TotalLines</h5>
+                        <small class="text-muted">总行数</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <h5>@detail.Characters.Count</h5>
+                        <small class="text-muted">登场角色</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <h5>@detail.ImageCount</h5>
+                        <small class="text-muted">图片素材</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <h5>@detail.BgCount</h5>
+                        <small class="text-muted">背景切换</small>
+                    </div>
+                </div>
+            </div>
+
+            @if (detail.Characters.Count > 0)
+            {
+                <div class="mb-3">
+                    <strong>角色：</strong>
+                    @foreach (var ch in detail.Characters)
+                    {
+                        <span class="badge bg-secondary me-1">@ch</span>
+                    }
+                </div>
+            }
+
+            @if (detail.TypeStats.Count > 0)
+            {
+                <div class="mb-3">
+                    <strong>类型分布：</strong>
+                    <table class="table table-sm w-auto mt-1">
+                        <tbody>
+                            @foreach (var kv in detail.TypeStats)
+                            {
+                                <tr>
+                                    <td class="text-muted">@kv.Key</td>
+                                    <td class="text-end">@kv.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (detail.DialogLines.Count > 0)
+            {
+                <div>
+                    <strong>对话预览（前 @detail.DialogLines.Count 条）：</strong>
+                    <div class="mt-1 p-2 bg-light rounded" style="max-height:300px;overflow-y:auto;">
+                        @foreach (var line in detail.DialogLines)
+                        {
+                            <div class="small mb-1">@line</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private List<ActivityItem> activities = [];
+    private int selectedActIndex;
+    private bool isLoading;
+    private string? error;
+    private CacheStats? stats;
+    private List<ChapterCacheStatus> chapterStatuses = [];
+    private ChapterDetail? detail;
+    private bool _loaded;
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            activities = StoryService.GetActivities();
+            stats = StoryService.GetCacheStats();
+            if (activities.Count > 0)
+                selectedActIndex = activities[0].Index;
+        }
+        catch (Exception ex)
+        {
+            error = $"加载失败：{ex.Message}";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_loaded && activities.Count > 0)
+        {
+            _loaded = true;
+            await LoadAct();
+        }
+    }
+
+    private async Task LoadAct()
+    {
+        var act = activities.FirstOrDefault(a => a.Index == selectedActIndex);
+        if (act == null) return;
+
+        isLoading = true;
+        error = null;
+        detail = null;
+        StateHasChanged();
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                chapterStatuses = StoryService.GetChapterCacheStatuses(act.ActDbId);
+                stats = StoryService.GetCacheStats();
+            });
+        }
+        catch (Exception ex)
+        {
+            error = $"加载失败：{ex.Message}";
+            chapterStatuses = [];
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowDetail(ChapterCacheStatus ch)
+    {
+        var act = activities.FirstOrDefault(a => a.Index == selectedActIndex);
+        if (act == null) return;
+
+        var fullTitle = $"{ch.StoryCode} {ch.StoryName} {ch.AvgTag}".Trim();
+        detail = StoryService.GetCachedChapterDetail(act.ActDbId, fullTitle);
+        if (detail == null)
+            error = $"无法加载章节详情：{fullTitle}";
+    }
+
+    private static string GetBadgeClass(int status) => status switch
+    {
+        2 => "bg-success",
+        1 => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}

@@ -352,4 +352,102 @@ public class FullPipelineHeadlessTests
 
         db.Dispose();
     }
+
+    // ──────────────────────────────────────────────
+    //  PlotCache upsert 行为（StoryChapterId > 0）
+    // ──────────────────────────────────────────────
+
+    [Fact]
+    public async Task PlotCache_Upsert_FirstSaveCreatesSingleRow()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "upsert_test", Name = "Upsert测试", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+        var chId = db.Insertable(new StoryChapter
+        {
+            ActId = actId, StoryId = "upsert_001", StoryCode = "UT-1",
+            StoryName = "Upsert章节", StoryTxt = "test/upsert_001", StorySort = 1
+        }).ExecuteReturnIdentity();
+
+        // 首次保存：设 StoryChapterId
+        await PlotCache.SaveAsync(
+            new Plot("UT-1 Upsert章节", new StringBuilder()) { ActId = actId, StoryChapterId = chId },
+            new List<FormattedTextEntry> { new() { Index = 0, OriginalText = "[Dialog]raw" } },
+            status: 1, db: db);
+
+        Assert.Equal(1, db.Queryable<Plot>().Count());
+        var plot = db.Queryable<Plot>().First(p => p.StoryChapterId == chId);
+        Assert.Equal(1, plot!.Status);
+
+        db.Dispose();
+    }
+
+    [Fact]
+    public async Task PlotCache_Upsert_SecondSaveReplacesNotDuplicates()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "upsert_test2", Name = "Upsert测试2", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+        var chId = db.Insertable(new StoryChapter
+        {
+            ActId = actId, StoryId = "upsert_002", StoryCode = "UT-2",
+            StoryName = "Upsert章节2", StoryTxt = "test/upsert_002", StorySort = 1
+        }).ExecuteReturnIdentity();
+
+        // 第一次：Status=1
+        await PlotCache.SaveAsync(
+            new Plot("UT-2 Upsert章节2", new StringBuilder()) { ActId = actId, StoryChapterId = chId },
+            new List<FormattedTextEntry> { new() { Index = 0, OriginalText = "[Dialog]raw" } },
+            status: 1, db: db);
+
+        // 第二次：Status=2，相同 (ActId, StoryChapterId)
+        await PlotCache.SaveAsync(
+            new Plot("UT-2 Upsert章节2", new StringBuilder()) { ActId = actId, StoryChapterId = chId },
+            new List<FormattedTextEntry>
+            {
+                new() { Index = 0, OriginalText = "[Dialog]raw", MdText = "**解析后**", CharacterName = "阿米娅" }
+            },
+            db: db);
+
+        // 仍是 1 条 Plot，Status 升级为 2
+        Assert.Equal(1, db.Queryable<Plot>().Count());
+        var plot = db.Queryable<Plot>().First(p => p.StoryChapterId == chId);
+        Assert.Equal(2, plot!.Status);
+
+        // FormattedTextEntry 被替换为解析后的数据
+        var entries = db.Queryable<FormattedTextEntry>().Where(e => e.PlotId == plot.Id).ToList();
+        Assert.Single(entries);
+        Assert.Equal("**解析后**", entries[0].MdText);
+        Assert.Equal("阿米娅", entries[0].CharacterName);
+
+        db.Dispose();
+    }
+
+    [Fact]
+    public async Task PlotCache_Upsert_TryLoadStillWorks()
+    {
+        var db = CreateMemoryDb();
+        var actId = db.Insertable(new Act { ActId = "upsert_test3", Name = "Upsert测试3", Lang = "zh_CN", ActType = "ACTIVITY_STORY" }).ExecuteReturnIdentity();
+        var chId = db.Insertable(new StoryChapter
+        {
+            ActId = actId, StoryId = "upsert_003", StoryCode = "UT-3",
+            StoryName = "Upsert章节3", StoryTxt = "test/upsert_003", StorySort = 1
+        }).ExecuteReturnIdentity();
+
+        // 通过 upsert 保存 Status=2
+        await PlotCache.SaveAsync(
+            new Plot("UT-3 Upsert章节3", new StringBuilder()) { ActId = actId, StoryChapterId = chId },
+            new List<FormattedTextEntry>
+            {
+                new() { Index = 0, Type = "dialog", CharacterName = "陈", Dialog = "测试", MdText = "**测试**" }
+            },
+            db: db);
+
+        // TryLoadAsync 按 Title 应当能找到
+        var loaded = await PlotCache.TryLoadAsync(actId, "UT-3 Upsert章节3", db);
+        Assert.NotNull(loaded);
+        Assert.Equal(2, loaded!.Value.Plot.Status);
+        Assert.Equal("陈", loaded.Value.Entries[0].CharacterName);
+
+        db.Dispose();
+    }
+
 }
