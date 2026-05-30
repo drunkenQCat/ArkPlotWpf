@@ -62,7 +62,8 @@ public partial class PrtsPreloader
                 entry.PortraitFocus = _currentPortraitFocus;
                 entry.Bg = _currentBg;
                 continue;
-            };
+            }
+            ;
 
             // var matchedWhole = match.Groups[0].Value; // The entire matched string
             var matchedTag = match.Groups[1].Value;

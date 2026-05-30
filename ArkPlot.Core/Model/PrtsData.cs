@@ -68,7 +68,7 @@ public class PrtsData
     {
         if (string.IsNullOrEmpty(DataHash))
             return false;
-        
+
         var currentHash = CalculateDataHash();
         return DataHash.Equals(currentHash, StringComparison.OrdinalIgnoreCase);
     }
