@@ -310,53 +310,20 @@ public partial class MainWindowViewModel : ViewModelBase
         activeTitle = CurrentAct.Name;
         var chapters = storySync.GetChaptersByActId(CurrentAct.Id);
 
-        // 查缓存：哪些章节已经处理过
-        var cachedTitles = await PlotCache.GetCachedTitlesAsync(CurrentAct.Id);
-        var cached = selectedChapters.Where(c => cachedTitles.Contains(c)).ToList();
-        var uncached = selectedChapters.Where(c => !cachedTitles.Contains(c)).ToList();
-
-        // 从缓存加载
         var content = new AkpStoryLoader(CurrentAct, chapters);
-        var loadedFromCache = new List<(string Title, List<FormattedTextEntry> Entries)>();
-        foreach (var title in cached)
-        {
-            var loaded = await PlotCache.TryLoadAsync(CurrentAct.Id, title);
-            if (loaded.HasValue)
-                loadedFromCache.Add((title, loaded.Value.Entries));
-        }
 
         try
         {
-            // 只下载未缓存的章节
-            if (uncached.Any())
-            {
-                await LoadAllChapters(content, uncached);
-                await PreloadResources(content);
-                await StartParseDocuments(content);
+            // GetAllChapters 内部自动处理缓存：
+            // - Status=2 章节从 DB 加载
+            // - 未缓存章节从 GitHub 下载并写 Status=1
+            await content.GetAllChapters(selectedChapters);
+            noticeBlock.RaiseCommonEvent("章节加载完成。");
 
-                // 处理后写库
-                foreach (var plotMgr in content.ContentTable)
-                {
-                    await PlotCache.SaveAsync(
-                        new Plot(plotMgr.CurrentPlot.Title, new StringBuilder()),
-                        plotMgr.CurrentPlot.TextVariants
-                    );
-                }
-            }
+            await PreloadResources(content);
+            // StartParseDocuments → PlotManager.StartParseLines 自动将解析结果写为 Status=2
+            await StartParseDocuments(content);
 
-            // 把缓存章节拼回 ContentTable（用于导出）
-            foreach (var (title, entries) in loadedFromCache)
-            {
-                var plot = new Plot(title, new StringBuilder());
-                plot.TextVariants = entries;
-                content.ContentTable.Add(new PlotManager(plot));
-            }
-            content.ContentTable = content.ContentTable
-                .OrderBy(c => chapters.FindIndex(ch =>
-                    $"{ch.StoryCode} {ch.StoryName} {ch.AvgTag}" == c.CurrentPlot.Title))
-                .ToList();
-
-            // 跳过 PreloadResources / StartParseDocuments（缓存章节已有完整数据）
             await ExportDocuments(content);
             await RunNovelizerIfEnabled();
             await CompleteLoading();
@@ -372,13 +339,6 @@ public partial class MainWindowViewModel : ViewModelBase
         IsInitialized = false;
         ClearConsoleOutput();
         noticeBlock.RaiseCommonEvent("初始化加载...");
-    }
-
-    private async Task LoadAllChapters(AkpStoryLoader contentLoader, List<string> chapterNames)
-    {
-        activeTitle = CurrentAct.Name;
-        await contentLoader.GetAllChapters(chapterNames);
-        noticeBlock.RaiseCommonEvent("章节加载完成。");
     }
 
     private async Task PreloadResources(AkpStoryLoader contentLoader)
@@ -398,7 +358,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task StartParseDocuments(AkpStoryLoader content)
     {
         noticeBlock.RaiseCommonEvent("正在解析文档....");
-        await Task.Run(() => content.ParseAllDocuments(JsonPath)); // Changed jsonPath to JsonPath
+        await content.ParseAllDocuments(JsonPath);
     }
 
     private async Task ExportDocuments(AkpStoryLoader contentLoader)

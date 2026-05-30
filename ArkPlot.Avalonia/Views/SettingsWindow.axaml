@@ -111,6 +111,48 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
+
+            <!-- Tab 3: 数据管理 -->
+            <TabItem Header="数据管理">
+                <StackPanel Margin="16" Spacing="16">
+                    <TextBlock Text="数据源同步" FontWeight="Bold" FontSize="16"/>
+                    <TextBlock Text="从 GitHub 和 PRTS Wiki 获取最新数据。强制刷新会无视缓存状态，重新下载并增量更新。"
+                               TextWrapping="Wrap" Foreground="Gray"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="语言：" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                  SelectedItem="{Binding SelectedLanguage}"
+                                  Width="120"/>
+                    </StackPanel>
+
+                    <Button Content="强制刷新数据"
+                            Command="{Binding ForceRefreshDataCommand}"
+                            IsEnabled="{Binding !IsDataOperationRunning}"
+                            HorizontalAlignment="Left"
+                            Padding="20,8"
+                            Classes="Accent"/>
+
+                    <Separator Margin="0,8"/>
+
+                    <TextBlock Text="危险区域" FontWeight="Bold" FontSize="16" Foreground="#E53935"/>
+                    <TextBlock Text="清空数据库中所有缓存数据，包括活动列表、章节内容、PRTS 资源索引等。操作不可撤销。"
+                               TextWrapping="Wrap" Foreground="Gray"/>
+
+                    <Button Content="清空全部数据"
+                            Command="{Binding ResetAllDataCommand}"
+                            IsEnabled="{Binding !IsDataOperationRunning}"
+                            HorizontalAlignment="Left"
+                            Padding="20,8"
+                            Foreground="#E53935"
+                            BorderBrush="#E53935"/>
+
+                    <TextBlock Text="{Binding DataManagementStatus}"
+                               TextWrapping="Wrap"
+                               Foreground="Gray"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

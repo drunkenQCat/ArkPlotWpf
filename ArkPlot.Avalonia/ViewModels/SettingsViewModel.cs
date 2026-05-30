@@ -3,8 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading.Tasks;
 using ArkPlot.Avalonia.Models;
+using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
+using ArkPlot.Core.Services;
+using ArkPlot.Core.Utilities.PrtsComponents;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -177,5 +181,75 @@ public partial class SettingsViewModel : ObservableObject
     private void RestoreDefaultPrompt()
     {
         SystemPromptText = NovelizerSettings.DefaultSystemPrompt;
+    }
+
+    // ==================== Tab 3: 数据管理 ====================
+
+    [ObservableProperty] private string _selectedLanguage = "zh_CN";
+    [ObservableProperty] private string _dataManagementStatus = "";
+    [ObservableProperty] private bool _isDataOperationRunning;
+
+    public string[] LanguageOptions => ["zh_CN", "en_US"];
+
+    [RelayCommand]
+    private async Task ForceRefreshData()
+    {
+        if (IsDataOperationRunning) return;
+        IsDataOperationRunning = true;
+
+        try
+        {
+            var lang = SelectedLanguage;
+            DataManagementStatus = $"正在从 GitHub 同步活动列表（{lang}）...";
+            var sync = new StorySyncService();
+            await sync.DownloadAndSaveAsync(lang);
+
+            DataManagementStatus = "正在从 PRTS Wiki 刷新资源索引...";
+            var prts = new PrtsDataProcessor();
+            await prts.ForceRefreshAsync(lang);
+
+            DataManagementStatus = "✅ 刷新完成！";
+        }
+        catch (System.Exception ex)
+        {
+            DataManagementStatus = $"❌ 刷新失败：{ex.Message}";
+        }
+        finally
+        {
+            IsDataOperationRunning = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResetAllData()
+    {
+        if (IsDataOperationRunning) return;
+        IsDataOperationRunning = true;
+
+        try
+        {
+            DataManagementStatus = "正在清空所有数据...";
+            var db = DbFactory.GetClient();
+
+            db.Deleteable<FormattedTextEntry>().ExecuteCommand();
+            db.Deleteable<Plot>().ExecuteCommand();
+            db.Deleteable<StoryChapter>().ExecuteCommand();
+            db.Deleteable<Act>().ExecuteCommand();
+            db.Deleteable<SyncState>().ExecuteCommand();
+            db.Deleteable<PrtsResource>().ExecuteCommand();
+            db.Deleteable<PrtsPortraitLink>().ExecuteCommand();
+            db.Deleteable<PicDescription>().ExecuteCommand();
+            db.Deleteable<PrtsData>().ExecuteCommand();
+
+            DataManagementStatus = "✅ 已清空全部数据。建议重启程序。";
+        }
+        catch (System.Exception ex)
+        {
+            DataManagementStatus = $"❌ 清空失败：{ex.Message}";
+        }
+        finally
+        {
+            IsDataOperationRunning = false;
+        }
     }
 }
