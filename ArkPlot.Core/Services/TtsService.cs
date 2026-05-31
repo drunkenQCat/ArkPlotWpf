@@ -19,11 +19,10 @@ namespace ArkPlot.Core.Services;
 public class TtsService : IDisposable
 {
     /// <summary>
-    /// 中文音色池（按性别分组）
+    /// 中文音色池（按性别分组，不含旁白专用音色）
     /// </summary>
     private static readonly string[] FemaleVoices = new[]
     {
-        "zh-CN-XiaoxiaoNeural",  // 温暖
         "zh-CN-XiaoyiNeural",    // 活泼
         "zh-CN-liaoning-XiaobeiNeural",  // 幽默
         "zh-CN-shaanxi-XiaoniNeural"      // 明亮
@@ -38,9 +37,14 @@ public class TtsService : IDisposable
     };
 
     /// <summary>
-    /// 默认音色（无角色名时使用）
+    /// 旁白专用音色（不在角色音色池中，确保独一无二）
     /// </summary>
-    private const string DefaultVoice = "zh-CN-XiaoxiaoNeural";
+    private const string NarratorVoice = "zh-CN-XiaoxiaoNeural";
+
+    /// <summary>
+    /// 默认音色（无角色名时使用旁白音色）
+    /// </summary>
+    private const string DefaultVoice = NarratorVoice;
 
     /// <summary>
     /// 角色音色缓存（角色名 → 音色）
