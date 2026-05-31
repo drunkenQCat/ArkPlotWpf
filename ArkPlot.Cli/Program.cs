@@ -26,6 +26,12 @@ if (args.Length > 0 && args[0].Equals("copy-avalonia-db", StringComparison.Ordin
     return;
 }
 
+if (args.Length > 0 && args[0].Equals("show-misaligned", StringComparison.OrdinalIgnoreCase))
+{
+    DbDumpRunner.ShowMisalignedCharacters();
+    return;
+}
+
 // 清空旧的 PicDescription 记录
 var db = DbFactory.GetClient();
 var before = db.Queryable<PicDescription>().Count();

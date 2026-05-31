@@ -86,18 +86,83 @@ public class NovelAligner
             .Where(p => p.ActId == act.Id && p.StoryChapterId > 0)
             .ToListAsync();
 
-        // 加载所有有 Dialog 的 FormattedTextEntry，按 PlotId + Index 排序
+        // 加载该活动所有 FormattedTextEntry（包括 charslot 和 dialog），用于构建角色名→code映射
         var plotIds = plots.Select(p => p.Id).ToList();
-        var allEntries = await _db.Queryable<FormattedTextEntry>()
-            .Where(e => plotIds.Contains(e.PlotId) && !string.IsNullOrEmpty(e.Dialog))
+        var allEntriesRaw = await _db.Queryable<FormattedTextEntry>()
+            .Where(e => plotIds.Contains(e.PlotId))
             .OrderBy(e => e.PlotId)
             .OrderBy(e => e.Index)
             .ToListAsync();
 
         // 按 Plot 分组
-        var entriesByPlot = allEntries
-            .GroupBy(e => e.PlotId)
-            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Index).ToList());
+        var entriesByPlot = new Dictionary<long, List<FormattedTextEntry>>();
+        // 全局角色名 → CharacterCode 映射（从 charslot + dialog 配对中学习）
+        var nameToCode = new Dictionary<string, string>();
+
+        foreach (var group in allEntriesRaw.GroupBy(e => e.PlotId))
+        {
+            var sorted = group.OrderBy(e => e.Index).ToList();
+            var dialogEntries = sorted.Where(e => !string.IsNullOrEmpty(e.Dialog)).ToList();
+            entriesByPlot[group.Key] = dialogEntries;
+
+            // 扫描：每次 charslot 后紧跟的第一个 dialog，建立 name→code 映射
+            // 只对"有 name 参数的 charslot"建立映射（无 name 的只是焦点切换）
+            // 排除 focus="none" 的 charslot（画外音，说话者不在画面中）
+            FormattedTextEntry? lastCharSlot = null;
+            foreach (var entry in sorted)
+            {
+                if (entry.Type == "charslot" && entry.CommandSet != null && entry.CommandSet.Count > 0)
+                {
+                    // 只对有 name 参数且 focus != "none" 的 charslot 感兴趣（新角色登场）
+                    if (entry.CommandSet.ContainsKey("name"))
+                    {
+                        var focusValue = entry.CommandSet.TryGetValue("focus", out var f) ? f : null;
+                        if (focusValue != "none")
+                        {
+                            lastCharSlot = entry;
+                        }
+                        // focus="none" 是画外音，跳过
+                    }
+                    // 无 name 的 charslot（如 focus="r"）只是焦点切换，跳过
+                }
+                else if (!string.IsNullOrEmpty(entry.Dialog) && !string.IsNullOrEmpty(entry.CharacterName))
+                {
+                    if (lastCharSlot != null && !nameToCode.ContainsKey(entry.CharacterName))
+                    {
+                        var code = ExtractCodeFromCharSlot(lastCharSlot);
+                        if (code != null)
+                            nameToCode[entry.CharacterName] = code;
+                    }
+                    lastCharSlot = null; // 已消费
+                }
+            }
+        }
+
+        // 也加载每个 Plot 内 charslot→dialog 的 code 映射（局部，处理同角色换立绘的情况）
+        var charCodeAtEntry = new Dictionary<(long PlotId, int Index), string?>();
+        foreach (var group in allEntriesRaw.GroupBy(e => e.PlotId))
+        {
+            var sorted = group.OrderBy(e => e.Index).ToList();
+            string? lastCharSlotCode = null;
+            foreach (var entry in sorted)
+            {
+                // 只对有 name 参数的 charslot 更新 lastCharSlotCode
+                if (entry.Type == "charslot" && entry.CommandSet != null && 
+                    entry.CommandSet.Count > 0 && entry.CommandSet.ContainsKey("name"))
+                {
+                    var code = ExtractCodeFromCharSlot(entry);
+                    if (code != null) lastCharSlotCode = code;
+                }
+                else if (!string.IsNullOrEmpty(entry.Dialog))
+                {
+                    // 优先用 name→code 全局映射，fallback 到最近 charslot
+                    var nameCode = !string.IsNullOrEmpty(entry.CharacterName) 
+                        ? nameToCode.GetValueOrDefault(entry.CharacterName) 
+                        : null;
+                    charCodeAtEntry[(group.Key, entry.Index)] = nameCode ?? lastCharSlotCode;
+                }
+            }
+        }
 
         // 预加载所有 PicDescription，用于判断性别
         var allPicDescs = await _db.Queryable<PicDescription>().ToListAsync();
@@ -136,15 +201,20 @@ public class NovelAligner
                     {
                         var entry = dbQueue.Dequeue();
                         segment.CharacterName = entry.CharacterName;
-                        segment.CharacterCode = entry.CharacterCode;
                         segment.EntryIndex = entry.Index;
                         alignedDialogs++;
 
-                        var gender = InferGender(entry.CharacterCode, picDescByCode);
+                        // 使用该 dialog 之前最近的 charslot 的 CharacterCode，
+                        // 而非 entry.CharacterCode（可能是旧值/错值）
+                        var effectiveCode = charCodeAtEntry.GetValueOrDefault((plot.Id, entry.Index))
+                                            ?? entry.CharacterCode;
+                        segment.CharacterCode = effectiveCode;
+
+                        var gender = InferGender(effectiveCode, picDescByCode);
 
                         results.Add(new AlignmentEntry(
                             segment.Text, segment.IsDialog,
-                            entry.CharacterName, entry.CharacterCode,
+                            entry.CharacterName, effectiveCode,
                             entry.Index, novelChapter.Title, gender));
                     }
                     else
@@ -185,6 +255,35 @@ public class NovelAligner
         if (novelIdx > 0)
             return fileNameWithoutExt[..novelIdx];
         return fileNameWithoutExt;
+    }
+
+    /// <summary>
+    /// 从 charslot 条目的 CommandSet 中提取 CharacterCode。
+    /// 根据 focus 决定取 name 还是 name2，去除 # 和 $ 后缀。
+    /// 这比依赖 entry.CharacterCode 更可靠，因为 DB 中的 CharacterCode 可能是旧代码留下的错误值。
+    /// </summary>
+    private static string? ExtractCodeFromCharSlot(FormattedTextEntry entry)
+    {
+        if (entry.CommandSet == null || entry.CommandSet.Count == 0)
+            return entry.CharacterCode; // fallback
+
+        // 根据 focus 决定取 name 还是 name2
+        var nameKey = "name";
+        if (entry.CommandSet.TryGetValue("focus", out var focusVal) &&
+            focusVal == "2" && entry.CommandSet.ContainsKey("name2"))
+        {
+            nameKey = "name2";
+        }
+
+        if (!entry.CommandSet.TryGetValue(nameKey, out var rawName) || string.IsNullOrEmpty(rawName))
+            return entry.CharacterCode; // fallback
+
+        // 去除 # 后缀（如 "avg_npc_1272_1#1$1" → "avg_npc_1272_1"）
+        var code = rawName.ToLower();
+        var hashIdx = code.IndexOf('#');
+        if (hashIdx >= 0) code = code[..hashIdx];
+
+        return code;
     }
 
     /// <summary>
