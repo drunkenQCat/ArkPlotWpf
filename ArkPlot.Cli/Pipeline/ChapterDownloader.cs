@@ -22,13 +22,18 @@ public static class ChapterDownloader
 
         var plotManager = storyLoader.ContentTable[0];
         var rawContentLength = plotManager.CurrentPlot.Content.Length;
+        var variantCount = plotManager.CurrentPlot.TextVariants.Count;
         Console.WriteLine($"    原始内容长度：{rawContentLength} 字符");
+        Console.WriteLine($"    TextVariants：{variantCount} 条");
 
-        if (rawContentLength == 0)
+        if (rawContentLength == 0 && variantCount == 0)
         {
             Console.WriteLine("⚠️ 章节内容为空，可能是网络问题导致下载失败。");
             return null;
         }
+
+        if (rawContentLength == 0 && variantCount > 0)
+            Console.WriteLine("    ℹ️ 使用 DB 缓存（跳过下载和解析）");
 
         return plotManager;
     }

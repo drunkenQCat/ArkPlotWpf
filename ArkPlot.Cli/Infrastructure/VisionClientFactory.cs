@@ -21,7 +21,7 @@ public static class VisionClientFactory
                 ApiKey = bailianApiKey,
                 Model = "qwen3-vl-flash",
                 TimeoutSeconds = 60,
-                SystemPrompt = "请用中文详细描述这张图片中的所有视觉元素，包括角色、场景、动作、服饰、背景等细节。直接输出描述内容，不要加任何前缀或总结性语句。",
+                SystemPrompt = "请用中文描述这张图片的内容，用于小说创作的角色或场景参考。如果图片中是角色立绘，请描述其外貌、发型、服装风格、姿态，以及任何动物特征（兽耳、尾巴、角、翅膀、鳞片等）；无需描述面部表情。如果是场景或背景，请描述环境氛围、色调、空间布局。直接输出描述内容，不要加任何前缀或总结语句。",
                 MaxTokens = 2048
             };
             var client = new BailianVisionClient(config, onLog: msg => Console.WriteLine($"  [Vision] {msg}"));
@@ -40,7 +40,7 @@ public static class VisionClientFactory
                 BaseUrl = "http://localhost:11434",
                 Model = "qwen3-vl:8b",
                 TimeoutSeconds = 600,
-                SystemPrompt = "请用中文详细描述这张图片中的所有视觉元素，包括角色、场景、动作、服饰、背景等细节。直接输出描述内容，不要加任何前缀或总结性语句。",
+                SystemPrompt = "请用中文描述这张图片的内容，用于小说创作的角色或场景参考。如果图片中是角色立绘，请描述其外貌、发型、服装风格、姿态，以及任何动物特征（兽耳、尾巴、角、翅膀、鳞片等）；无需描述面部表情。如果是场景或背景，请描述环境氛围、色调、空间布局。直接输出描述内容，不要加任何前缀或总结语句。",
                 Temperature = 0.7f,
                 MaxTokens = 2048
             };

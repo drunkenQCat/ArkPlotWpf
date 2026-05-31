@@ -1,28 +1,13 @@
 using ArkPlot.Cli.Pipeline;
+using ArkPlot.Core.Infrastructure;
+using ArkPlot.Core.Model;
 
-namespace ArkPlot.Cli;
+// 清空旧的 PicDescription 记录
+var db = DbFactory.GetClient();
+var before = db.Queryable<PicDescription>().Count();
+db.Deleteable<PicDescription>().ExecuteCommand();
+Console.WriteLine($"已清空 PicDescription 表（{before} 条旧记录）");
 
-public class Program
-{
-    private static async Task Main(string[] args)
-    {
-        var tagsJson = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
-        if (!File.Exists(tagsJson))
-        {
-            Console.WriteLine($"❌ 找不到 tags.json，预期路径：{tagsJson}");
-            Console.WriteLine("   请确保 ArkPlot.Avalonia/tags.json 已复制到 CLI 输出目录。");
-            return;
-        }
-
-        try
-        {
-            var pipeline = new CliPipeline(tagsJson);
-            await pipeline.RunAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"\n❌ 发生错误：{ex.Message}");
-            Console.WriteLine($"详细：{ex}");
-        }
-    }
-}
+var tagsJson = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
+var pipeline = new CliPipeline(tagsJson);
+await pipeline.RunAsync();

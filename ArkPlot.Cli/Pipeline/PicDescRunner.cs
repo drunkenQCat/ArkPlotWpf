@@ -1,26 +1,31 @@
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
-using ArkPlot.Core.Utilities;
 using ArkPlot.Core.Utilities.ArknightsDbComponents;
-using ArkPlot.Core.Utilities.WorkFlow;
 using ArkPlot.Cli.Infrastructure;
 
 namespace ArkPlot.Cli.Pipeline;
 
 /// <summary>
-/// Step 7: 创建视觉客户端 + 运行 PicDesc。
+/// Step 7: 创建视觉客户端 + PicDescService。
+/// 注意：不在此处创建 MdReconstructor（会清空 charslot 的 MdText）。
+/// MdReconstructor 由 MarkdownExporter 统一创建，一次完成 PicDesc + 立绘表 + 导出。
 /// </summary>
 public static class PicDescRunner
 {
-    public static PicDescService? Run(
-        AkpStoryLoader storyLoader, List<FormattedTextEntry> processedEntries)
+    public static PicDescService? Run()
     {
-        Console.WriteLine("[7/8] 正在运行 MdReconstructor（填充 PicDesc）...");
+        Console.WriteLine("[7/8] 正在初始化 PicDescService...");
 
         Func<string, Task<string>>? describeByUrl = null;
         VisionClientResult? visionClient = null;
 
-        if (CliOptions.EnableVision)
+        if (CliOptions.UseMockVision)
+        {
+            Console.WriteLine("    🧪 使用 Mock 视觉描述（不消耗 API 配额）");
+            describeByUrl = url => Task.FromResult(
+                $"[Mock描述] 角色立于荒野，背景是罗德岛舰桥。URL={Path.GetFileName(new Uri(url).LocalPath)}");
+        }
+        else if (CliOptions.EnableVision)
         {
             try
             {
@@ -33,24 +38,24 @@ public static class PicDescRunner
             }
         }
 
-        using var picDescService = new PicDescService(describeByUrl, debugMode: CliOptions.DebugMode);
+        if (!CliOptions.EnablePicDesc)
+        {
+            Console.WriteLine("    ⏭️ PicDesc 已关闭，跳过描述生成。");
+            visionClient?.Disposable?.Dispose();
+            return null;
+        }
+
+        // 不 using — 生命周期交给 caller（CliPipeline）管理
+        var picDescService = new PicDescService(describeByUrl, debugMode: CliOptions.DebugMode);
         picDescService.InitializeCleanup();
 
-        try
-        {
-            foreach (var plotManagerEntry in storyLoader.ContentTable)
-            {
-                var textList = plotManagerEntry.CurrentPlot.TextVariants;
-                _ = new MdReconstructor(textList, picDescService);
-            }
-        }
-        finally
-        {
-            visionClient?.Disposable?.Dispose();
-        }
+        var dbStats = picDescService.GetStats();
+        Console.WriteLine($"    ✅ PicDescService 初始化完成（DB 记录数：{dbStats.DbCount}）");
 
-        var picDescEntries = processedEntries.Count(e => !string.IsNullOrWhiteSpace(e.PicDesc));
-        Console.WriteLine($"    ✅ MdReconstructor 完成，PicDesc 条目：{picDescEntries}");
+        // 注：visionClient 的 Disposable 在 Pipeline 结束时由 caller 释放
+        // 此处保留引用避免 GC 回收
+        _ = visionClient;
+
         return picDescService;
     }
 }

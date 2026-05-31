@@ -24,6 +24,8 @@ public partial class PrtsPreloader
 
     private List<string> _currentPortraits = ["https://pics/transparent.png"];
     private int _currentPortraitFocus;
+    // 维护 charsolt 槽位状态（slot → URL），每次 charslot 命令只更新对应槽位
+    private readonly Dictionary<string, string> _slotUrls = new();
     private const string DefaultBg = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png";
     private string _currentBg = DefaultBg;
 
@@ -87,7 +89,35 @@ public partial class PrtsPreloader
                 {
                     entry.Dialog = subtitle ?? "";
                 }
+
                 entry.ResourceUrls = urlList;
+
+                // charslot focus="none"：说话者不在画面中，不生成独立立绘
+                if (entry.Type == "charslot" && entry.ResourceUrls.Count == 0
+                    && entry.CommandSet.TryGetValue("focus", out var fn) && fn == "none")
+                    entry.SkipPortraitOutput = true;
+
+                // CommandSet 方案：根据 focus 决定取 name 还是 name2
+                // 仅立绘类命令（character/charactercutin/charslot）才设置 CharacterCode
+                // 其他命令（background/playsound 等）必须清空，避免上一个条目的 code 泄漏
+                var isPortraitType = entry.Type is "character" or "charactercutin" or "charslot";
+                if (isPortraitType)
+                {
+                    var focusName = "name";
+                    if (entry.CommandSet.TryGetValue("focus", out var focusVal) &&
+                        focusVal == "2" && entry.CommandSet.ContainsKey("name2"))
+                    {
+                        focusName = "name2";
+                    }
+                    if (entry.CommandSet.TryGetValue(focusName, out var rawName))
+                    {
+                        entry.CharacterCode = _prts.GetCharacterCode(rawName.ToLower());
+                    }
+                }
+                else
+                {
+                    entry.CharacterCode = null;
+                }
             }
             entry.Portraits = _currentPortraits;
             entry.PortraitFocus = _currentPortraitFocus;
@@ -130,6 +160,9 @@ public partial class PrtsPreloader
             case "charslot":
                 urls = ProcessPortraitCommand(commandDict);
                 (_currentPortraits, _currentPortraitFocus) = GetCurrentPortraitsFromSlot(commandDict, urls);
+                // focus="none"：说话者不在画面中，清空 ResourceUrls（不触发 PicDesc）
+                if (commandDict.TryGetValue("focus", out var csFocus) && csFocus == "none")
+                    urls.Clear();
                 break;
             case "gridbg":
             case "verticalbg":
@@ -181,20 +214,46 @@ public partial class PrtsPreloader
         return (urls, 0);
     }
 
-    private static (List<string>, int) GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
+    private (List<string>, int) GetCurrentPortraitsFromSlot(StringDict commandDict, List<string> urls)
     {
-        if (commandDict.TryGetValue("slot", out string? position))
+        if (!commandDict.TryGetValue("slot", out string? slot))
+            return (urls, 0);
+
+        bool isFocusNone = commandDict.TryGetValue("focus", out var focus) && focus == "none";
+
+        // 更新槽位状态：空 name 表示清空该槽位（focus="none" 不影响槽位，只是没人高亮）
+        bool isRemoving = !commandDict.TryGetValue("name", out var name) || string.IsNullOrEmpty(name);
+
+        if (isRemoving)
+            _slotUrls.Remove(slot);
+        else if (urls.Count > 0)
+            _slotUrls[slot] = urls[0];
+
+        // focus="none"：立绘仍在场上，但说话者不在画面中
+        // 保持槽位不变，PortraitFocus=0（无人高亮）
+        // ResourceUrls 的清空在 ProcessCommand 中处理
+        var merged = MergeSlotUrls(out int currentFocus, isFocusNone ? null : slot);
+
+        if (merged.Count == 0)
+            return (["https://pics/transparent.png"], 0);
+
+        return (merged, currentFocus);
+    }
+
+    private List<string> MergeSlotUrls(out int currentFocus, string? focusSlot = null)
+    {
+        var merged = new List<string>();
+        currentFocus = 0;
+        string[] slotOrder = ["m", "l", "r"];
+        foreach (var s in slotOrder)
         {
-            var focus = position switch
+            if (_slotUrls.TryGetValue(s, out var url))
             {
-                "m" => 0,
-                "l" => 1,
-                "r" => 2,
-                _ => 0,
-            };
-            return (urls, focus);
+                if (s == focusSlot) currentFocus = merged.Count;
+                merged.Add(url);
+            }
         }
-        return (urls, 0);
+        return merged;
     }
 
     private void OverrideCurrentText()
@@ -255,17 +314,17 @@ public partial class PrtsPreloader
     {
         GetCharactersToOverride(commandDict);
 
+        // 收集角色名
         var names = new List<string>();
         if (commandDict.TryGetValue("name", out var name)) names.Add(name.ToLower());
         if (commandDict["type"] == "character" && commandDict.TryGetValue("name2", out var name2))
             names.Add(name2.ToLower());
 
+        // 收集 URLs（CharacterCode 由主循环从 CommandSet["name"] 直接获取）
         List<string> urls = [];
         foreach (var characterName in names)
         {
-            // Placeholder for character asset key retrieval or formatting logic
-            var url = _prts.GetPortraitUrl(
-                characterName); // Assume this method resolves the asset key based on characterName
+            var url = _prts.GetPortraitUrl(characterName);
             urls.Add(url);
             Assets.Add(new ResItem(characterName, url));
         }

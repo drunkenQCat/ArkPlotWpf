@@ -17,16 +17,13 @@ public abstract class AkpProcessor
     /// <param name="plotList">要导出的剧情列表。</param>
     /// <param name="picDescService">可选的图片描述服务。</param>
     /// <returns>表示导出的 Markdown 内容的字符串。</returns>
-    public static string ExportPlots(List<PlotManager> plotList, Services.PicDescService? picDescService = null)
+    public static string ExportPlots(List<PlotManager> plotList, Services.PicDescService? picDescService = null, bool enableDescriptions = true)
     {
-        // 跨章节共享已描述图片集合，确保每个 URL 只描述一次
-        var describedImages = new HashSet<string>();
-
         var md = new StringBuilder();
         foreach (var chapter in plotList)
         {
             var textList = chapter.CurrentPlot.TextVariants;
-            var reconstructor = new MdReconstructor(textList, picDescService, describedImages);
+            var reconstructor = new MdReconstructor(textList, picDescService, enableDescriptions);
             md.Append($"## {chapter.CurrentPlot.Title}\r\n\r\n");
             reconstructor.AppendResultToBuilder(md);
         }

@@ -64,6 +64,9 @@ public class FormattedTextEntryDump
     [JsonProperty("character_name")]
     public string CharacterName { get; init; } = "";
 
+    [JsonProperty("character_code")]
+    public string? CharacterCode { get; init; }
+
     [JsonProperty("dialog")]
     public string Dialog { get; init; } = "";
 

@@ -82,6 +82,9 @@ public class AkpStoryLoader
             ? await PlotCache.GetCachedTitlesAsync(_actId)
             : new HashSet<string>();
 
+        // 收集需要下载的章节
+        var chaptersToDownload = new List<(string title, string url, long chapterId)>();
+        
         foreach (var chapter in filteredChapters)
         {
             // 已缓存（Status=2）→ 从 DB 加载
@@ -99,28 +102,33 @@ public class AkpStoryLoader
                 }
             }
 
-            // 未缓存 → 从 GitHub 下载
-            var url = chapter.Value.Url;
-            var chapterId = chapter.Value.ChapterId;
-            var title = chapter.Key;
-            async Task GetSingleChapter()
-            {
-                var content = await NetworkUtility.GetAsync(url);
-                notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(title));
-                var plot = new PlotManager(title, new StringBuilder(content), _actId);
-                plot.CurrentPlot.StoryChapterId = chapterId;
-                plot.InitializePlot();
-                ContentTable.Add(plot);
-
-                // 写入 Status=1 缓存（基础下载，未解析）
-                if (_actId != 0)
-                    await PlotCache.SaveAsync(plot.CurrentPlot, plot.CurrentPlot.TextVariants, status: 1);
-            }
-
-            tasks.Add(GetSingleChapter());
+            // 未缓存 → 加入下载队列
+            chaptersToDownload.Add((chapter.Key, chapter.Value.Url, chapter.Value.ChapterId));
         }
 
-        await Task.WhenAll(tasks);
+        // 并行下载所有章节内容
+        var downloadTasks = chaptersToDownload.Select(async ch =>
+        {
+            var content = await NetworkUtility.GetAsync(ch.url);
+            return (ch.title, ch.chapterId, content);
+        }).ToList();
+
+        var downloadedChapters = await Task.WhenAll(downloadTasks);
+
+        // 串行处理下载结果并写入数据库（避免 SQLite 并发冲突）
+        foreach (var (title, chapterId, content) in downloadedChapters)
+        {
+            notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(title));
+            var plot = new PlotManager(title, new StringBuilder(content), _actId);
+            plot.CurrentPlot.StoryChapterId = chapterId;
+            plot.InitializePlot();
+            ContentTable.Add(plot);
+
+            // 写入 Status=1 缓存（基础下载，未解析）
+            if (_actId != 0)
+                await PlotCache.SaveAsync(plot.CurrentPlot, plot.CurrentPlot.TextVariants, status: 1);
+        }
+
         ContentTable = ContentTable.OrderBy(plot =>
         {
             var index = chapterUrlTable.Keys.ToList().IndexOf(plot.CurrentPlot.Title);

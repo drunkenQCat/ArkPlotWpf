@@ -52,25 +52,50 @@ public class PicDescService : IDisposable
     /// 获取或创建图片描述。
     /// 非图片 URL（如 MP3 音频）直接返回空字符串，不入库。
     /// </summary>
-    public async Task<string> GetOrCreatePicDescAsync(string imageUrl)
+    /// <param name="imageUrl">图片 URL，传给视觉模型读图</param>
+    /// <param name="characterCode">角色去重键，传null时用 imageUrl 自身去重</param>
+    public async Task<string> GetOrCreatePicDescAsync(string imageUrl, string? characterCode = null)
     {
-        // 非图片 URL 直接跳过，不下载、不描述、不入库
         if (!IsImageUrl(imageUrl))
             return "";
 
-        // Debug 模式：强制重新生成
-        if (_debugMode)
+        // 立绘的 DedupKey 必须是纯 CharacterCode，不能带回 imageUrl fallback
+        // characterCode 为 null 时表示场景图片，用 imageUrl 自身去重
+        var dedupKey = characterCode ?? imageUrl;
+        // 确保 CharacterCode 不带 # 后缀
+        if (characterCode != null)
         {
-            return await GenerateAndCacheAsync(imageUrl);
+            var hashIdx = dedupKey.IndexOf('#');
+            if (hashIdx >= 0) dedupKey = dedupKey[..hashIdx];
         }
 
-        // 正常模式：先查数据库
-        var existing = await GetPicDescFromDbAsync(imageUrl);
-        if (existing != null)
-            return existing;
+        try
+        {
+            // Debug 模式：强制重新生成
+            if (_debugMode)
+                return await GenerateAndCacheAsync(imageUrl, dedupKey);
 
-        // 无缓存 → 生成并缓存
-        return await GenerateAndCacheAsync(imageUrl);
+            // 第一级：DB 按 DedupKey 查（characterCode 或 URL）
+            var existing = await GetPicDescByDedupKeyAsync(dedupKey);
+            if (existing != null)
+                return existing;
+
+            // 第二级：如果有 characterCode，DB 按 ImageUrl 查
+            //         同一 URL 可能对应多个 characterCode，只要 URL 已描述过就复用
+            if (characterCode != null)
+            {
+                var byUrl = await GetPicDescByUrlAsync(imageUrl);
+                if (byUrl != null)
+                    return byUrl;
+            }
+
+            // 都没命中，调 API 并写入 DB
+            return await GenerateAndCacheAsync(imageUrl, dedupKey);
+        }
+        catch
+        {
+            return ""; // 网络失败，不写 DB，下次重试
+        }
     }
 
     /// <summary>
@@ -129,30 +154,22 @@ public class PicDescService : IDisposable
 
     /// <summary>
     /// 生成图片描述并缓存到数据库。
+    /// 网络失败/异常时不写库，下次重试。
     /// </summary>
-    private async Task<string> GenerateAndCacheAsync(string imageUrl)
+    private async Task<string> GenerateAndCacheAsync(string imageUrl, string dedupKey)
     {
-        try
+        string description;
+        if (_describeByUrl != null)
         {
-            string description;
-            if (_describeByUrl != null)
-            {
-                description = await _describeByUrl(imageUrl);
-            }
-            else
-            {
-                description = GeneratePlaceholder(imageUrl);
-            }
+            description = await _describeByUrl(imageUrl);
+        }
+        else
+        {
+            description = GeneratePlaceholder(imageUrl);
+        }
 
-            UpsertPicDesc(imageUrl, description);
-            return description;
-        }
-        catch (Exception ex)
-        {
-            var errorDesc = $"[DESC_ERROR: {ex.Message.Truncate(100)}]";
-            UpsertPicDesc(imageUrl, errorDesc);
-            return errorDesc;
-        }
+        UpsertPicDesc(dedupKey, imageUrl, description);
+        return description;
     }
 
     /// <summary>
@@ -234,14 +251,66 @@ public class PicDescService : IDisposable
         return size;
     }
 
-    private async Task<string?> GetPicDescFromDbAsync(string imageUrl)
+    /// <summary>
+    /// 按 DedupKey 查缓存，仅 Vision 来源视为有效缓存。
+    /// Placeholder/Error 下次重试。
+    /// </summary>
+    private async Task<string?> GetPicDescByDedupKeyAsync(string dedupKey)
+    {
+        var record = await _db.Queryable<PicDescription>()
+            .FirstAsync(it => it.DedupKey == dedupKey);
+        if (record == null) return null;
+        if (record.Source != "Vision") return null; // Placeholder/Error 重试
+        return record.PicDesc;
+    }
+
+    /// <summary>
+    /// 按 ImageUrl 查缓存（用于两级查找：characterCode 没命中时，按 URL 再查一次）。
+    /// 仅 Vision 来源视为有效缓存。
+    /// </summary>
+    private async Task<string?> GetPicDescByUrlAsync(string imageUrl)
     {
         var record = await _db.Queryable<PicDescription>()
             .FirstAsync(it => it.ImageUrl == imageUrl);
-        return record?.PicDesc;
+        if (record == null) return null;
+        if (record.Source != "Vision") return null; // Placeholder/Error 重试
+        return record.PicDesc;
     }
 
-    private void UpsertPicDesc(string imageUrl, string desc)
+    private void UpsertPicDesc(string dedupKey, string imageUrl, string desc)
+    {
+        var now = DateTime.UtcNow;
+        var existing = _db.Queryable<PicDescription>()
+            .First(it => it.DedupKey == dedupKey);
+
+        if (existing != null)
+        {
+            _db.Updateable<PicDescription>()
+                .SetColumns(it => it.PicDesc == desc)
+                .SetColumns(it => it.Source == "Vision")
+                .SetColumns(it => it.ImageUrl == imageUrl)
+                .SetColumns(it => it.UpdatedAt == now)
+                .Where(it => it.DedupKey == dedupKey)
+                .ExecuteCommand();
+        }
+        else
+        {
+            _db.Insertable(new PicDescription
+            {
+                DedupKey = dedupKey,
+                ImageUrl = imageUrl,
+                PicDesc = desc,
+                Source = "Vision",
+                CreatedAt = now,
+                UpdatedAt = now
+            }).ExecuteCommand();
+        }
+    }
+
+    /// <summary>
+    /// 旧版 Upsert（仅按 ImageUrl 匹配，迁移用）
+    /// </summary>
+    private void UpsertPicDescLegacy(string imageUrl, string desc)
     {
         var now = DateTime.UtcNow;
         var existing = _db.Queryable<PicDescription>()

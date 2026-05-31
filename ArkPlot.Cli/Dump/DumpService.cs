@@ -35,6 +35,7 @@ public static class DumpService
                 Type = entry.Type,
                 IsTagOnly = entry.IsTagOnly,
                 CharacterName = entry.CharacterName,
+                CharacterCode = entry.CharacterCode,
                 Dialog = entry.Dialog,
                 PngIndex = entry.PngIndex,
                 Bg = entry.Bg,

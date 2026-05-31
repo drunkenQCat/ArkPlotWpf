@@ -486,3 +486,5 @@ $RECYCLE.BIN/
 **/output/
 *.db
 .env
+.qwen/
+.reasonix/

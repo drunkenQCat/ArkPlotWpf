@@ -33,6 +33,7 @@ public class AkpParser
 
     public string ProcessSingleLine(FormattedTextEntry line)
     {
+        if (line.SkipPortraitOutput) return "";
         var classifiedLine = ClassifyAndProcess(line);
         /* FormattedTextEntry currentLine = new(classifiedLine); */
         FormattedTextEntry currentLine = new(line)

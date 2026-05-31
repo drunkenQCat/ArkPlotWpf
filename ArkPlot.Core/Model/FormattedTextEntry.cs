@@ -57,6 +57,13 @@ public class FormattedTextEntry
     [SugarColumn(Length = 100)]
     public string CharacterName { get; set; } = "";
 
+    /// <summary>
+    /// 归一化角色代码，如 "char_220_grani"。
+    /// 同一角色的不同表情变体共享同一个 CharacterCode。
+    /// </summary>
+    [SugarColumn(Length = 100, IsNullable = true)]
+    public string? CharacterCode { get; set; }
+
     [SugarColumn(Length = 1000)]
     public string Dialog { get; set; } = "";
 
@@ -90,6 +97,13 @@ public class FormattedTextEntry
     public string PicDesc { get; set; } = "";
 
     /// <summary>
+    /// 瞬态标记：此条目不应生成立绘 MdText（如 charslot focus="none"）。
+    /// 由 PrtsPreloader 设置，AkpParser 读取。不持久化。
+    /// </summary>
+    [SugarColumn(IsIgnore = true)]
+    public bool SkipPortraitOutput { get; set; }
+
+    /// <summary>
     /// 复制构造函数
     /// </summary>
     public FormattedTextEntry(FormattedTextEntry entry)
@@ -104,11 +118,13 @@ public class FormattedTextEntry
         IsTagOnly = entry.IsTagOnly;
         ResourceUrls = new(entry.ResourceUrls);
         CharacterName = entry.CharacterName;
+        CharacterCode = entry.CharacterCode;
         Dialog = entry.Dialog;
         Bg = entry.Bg;
         Portraits = new(entry.Portraits);
         PortraitFocus = entry.PortraitFocus;
         PicDesc = entry.PicDesc;
+        SkipPortraitOutput = entry.SkipPortraitOutput;
     }
 
     /// <summary>

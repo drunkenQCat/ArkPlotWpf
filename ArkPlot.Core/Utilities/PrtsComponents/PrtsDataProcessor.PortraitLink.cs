@@ -12,6 +12,16 @@ namespace ArkPlot.Core.Utilities.PrtsComponents;
 public partial class PrtsDataProcessor
 {
     /// <summary>
+    ///     从原始角色名（如 "char_220_grani#3"）提取 CharacterCode（如 "char_220_grani"）。
+    ///     内部复用 FindPortraitInLinkData 的解析逻辑。
+    /// </summary>
+    public string? GetCharacterCode(string rawName)
+    {
+        var (code, _) = FindPortraitInLinkData(rawName);
+        return code != "-1" ? code : null;
+    }
+
+    /// <summary>
     ///     Retrieves the URL of a portrait based on the input key.
     /// </summary>
     /// <param name="inputKey">The key used to search for the portrait.</param>

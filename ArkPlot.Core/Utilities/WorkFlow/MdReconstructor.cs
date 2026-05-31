@@ -26,19 +26,22 @@ public class MdReconstructor
     private EntryList lineList;
     private readonly List<int> portraitIndexes = new();
     private readonly PicDescService? _picDescService;
-    // 用于跟踪已输出描述的图片 URL，确保每个 URL 只描述一次
+    private readonly bool _enableDescriptions;
+    // 用于跟踪已输出描述的图片 URL，确保每个 URL 在章节内只描述一次
     private readonly HashSet<string> _describedImages = new();
+    // 用于跟踪已输出描述的角色，按 CharacterCode 去重（章节内）
+    private readonly HashSet<string> _describedCharacters = new();
 
     /// <summary>
     /// 初始化 MdReconstructor 类的新实例。
     /// </summary>
     /// <param name="entries">原始的 FormattedTextEntry 列表。</param>
     /// <param name="picDescService">可选的图片描述服务，用于为 HTTP 图片链接写入 PicDesc。</param>
-    /// <param name="describedImages">可选的已描述图片集合，跨章节共享以去重。为 null 时创建新实例。</param>
-    public MdReconstructor(EntryList entries, PicDescService? picDescService = null, HashSet<string>? describedImages = null)
+    /// <param name="enableDescriptions">是否输出带描述的增强格式。为 false 时保持旧版表格式。</param>
+    public MdReconstructor(EntryList entries, PicDescService? picDescService = null, bool enableDescriptions = true)
     {
         _picDescService = picDescService;
-        _describedImages = describedImages ?? new HashSet<string>();
+        _enableDescriptions = enableDescriptions;
         lineList = new(entries);
         ProcessPicDescsAsync().GetAwaiter().GetResult();
         RemoveEmptyLines();
@@ -60,11 +63,56 @@ public class MdReconstructor
         {
             if (entry.ResourceUrls.Count == 0) continue;
 
-            // 为每个资源 URL 获取或创建 PicDesc（可能触发下载 + Ollama 描述）
-            var picDescs = await _picDescService.GetOrCreatePicDescsAsync(entry.ResourceUrls);
+            var isPortraitType = entry.Type is "character" or "charactercutin" or "charslot";
 
-            // 将所有 PicDesc 合并为一个字符串（用分号分隔）
-            entry.PicDesc = string.Join("; ", picDescs.Values);
+            // PortraitFocus 是 1-indexed（0=默认/单人, 1=第一个角色, 2=第二个角色）
+            // 转换为 0-indexed
+            int focusIndex = entry.PortraitFocus > 0 ? entry.PortraitFocus - 1 : 0;
+
+            // 确定需要描述的 URL 列表
+            List<string> urlsToDescribe;
+            if (isPortraitType && entry.ResourceUrls.Count > 0)
+            {
+                // charslot：ResourceUrls 只包含当前命令更新的 URL，直接用 ResourceUrls[0]
+                // character/charactercutin：ResourceUrls 与 Portraits 一致，用 PortraitFocus 索引
+                int resourceIndex;
+                if (entry.Type == "charslot")
+                {
+                    resourceIndex = 0;
+                }
+                else
+                {
+                    resourceIndex = entry.PortraitFocus > 0 ? entry.PortraitFocus - 1 : 0;
+                    if (resourceIndex >= entry.ResourceUrls.Count)
+                        resourceIndex = 0;
+                }
+
+                var focusUrl = entry.ResourceUrls[resourceIndex];
+                urlsToDescribe = new List<string> { focusUrl };
+
+                // 加上 ResourceUrls 中不是立绘的 URL（场景图等）
+                foreach (var url in entry.ResourceUrls)
+                {
+                    if (url != focusUrl && !entry.Portraits.Contains(url))
+                        urlsToDescribe.Add(url);
+                }
+            }
+            else
+            {
+                urlsToDescribe = entry.ResourceUrls;
+            }
+
+            // 有 CharacterCode 的条目用 code 去重（包括从 charslot 传播到 dialog 的）
+            // 没有 CharacterCode 的条目用 URL 自身去重（场景图等）
+            var characterCode = !string.IsNullOrEmpty(entry.CharacterCode) ? entry.CharacterCode : null;
+
+            var descs = new List<string>();
+            foreach (var url in urlsToDescribe)
+            {
+                var desc = await _picDescService.GetOrCreatePicDescAsync(url, characterCode);
+                if (!string.IsNullOrEmpty(desc)) descs.Add(desc);
+            }
+            entry.PicDesc = string.Join("; ", descs);
         }
     }
 
@@ -190,7 +238,6 @@ public class MdReconstructor
 
     private string ExtractCharacterNameFromLines(FormattedTextEntry line)
     {
-        // 实现提取角色名称的逻辑，根据实际的标记格式进行调整
         // 角色名一般在链接后面第二行。
         var nameEntry = lineList.ElementAtOrDefault(line.Index + 1);
         var canReadName = nameEntry is not null && !string.IsNullOrEmpty(nameEntry.CharacterName);
@@ -284,67 +331,87 @@ public class MdReconstructor
     /// </summary>
     /// <param name="group">立绘组。</param>
     /// <param name="portraitLinks">角色立绘链接。</param>
+    /// <summary>
+    /// 为给定的组和角色立绘链接生成立绘图表，含描述行（仅首次出现）。
+    /// </summary>
     private void MakePortraitChart(PortraitGrp group, CharacterChart portraitLinks)
     {
         if (portraitLinks.Count == 0) return;
+
         var chartItems = string.Join("|", portraitLinks.Values);
         var chartHead = $"|{chartItems}|";
-        var chartSeg = string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count));
-        chartSeg = $"|{chartSeg}";
-        var chartBody = $"{chartHead}\r\n{chartSeg}\r\n\r\n";
+        var chartSeg = $"|{string.Concat(Enumerable.Repeat(" --- |", portraitLinks.Count))}";
 
-        // 生成立绘描述（每个 URL 只追加一次）
-        var portraitDescs = GeneratePortraitDescriptions(group.PortraitMarks);
+        // 仅 _enableDescriptions 时加描述行
+        var chartBody = _enableDescriptions
+            ? BuildDescribedChart(group, portraitLinks, chartHead, chartSeg)
+            : $"{chartHead}\r\n{chartSeg}\r\n\r\n";
 
         var firstLine = group.SList.First();
-        firstLine.MdText = firstLine.MdText.Insert(0, chartBody + portraitDescs);
+        firstLine.MdText = firstLine.MdText.Insert(0, chartBody);
+    }
+
+    /// <summary>构建含描述行的 HTML 表格（支持多行文本）</summary>
+    private string BuildDescribedChart(PortraitGrp group, CharacterChart portraitLinks, string chartHead, string chartSeg)
+    {
+        // 头像行
+        var headCells = string.Join("\r\n", portraitLinks.Values.Select(v => $"    <td>{v}</td>"));
+
+        // 描述行：章节内按 CharacterCode 去重，每个角色只描述一次
+        var descCells = new List<string>();
+        foreach (var charName in portraitLinks.Keys)
+        {
+            var mark = group.PortraitMarks.FirstOrDefault(m => m.Name == charName);
+            var desc = "";
+            if (mark != null)
+            {
+                var code = mark.OriginalEntry.CharacterCode;
+                if (!string.IsNullOrEmpty(code) && !_describedCharacters.Contains(code))
+                {
+                    _describedCharacters.Add(code);
+                    desc = GetOrGenerateDescription(mark);
+                }
+            }
+            var cellText = string.IsNullOrEmpty(desc) ? charName : $"{charName}：{desc}";
+            descCells.Add($"    <td>{cellText.Replace("\r\n", "<br>").Replace("\n", "<br>")}</td>");
+        }
+
+        return $"<table class=\"portrait-table\">\r\n" +
+               $"<tr>\r\n{string.Join("\r\n", headCells)}\r\n</tr>\r\n" +
+               $"<tr>\r\n{string.Join("\r\n", descCells)}\r\n</tr>\r\n" +
+               $"</table>\r\n\r\n";
     }
 
     /// <summary>
-    /// 为立绘组生成描述文本，每张图片 URL 只描述一次。
-    /// 格式：*[立绘·角色名：...]*
+    /// 获取或生成角色的立绘描述。
+    /// 1. 优先用 ProcessPicDescsAsync 预填的 entry.PicDesc
+    /// 2. 未填则调 PicDescService（按 CharacterCode 去重）
+    /// 3. 返回纯文本
     /// </summary>
-    private string GeneratePortraitDescriptions(List<CharacterInfo> portraitMarks)
+    private string GetOrGenerateDescription(CharacterInfo mark)
     {
-        if (_picDescService == null) return "";
+        var urls = mark.OriginalEntry.ResourceUrls;
+        if (urls.Count == 0) return "";
 
-        var sb = new StringBuilder();
-        foreach (var mark in portraitMarks)
+        var desc = mark.OriginalEntry.PicDesc;
+        if (string.IsNullOrWhiteSpace(desc) && _picDescService != null)
         {
-            // 跳过 Unknown 角色
-            if (mark.Name == "Unknown") continue;
-
-            // 获取立绘 URL 列表
-            var urls = mark.OriginalEntry.ResourceUrls;
-            if (urls.Count == 0) continue;
-
-            foreach (var url in urls)
-            {
-                // 已描述过的 URL 跳过
-                if (_describedImages.Contains(url)) continue;
-
-                // 获取描述
-                var desc = mark.OriginalEntry.PicDesc;
-                if (string.IsNullOrWhiteSpace(desc))
-                {
-                    // 如果 PicDesc 还没填充，尝试从服务获取
-                    var descTask = _picDescService.GetOrCreatePicDescAsync(url);
-                    desc = descTask.GetAwaiter().GetResult();
-                }
-
-                if (string.IsNullOrWhiteSpace(desc) || desc.StartsWith("[PIC_DESC:") || desc.StartsWith("[DESC_ERROR:"))
-                    continue;
-
-                _describedImages.Add(url);
-                sb.AppendLine($"*[立绘·{mark.Name}：{desc}]*");
-            }
+            desc = _picDescService.GetOrCreatePicDescAsync(urls[0], mark.OriginalEntry.CharacterCode)
+                .GetAwaiter().GetResult() ?? "";
         }
 
-        if (sb.Length > 0)
-            sb.AppendLine();
+        if (string.IsNullOrWhiteSpace(desc) || desc.StartsWith("[PIC_DESC:") || desc.StartsWith("[DESC_ERROR:"))
+            return "";
 
-        return sb.ToString();
+        return desc;
     }
+
+    /// <summary>
+    /// 为立绘组生成描述文本（已废弃，由 MakePortraitChart 内第二行替代）。
+    /// 仅保留用于过渡兼容。
+    /// </summary>
+    [Obsolete("描述已移至表格第二行，不再需要此方法")]
+    private string GeneratePortraitDescriptions(List<CharacterInfo> portraitMarks) => "";
 
     /// <summary>
     /// 在制作完成表格之后，原本的立绘便要删除。
@@ -404,7 +471,7 @@ public class MdReconstructor
             mdList.Add(entry.MdText);
 
             // 为非立绘的图片条目追加描述（每个 URL 只描述一次）
-            if (entry.ResourceUrls.Count > 0 && !string.IsNullOrEmpty(entry.PicDesc) && _picDescService != null)
+            if (_enableDescriptions && entry.ResourceUrls.Count > 0 && !string.IsNullOrEmpty(entry.PicDesc) && _picDescService != null)
             {
                 foreach (var url in entry.ResourceUrls)
                 {
@@ -419,7 +486,7 @@ public class MdReconstructor
                         continue;
 
                     _describedImages.Add(url);
-                    mdList.Add($"*[插图：{desc}]*");
+                    mdList.Add($"<p class=\"scene-desc\">{desc}</p>");
                 }
             }
         }

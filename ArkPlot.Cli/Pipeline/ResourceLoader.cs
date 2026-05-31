@@ -1,7 +1,5 @@
-using ArkPlot.Core.Model;
 using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
-using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
 
 namespace ArkPlot.Cli.Pipeline;
@@ -11,14 +9,14 @@ namespace ArkPlot.Cli.Pipeline;
 /// </summary>
 public static class ResourceLoader
 {
-    public static async Task LoadAsync(
-        AkpStoryLoader storyLoader, PlotManager plotManager, List<FormattedTextEntry> processedEntries)
+    /// <summary>同步 Prts 索引（全局一次），然后对所有已下载章节预加载资源。</summary>
+    public static async Task<bool> SyncAndPreloadAsync(AkpStoryLoader storyLoader)
     {
         Console.WriteLine("[4/8] 正在加载 Prts 资源索引...");
-        var prts = new PrtsDataProcessor();
         var prtsLoaded = false;
         try
         {
+            var prts = new PrtsDataProcessor();
             await prts.EnsureSyncedAsync();
             prtsLoaded = true;
             Console.WriteLine("    Prts 资源索引加载完成");
@@ -36,24 +34,26 @@ public static class ResourceLoader
         {
             var preloadInfo = storyLoader.GetPreloadInfo();
             preloadCount = preloadInfo.Count;
-            entriesWithUrls = processedEntries.Count(e => e.ResourceUrls.Count > 0);
+            foreach (var pm in storyLoader.ContentTable)
+                entriesWithUrls += pm.CurrentPlot.TextVariants.Count(e => e.ResourceUrls.Count > 0);
         }
         else
         {
-            try
+            foreach (var pm in storyLoader.ContentTable)
             {
-                var preloader = new PrtsPreloader(plotManager);
-                preloader.ParseAndCollectAssets();
-                entriesWithUrls = processedEntries.Count(e => e.ResourceUrls.Count > 0);
-                preloadCount = preloader.Assets.Count;
-            }
-            catch
-            {
-                // 优雅降级
+                try
+                {
+                    var preloader = new PrtsPreloader(pm);
+                    preloader.ParseAndCollectAssets();
+                    entriesWithUrls += pm.CurrentPlot.TextVariants.Count(e => e.ResourceUrls.Count > 0);
+                    preloadCount += preloader.Assets.Count;
+                }
+                catch { /* 优雅降级 */ }
             }
         }
 
         Console.WriteLine($"    资源条目：{preloadCount}");
         Console.WriteLine($"    有 ResourceUrls 的条目：{entriesWithUrls}");
+        return prtsLoaded;
     }
 }
