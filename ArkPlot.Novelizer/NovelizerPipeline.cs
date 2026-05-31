@@ -139,7 +139,9 @@ public class NovelizerPipeline
         var cache = new ChapterCache(outputDir);
 
         Log($"[DIAG] 扫描 .md 文件: {inputDir}");
-        var mdFiles = Directory.GetFiles(inputDir, "*.md", SearchOption.TopDirectoryOnly);
+        var mdFiles = Directory.GetFiles(inputDir, "*.md", SearchOption.TopDirectoryOnly)
+            .Where(f => !Path.GetFileNameWithoutExtension(f).Contains("_novel_"))
+            .ToArray();
         if (mdFiles.Length == 0)
         {
             Log($"❌ 目录中没有 .md 文件: {inputDir}");

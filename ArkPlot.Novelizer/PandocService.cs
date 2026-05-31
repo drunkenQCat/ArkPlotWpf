@@ -27,6 +27,9 @@ public static class PandocService
                 }
             };
             process.Start();
+
+            // 先读流再 WaitForExitAsync，防止 pipe 缓冲区满死锁
+            var _ = process.StandardOutput.ReadToEndAsync();
             await process.WaitForExitAsync();
             return process.ExitCode == 0;
         }
@@ -67,15 +70,28 @@ public static class PandocService
             };
 
             process.Start();
-            await process.WaitForExitAsync();
+
+            // 必须在 WaitForExitAsync 之前异步读取 stdout/stderr，
+            // 否则 pipe 缓冲区满时子进程阻塞 → 父进程 WaitForExitAsync 永远等待 → 死锁
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            await process.WaitForExitAsync(cts.Token);
+
+            var stderr = await stderrTask;
 
             if (process.ExitCode == 0 && File.Exists(epubPath))
             {
                 return epubPath;
             }
 
-            var stderr = await process.StandardError.ReadToEndAsync();
-            Debug.WriteLine($"pandoc 生成 epub 失败: {stderr}");
+            Debug.WriteLine($"pandoc 生成 epub 失败 (exit={process.ExitCode}): {stderr}");
+            return null;
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.WriteLine("pandoc 生成 epub 超时（2分钟）");
             return null;
         }
         catch (Exception ex)
