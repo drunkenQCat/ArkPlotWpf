@@ -169,6 +169,7 @@ public partial class SettingsViewModel : ObservableObject
                 ["百炼"] = BailianApiKeyText
             }
         };
+        // Vision 设置由主窗口管理，此处保留原有值
         settings = settings with { Novelizer = novelizer };
         settings.Save();
 

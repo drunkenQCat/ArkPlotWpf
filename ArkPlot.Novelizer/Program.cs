@@ -37,7 +37,20 @@ class Program
             return 1;
         }
 
-        var models = model is not null ? [model] : (compare ? config.Models : [config.Models[0]]);
+        // 将 "flash"/"pro" 映射到 config.Models 中的实际模型名
+        string[] models;
+        if (model is not null)
+        {
+            var resolved = model.Contains("flash")
+                ? config.Models.Last(m => m.Contains("flash"))
+                : config.Models.First(m => !m.Contains("flash"));
+            models = [resolved];
+        }
+        else
+        {
+            models = compare ? config.Models : [config.Models[0]];
+        }
+        
         Console.WriteLine($"🔌 平台: {config.Provider}, 模型: {string.Join(", ", models)}");
 
         using var http = new HttpClient();

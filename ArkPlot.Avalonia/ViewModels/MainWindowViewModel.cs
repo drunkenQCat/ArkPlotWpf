@@ -62,6 +62,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool isNovelizerEnabled;
 
+    [ObservableProperty]
+    private bool isPicDescEnabled;
+
     /// <summary>
     /// DeepSeek 官方 API Key（从环境变量 DEEPSEEK_API_KEY 读取）
     /// </summary>
@@ -103,6 +106,15 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnSelectedIndexChanged(int value)
     {
         Chapters.Clear();
+    }
+
+    // 当图片描述开关变化时，保存到 settings.json
+    partial void OnIsPicDescEnabledChanged(bool value)
+    {
+        var settings = AppSettings.Load();
+        var vision = new VisionSettings(value);
+        settings = settings with { Vision = vision };
+        settings.Save();
     }
 
     [RelayCommand]
@@ -159,6 +171,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // 根据 API Key 可用性初始化小说化开关
         IsNovelizerEnabled = !string.IsNullOrEmpty(DeepSeekApiKey) || !string.IsNullOrEmpty(BailianApiKey);
+
+        // 加载图片描述开关
+        IsPicDescEnabled = settings.Vision?.IsPicDescEnabled ?? false;
 
         SubscribeAll();
         await Task.Yield();
@@ -364,12 +379,61 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task ExportDocuments(AkpStoryLoader contentLoader)
     {
         noticeBlock.RaiseCommonEvent("正在导出文档....");
-        var rawMd = await ExportPlots(contentLoader.ContentTable);
-        var rawMdWithTitle = "# " + (activeTitle ?? "") + "\n\n" + rawMd;
-        ExportMdAndHtmlFiles(rawMdWithTitle);
-        if (IsLocalResChecked)
+
+        PicDescService? picDescService = null;
+        IDisposable? visionDisposable = null;
+
+        if (IsPicDescEnabled)
         {
-            AkpProcessor.WriteTyp(outputPathOfCurrentStory, contentLoader);
+            try
+            {
+                var settings = AppSettings.Load();
+                var apiKey = settings.GetApiKey("百炼");
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    var visionConfig = new ArkPlot.Vision.BailianVisionConfig
+                    {
+                        ApiKey = apiKey,
+                        Model = "qwen3-vl-flash",
+                        TimeoutSeconds = 120,
+                        MaxTokens = 2048
+                    };
+                    var log = (string msg) =>
+                    {
+                        global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => noticeBlock.RaiseCommonEvent(msg));
+                    };
+                    var visionClient = new ArkPlot.Vision.BailianVisionClient(visionConfig, onLog: log);
+                    visionDisposable = visionClient;
+                    Func<string, Task<string>> describeByUrl = async url => await visionClient.DescribeImageUrlAsync(url);
+                    picDescService = new PicDescService(describeByUrl);
+                    picDescService.InitializeCleanup();
+                    noticeBlock.RaiseCommonEvent("✅ 图片描述已启用（百炼 qwen3-vl-flash）");
+                }
+                else
+                {
+                    noticeBlock.RaiseCommonEvent("⚠️ 图片描述已开启但未配置百炼 API Key，跳过。");
+                }
+            }
+            catch (Exception ex)
+            {
+                noticeBlock.RaiseCommonEvent($"⚠️ 图片描述初始化失败：{ex.Message}");
+            }
+        }
+
+        try
+        {
+            var rawMd = await ExportPlots(contentLoader.ContentTable, picDescService);
+            var rawMdWithTitle = "# " + (activeTitle ?? "") + "\n\n" + rawMd;
+            ExportMdAndHtmlFiles(rawMdWithTitle);
+            if (IsLocalResChecked)
+            {
+                AkpProcessor.WriteTyp(outputPathOfCurrentStory, contentLoader);
+            }
+        }
+        finally
+        {
+            picDescService?.Dispose();
+            visionDisposable?.Dispose();
         }
     }
 
@@ -608,9 +672,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ConsoleOutput = ""; //先清空这片区域
     }
 
-    private async Task<string> ExportPlots(List<PlotManager> allPlots)
+    private async Task<string> ExportPlots(List<PlotManager> allPlots, PicDescService? picDescService = null)
     {
-        var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots));
+        var output = await Task.Run(() => AkpProcessor.ExportPlots(allPlots, picDescService));
         return output;
     }
 

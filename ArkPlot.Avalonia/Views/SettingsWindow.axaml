@@ -94,6 +94,8 @@
                             </StackPanel>
                         </StackPanel>
 
+                        <Separator Margin="0,5"/>
+
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
                             <Button Width="100" Command="{Binding SaveNovelizerSettingsCommand}" Content="保存设置" Margin="0,0,10,0"/>
                             <TextBlock Text="{Binding SaveFeedbackText}"

@@ -11,7 +11,7 @@ namespace ArkPlot.Avalonia.Models;
 /// 读写程序运行目录的 settings.json，不存在时自动生成默认值。
 /// 结构可扩展，未来可新增 section。
 /// </summary>
-public record AppSettings(NovelizerSettings Novelizer)
+public record AppSettings(NovelizerSettings Novelizer, VisionSettings? Vision = null)
 {
     private static readonly string FilePath = Path.Combine(AppContext.BaseDirectory, "settings.json");
 
@@ -77,7 +77,7 @@ public record AppSettings(NovelizerSettings Novelizer)
 
     private static AppSettings CreateDefaults()
     {
-        return new AppSettings(NovelizerSettings.CreateDefaults());
+        return new AppSettings(NovelizerSettings.CreateDefaults(), VisionSettings.CreateDefaults());
     }
 }
 
@@ -120,5 +120,16 @@ public record NovelizerSettings(
                 ["百炼"] = ""
             }
         );
+    }
+}
+
+/// <summary>
+/// 图片描述（Vision）模块配置
+/// </summary>
+public record VisionSettings(bool IsPicDescEnabled)
+{
+    public static VisionSettings CreateDefaults()
+    {
+        return new VisionSettings(IsPicDescEnabled: false);
     }
 }

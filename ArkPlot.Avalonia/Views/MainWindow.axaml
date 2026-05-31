@@ -247,6 +247,12 @@
                     Margin="0 0 16 11"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
+                <CheckBox
+                    Content="启用图片描述"
+                    IsChecked="{Binding IsPicDescEnabled}"
+                    Margin="0 0 16 11"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
             </StackPanel>
             <Border
                 Grid.Row="4" Margin="7" BorderThickness="2" BorderBrush="#7001"
