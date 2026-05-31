@@ -32,6 +32,18 @@ if (args.Length > 0 && args[0].Equals("show-misaligned", StringComparison.Ordina
     return;
 }
 
+if (args.Length > 0 && args[0].Equals("tts-novel", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 2)
+    {
+        Console.Error.WriteLine("用法: ArkPlot.Cli tts-novel <aligned.json> [segment_limit]");
+        return;
+    }
+    int? limit = args.Length >= 3 && int.TryParse(args[2], out var l) ? l : null;
+    await NovelTtsRunner.RunAsync(args[1], limit);
+    return;
+}
+
 // 清空旧的 PicDescription 记录
 var db = DbFactory.GetClient();
 var before = db.Queryable<PicDescription>().Count();

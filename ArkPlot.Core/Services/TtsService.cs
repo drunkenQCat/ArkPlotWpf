@@ -100,6 +100,22 @@ public class TtsService : IDisposable
     }
 
     /// <summary>
+    /// 根据性别获取音色。
+    /// </summary>
+    /// <param name="gender">性别："男"、"女" 或 null/其他（返回默认音色）。</param>
+    /// <returns>音色名称。</returns>
+    public string GetVoiceForGender(string? gender)
+    {
+        if (string.IsNullOrWhiteSpace(gender))
+            return DefaultVoice;
+
+        var isFemale = gender.Contains("女");
+        var voicePool = isFemale ? FemaleVoices : MaleVoices;
+        // 固定选择第一个音色（稳定、可预测）
+        return voicePool[0];
+    }
+
+    /// <summary>
     /// 将单句台词转换为 MP3 音频文件。
     /// </summary>
     /// <param name="text">台词文本。</param>
