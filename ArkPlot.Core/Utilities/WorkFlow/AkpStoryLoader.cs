@@ -77,6 +77,10 @@ public class AkpStoryLoader
             .Where(kvp => chaptersList.Contains(kvp.Key))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
+        // 启动时清理历史脏缓存（下载失败但被标记为已完成的空内容记录）
+        if (_actId != 0)
+            await PlotCache.CleanupEmptyPlotsAsync(_actId);
+
         // 查缓存
         var cachedTitles = _actId != 0
             ? await PlotCache.GetCachedTitlesAsync(_actId)
@@ -118,6 +122,13 @@ public class AkpStoryLoader
         // 串行处理下载结果并写入数据库（避免 SQLite 并发冲突）
         foreach (var (title, chapterId, content) in downloadedChapters)
         {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                notifyBlock.OnNetErrorHappen(new NetworkErrorEventArgs(
+                    $"章节 \"{title}\" 下载失败（内容为空），已跳过，不会写入缓存。"));
+                continue;
+            }
+
             notifyBlock.OnChapterLoaded(new ChapterLoadedEventArgs(title));
             var plot = new PlotManager(title, new StringBuilder(content), _actId);
             plot.CurrentPlot.StoryChapterId = chapterId;

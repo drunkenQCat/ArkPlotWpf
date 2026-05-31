@@ -72,9 +72,12 @@ public class PlotManager
 
         Parser.IsInitialized = false;
 
-        // 解析完成自动写入缓存（Status=2）
-        if (CurrentPlot.ActId != 0)
+        // 解析完成自动写入缓存（Status=2）—— 仅当有实质内容时才写
+        if (CurrentPlot.ActId != 0 &&
+            CurrentPlot.TextVariants.Any(e => !string.IsNullOrWhiteSpace(e.OriginalText)))
+        {
             await PlotCache.SaveAsync(CurrentPlot, CurrentPlot.TextVariants);
+        }
     }
     private string ConvertToMarkdown(FormattedTextEntry line)
     {

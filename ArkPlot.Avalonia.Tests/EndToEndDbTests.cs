@@ -361,4 +361,59 @@ public class EndToEndDbTests
         Assert.NotNull(loaded);
         Assert.Equal("阿米娅", loaded!.Value.Entries[0].CharacterName);
     }
+
+    // ──────────────────────────────────────────────
+    //  阶段 6: 下载失败防线 — 验证空内容不污染缓存
+    // ──────────────────────────────────────────────
+
+    [Fact(Timeout = 60_000)]
+    public async Task Test12_GetAllChapters_DownloadFailure_NotSavedToCache()
+    {
+        // 使用独立的 actId 避免与前置测试数据冲突
+        var act = new Act
+        {
+            ActId = "test_dl_fail",
+            Name = "下载失败测试",
+            Lang = "zh_CN",
+            ActType = "ACTIVITY_STORY"
+        };
+        var actId = Db.Insertable(act).ExecuteReturnIdentity();
+        act.Id = actId;
+
+        var chapter = new StoryChapter
+        {
+            ActId = actId,
+            StoryId = "test_nonexistent_chapter",
+            StoryCode = "TEST-1",
+            StoryName = "不存在的章节",
+            StoryTxt = "nonexistent_test_chapter_404",
+            AvgTag = "行动前",
+            StorySort = 0,
+        };
+        Db.Insertable(chapter).ExecuteCommand();
+
+        // 预插入一条脏缓存（Status=2 + 空 OriginalText），验证 cleanup 会清除它
+        var dirtyPlotId = Db.Insertable(new Plot("TEST-1 不存在的章节 行动前", new StringBuilder())
+        {
+            ActId = actId, Status = 2, StoryChapterId = chapter.Id
+        }).ExecuteReturnIdentity();
+        Db.Insertable(new FormattedTextEntry
+        {
+            PlotId = dirtyPlotId, Index = 0, OriginalText = ""
+        }).ExecuteCommand();
+
+        // 执行下载（GitHub 上 nonexistent_test_chapter_404.txt 不存在 → 404 → 空字符串）
+        var loader = new AkpStoryLoader(act, new List<StoryChapter> { chapter });
+        await loader.GetAllChapters();
+
+        // 脏缓存应被 cleanup 清除
+        Assert.Null(Db.Queryable<Plot>().First(p => p.Id == dirtyPlotId));
+
+        // 下载失败的章节不应写入任何新缓存
+        var cachedTitles = await PlotCache.GetCachedTitlesAsync(actId);
+        Assert.Empty(cachedTitles);
+
+        // ContentTable 应为空（失败章节被跳过）
+        Assert.Empty(loader.ContentTable);
+    }
 }

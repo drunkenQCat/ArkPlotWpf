@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using SqlSugar;
@@ -82,5 +85,40 @@ public static class PlotCache
         foreach (var entry in entries)
             entry.PlotId = plotId;
         await db.Insertable(entries).ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 清理指定活动下所有"空内容"的脏缓存（Status=2 但 FormattedTextEntry 全为空）。
+    /// 这些记录是历史上下载失败后被错误标记为"已完成"的，删除后下次运行会重新下载。
+    /// </summary>
+    public static async Task<int> CleanupEmptyPlotsAsync(long actId, SqlSugarClient? db = null)
+    {
+        db ??= DbFactory.GetClient();
+
+        var emptyPlots = await db.Queryable<Plot>()
+            .Where(p => p.ActId == actId && p.Status == 2)
+            .ToListAsync();
+
+        var cleanedCount = 0;
+        foreach (var plot in emptyPlots)
+        {
+            var entries = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.PlotId == plot.Id)
+                .ToListAsync();
+
+            if (entries.Count == 0 || entries.All(e => string.IsNullOrWhiteSpace(e.OriginalText)))
+            {
+                await db.Deleteable<FormattedTextEntry>()
+                    .Where(e => e.PlotId == plot.Id).ExecuteCommandAsync();
+                await db.Deleteable<Plot>()
+                    .Where(p => p.Id == plot.Id).ExecuteCommandAsync();
+                cleanedCount++;
+            }
+        }
+
+        if (cleanedCount > 0)
+            Console.WriteLine($"[PlotCache] 已清理 {cleanedCount} 条空内容脏缓存 (ActId={actId})");
+
+        return cleanedCount;
     }
 }
