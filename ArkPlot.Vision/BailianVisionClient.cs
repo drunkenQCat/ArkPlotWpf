@@ -84,7 +84,7 @@ public class BailianVisionClient : IDisposable
                     content = new object[]
                     {
                         new { type = "image_url", image_url = new { url = imageUrl } },
-                        new { type = "text", text = "请详细描述这张图片中的所有视觉元素。" }
+                        new { type = "text", text = "用小说场景描写的语言描述这张图片。如同在小说中描写一个场景。" }
                     }
                 }
             },
@@ -121,7 +121,7 @@ public class BailianVisionClient : IDisposable
                     content = new object[]
                     {
                         new { type = "image_url", image_url = new { url = $"data:image/jpeg;base64,{base64Image}" } },
-                        new { type = "text", text = "请详细描述这张图片中的所有视觉元素。" }
+                        new { type = "text", text = "用小说场景描写的语言描述这张图片。如同在小说中描写一个场景。" }
                     }
                 }
             },
@@ -256,9 +256,17 @@ public record BailianVisionConfig
     public int MaxRetries { get; init; } = 3;
 
     /// <summary>
-    /// 系统提示词
+    /// 系统提示词（叙事版 - 小说风格，禁止元评论）
     /// </summary>
-    public string SystemPrompt { get; init; } = "你是一个专业的图片描述助手。请仔细观察图片，用详细的中文描述图片中的内容、场景、角色和细节。";
+    public string SystemPrompt { get; init; } = """
+你是小说场景设定助手。描述图片时遵守以下规则：
+
+1. 禁止元评论：不要说"这是一幅画"、"这张图片展示"等分析性开场白。
+2. 禁止风格分析：不要提及"数字插画"、"动漫风格"、"游戏美术"等。
+3. 禁止总结：不要写"总结："、"简而言之"等分析性文字。
+4. 使用叙事语言：用小说场景描写的方式描述环境氛围、关键物体、人物姿态。
+5. 控制字数：保持在200字以内，只关注叙事关键元素。
+""";
 
     /// <summary>
     /// 最大生成 token 数，默认 2048
