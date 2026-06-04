@@ -89,18 +89,22 @@ public class BailianClient
                 reqSw.Stop();
                 Log($"[DIAG] 收到响应 status={response.StatusCode}，耗时 {reqSw.Elapsed.TotalSeconds:F1}s");
             }
-            catch (TaskCanceledException)
+            catch (Exception ex) when (ex is TaskCanceledException or HttpRequestException)
             {
                 reqSw.Stop();
-                var msg = $"[DIAG] POST 超时！耗时 {reqSw.Elapsed.TotalSeconds:F1}s（Timeout={_config.TimeoutSeconds}s）";
-                LogError(msg);
-                throw new BailianException($"API 请求超时（{reqSw.Elapsed.TotalSeconds:F0}s），Timeout={_config.TimeoutSeconds}s");
-            }
-            catch (Exception ex)
-            {
-                reqSw.Stop();
-                LogError($"[DIAG] POST 底层异常({ex.GetType().Name}): {ex.Message}，耗时 {reqSw.Elapsed.TotalSeconds:F1}s");
-                throw new BailianException($"API 网络异常: {ex.Message}", ex);
+                LogError($"[DIAG] POST 网络异常({ex.GetType().Name}): {ex.Message}，耗时 {reqSw.Elapsed.TotalSeconds:F1}s");
+                
+                if (attempt >= _config.MaxRetries)
+                {
+                    LogError($"[DIAG] 重试耗尽，网络异常");
+                    throw new BailianException($"API 网络异常（已重试 {attempt} 次）: {ex.Message}", ex);
+                }
+                
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                LogError($"  [{model}] 网络异常，{delay.TotalSeconds}s 后重试 ({attempt}/{_config.MaxRetries})...");
+                Log($"[DIAG] 可重试错误，等待 {delay.TotalSeconds}s...");
+                await Task.Delay(delay);
+                continue;
             }
 
             if (response.IsSuccessStatusCode)
