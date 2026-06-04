@@ -54,9 +54,22 @@ public class PicDescService : IDisposable
     /// </summary>
     /// <param name="imageUrl">图片 URL，传给视觉模型读图</param>
     /// <param name="characterCode">角色去重键，传null时用 imageUrl 自身去重</param>
+    /// <summary>
+    /// 已知的干扰/占位图片 URL，直接返回空字符串，不描述、不入库。
+    /// </summary>
+    private static readonly HashSet<string> SkipUrls = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png",
+        "https://media.prts.wiki/b/bf/Avg_char_empty.png",
+    };
+
     public async Task<string> GetOrCreatePicDescAsync(string imageUrl, string? characterCode = null)
     {
         if (!IsImageUrl(imageUrl))
+            return "";
+
+        // 干扰图片直接跳过
+        if (SkipUrls.Contains(imageUrl))
             return "";
 
         // 立绘的 DedupKey 必须是纯 CharacterCode，不能带回 imageUrl fallback
