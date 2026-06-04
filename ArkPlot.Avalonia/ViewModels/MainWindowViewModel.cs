@@ -17,6 +17,7 @@ using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
 using ArkPlot.Novelizer;
+using ArkPlot.Vision;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -108,11 +109,11 @@ public partial class MainWindowViewModel : ViewModelBase
         Chapters.Clear();
     }
 
-    // 当图片描述开关变化时，保存到 settings.json
+    // 当图片描述开关变化时，保存到 settings.json（保留其他 Vision 配置）
     partial void OnIsPicDescEnabledChanged(bool value)
     {
         var settings = AppSettings.Load();
-        var vision = new VisionSettings(value);
+        var vision = (settings.Vision ?? VisionSettings.CreateDefaults()) with { IsPicDescEnabled = value };
         settings = settings with { Vision = vision };
         settings.Save();
     }
@@ -388,31 +389,70 @@ public partial class MainWindowViewModel : ViewModelBase
             try
             {
                 var settings = AppSettings.Load();
-                var apiKey = settings.GetApiKey("百炼");
-                if (!string.IsNullOrEmpty(apiKey))
+                var vision = settings.Vision ?? VisionSettings.CreateDefaults();
+                var providerName = vision.SelectedProvider;
+                var model = vision.SelectedModel;
+                var systemPrompt = string.IsNullOrEmpty(vision.SystemPrompt)
+                    ? VisionSettings.DefaultSystemPrompt : vision.SystemPrompt;
+
+                var log = (string msg) =>
                 {
-                    var visionConfig = new ArkPlot.Vision.BailianVisionConfig
+                    Dispatcher.UIThread.InvokeAsync(() => noticeBlock.RaiseCommonEvent(msg));
+                };
+
+                Func<string, Task<string>> describeByUrl;
+
+                if (providerName == "Ollama")
+                {
+                    var visionConfig = new VisionConfig
                     {
-                        ApiKey = apiKey,
-                        Model = "qwen3-vl-flash",
+                        BaseUrl = vision.OllamaBaseUrl,
+                        Model = model,
+                        SystemPrompt = systemPrompt,
                         TimeoutSeconds = 120,
                         MaxTokens = 2048
                     };
-                    var log = (string msg) =>
+                    var ollamaClient = new OllamaVisionClient(visionConfig, onLog: log);
+                    visionDisposable = ollamaClient;
+                    // Ollama 不支持 URL 直传，需要下载后转 base64
+                    describeByUrl = async url =>
                     {
-                        global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => noticeBlock.RaiseCommonEvent(msg));
+                        using var http = new HttpClient();
+                        var bytes = await http.GetByteArrayAsync(url);
+                        var base64 = Convert.ToBase64String(bytes);
+                        return await ollamaClient.DescribeImageBase64Async(base64);
                     };
-                    var visionClient = new ArkPlot.Vision.BailianVisionClient(visionConfig, onLog: log);
-                    visionDisposable = visionClient;
-                    Func<string, Task<string>> describeByUrl = async url => await visionClient.DescribeImageUrlAsync(url);
-                    picDescService = new PicDescService(describeByUrl);
-                    picDescService.InitializeCleanup();
-                    noticeBlock.RaiseCommonEvent("✅ 图片描述已启用（百炼 qwen3-vl-flash）");
                 }
                 else
                 {
-                    noticeBlock.RaiseCommonEvent("⚠️ 图片描述已开启但未配置百炼 API Key，跳过。");
+                    var apiKey = vision.GetApiKeyForProvider(providerName);
+                    var baseUrl = vision.GetBaseUrlForProvider(providerName);
+
+                    if (string.IsNullOrEmpty(apiKey))
+                    {
+                        noticeBlock.RaiseCommonEvent($"⚠️ 图片描述已开启但未配置 {providerName} API Key，跳过。");
+                        goto skipVision;
+                    }
+
+                    var visionConfig = new BailianVisionConfig
+                    {
+                        ApiKey = apiKey,
+                        BaseUrl = baseUrl,
+                        Model = model,
+                        SystemPrompt = systemPrompt,
+                        TimeoutSeconds = 120,
+                        MaxTokens = 2048
+                    };
+                    var bailianClient = new BailianVisionClient(visionConfig, onLog: log);
+                    visionDisposable = bailianClient;
+                    describeByUrl = async url => await bailianClient.DescribeImageUrlAsync(url);
                 }
+
+                picDescService = new PicDescService(describeByUrl);
+                picDescService.InitializeCleanup();
+                noticeBlock.RaiseCommonEvent($"✅ 图片描述已启用（{providerName} {model}）");
+
+                skipVision:;
             }
             catch (Exception ex)
             {
@@ -499,12 +539,15 @@ public partial class MainWindowViewModel : ViewModelBase
         var novelizer = settings.Novelizer;
 
         var selectedProviderName = novelizer.SelectedProvider;
-        var (provider, apiKey, baseUrl) = selectedProviderName switch
+        var apiKey = novelizer.GetApiKeyForProvider(selectedProviderName);
+        var baseUrl = novelizer.GetBaseUrlForProvider(selectedProviderName);
+        var provider = selectedProviderName switch
         {
-            "DeepSeek" => (ApiProvider.DeepSeek, settings.GetApiKey("DeepSeek"), "https://api.deepseek.com"),
-            _ => (ApiProvider.Bailian, settings.GetApiKey("百炼"), "https://dashscope.aliyuncs.com/compatible-mode/v1")
+            "DeepSeek" => ApiProvider.DeepSeek,
+            "百炼" => ApiProvider.Bailian,
+            _ => ApiProvider.Custom
         };
-        LogDiag("[RunNovelizer] provider={0}, apiKey长度={1}", provider, apiKey.Length);
+        LogDiag("[RunNovelizer] provider={0}, baseUrl={1}, apiKey长度={2}", selectedProviderName, baseUrl, apiKey.Length);
 
         if (string.IsNullOrEmpty(apiKey))
         {
