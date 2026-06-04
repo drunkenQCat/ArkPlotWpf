@@ -70,7 +70,7 @@ class Program
 
                 foreach (var m in models)
                 {
-                    var outputPath = Path.ChangeExtension(input, null) + $"_novel_{(m.Contains("flash") ? "flash" : "pro")}.md";
+                    var outputPath = Path.ChangeExtension(input, null) + $"_novel_{m}.md";
                     await pipeline.ProcessEntriesAsync(entries, m, outputPath, Path.GetFileName(input));
                 }
             }
@@ -162,12 +162,12 @@ class Program
         else
         {
             // 双模型对比
-            var proOutput = Path.ChangeExtension(input, null) + "_novel_pro.md";
+            var proOutput = Path.ChangeExtension(input, null) + $"_novel_{config.Models[0]}.md";
             await pipeline.ProcessEntriesAsync(entries, config.Models[0], proOutput, Path.GetFileName(input));
 
             if (config.Models.Length > 1)
             {
-                var flashOutput = Path.ChangeExtension(input, null) + "_novel_flash.md";
+                var flashOutput = Path.ChangeExtension(input, null) + $"_novel_{config.Models[1]}.md";
                 await pipeline.ProcessEntriesAsync(entries, config.Models[1], flashOutput, Path.GetFileName(input));
             }
         }

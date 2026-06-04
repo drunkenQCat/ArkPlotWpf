@@ -57,8 +57,7 @@ public class ChapterCache
     {
         var dir = Path.GetDirectoryName(sourceMdPath) ?? ".";
         var baseName = Path.GetFileNameWithoutExtension(sourceMdPath);
-        var modelSuffix = model.Contains("flash") ? "flash" : "pro";
-        return Path.Combine(dir, $"{baseName}_novel_{modelSuffix}.md");
+        return Path.Combine(dir, $"{baseName}_novel_{model}.md");
     }
 
     private static string MakeKey(string path, string model) => $"{path}::{model}";

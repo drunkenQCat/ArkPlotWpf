@@ -47,22 +47,28 @@ public class BailianClient
     {
         Log($"[DIAG] ChatAsync 开始。model={model}, userContent长度={userContent.Length}, max_tokens={_config.MaxTokens}");
 
-        var requestBody = new
+        // 构建请求体：预设平台加专属字段，自定义平台保持纯 OpenAI 兼容
+        var requestBody = new Dictionary<string, object>
         {
-            model,
-            messages = new object[]
+            ["model"] = model,
+            ["messages"] = new object[]
             {
                 new { role = "system", content = systemPrompt },
                 new { role = "user", content = userContent }
             },
-            max_tokens = _config.MaxTokens,
-            reasoning_effort = _config.Provider == ApiProvider.DeepSeek ? "high" : null,
-            extra_body = _config.Provider switch
-            {
-                ApiProvider.DeepSeek => (object)new { thinking = new { type = "enabled" } },
-                _ => new { enable_thinking = _config.EnableThinking }
-            }
+            ["max_tokens"] = _config.MaxTokens
         };
+
+        if (_config.Provider == ApiProvider.DeepSeek)
+        {
+            requestBody["reasoning_effort"] = "high";
+            requestBody["extra_body"] = new { thinking = new { type = "enabled" } };
+        }
+        else if (_config.Provider == ApiProvider.Bailian)
+        {
+            requestBody["extra_body"] = new { enable_thinking = _config.EnableThinking };
+        }
+        // 自定义 Provider：不加任何平台专属字段，保持纯 OpenAI 兼容
 
         var json = JsonSerializer.Serialize(requestBody, JsonOptions);
         var content = new StringContent(json, Encoding.UTF8, "application/json");

@@ -1,6 +1,6 @@
 namespace ArkPlot.Novelizer;
 
-public enum ApiProvider { Bailian, DeepSeek }
+public enum ApiProvider { Bailian, DeepSeek, Custom }
 
 public class ApiConfig
 {
