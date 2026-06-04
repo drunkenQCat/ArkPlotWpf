@@ -300,7 +300,14 @@ public class NovelAligner
         if (!picDescByCode.TryGetValue(baseCode, out var desc))
             return null;
 
-        // 搜索性别关键词
+        // 优先：检查描述前 100 字符中的"她"或"他"（适配小说化描述）
+        var head = desc.Length > 100 ? desc[..100] : desc;
+        if (head.Contains("她"))
+            return "女";
+        if (head.Contains("他"))
+            return "男";
+
+        // 兜底：旧版分析性描述中的关键词
         if (desc.Contains("女性") || desc.Contains("女人") || desc.Contains("女孩") || desc.Contains("少女"))
             return "女";
         if (desc.Contains("男性") || desc.Contains("男人") || desc.Contains("男孩") || desc.Contains("少年"))

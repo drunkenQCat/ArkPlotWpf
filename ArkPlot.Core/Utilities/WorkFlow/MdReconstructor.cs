@@ -1,11 +1,12 @@
-using ArkPlot.Core.Model;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 // the character name and character portrait pair
 using CharacterChart = System.Collections.Generic.Dictionary<string, string>;
-using EntryList = System.Collections.Generic.List<ArkPlot.Core.Model.FormattedTextEntry>;
 using EntryGroups = System.Collections.Generic.List<System.Collections.Generic.List<ArkPlot.Core.Model.FormattedTextEntry>>;
+using EntryList = System.Collections.Generic.List<ArkPlot.Core.Model.FormattedTextEntry>;
 
 namespace ArkPlot.Core.Utilities.WorkFlow;
 
@@ -27,8 +28,10 @@ public class MdReconstructor
     private readonly List<int> portraitIndexes = new();
     private readonly PicDescService? _picDescService;
     private readonly bool _enableDescriptions;
+
     // 用于跟踪已输出描述的图片 URL，确保每个 URL 在章节内只描述一次
     private readonly HashSet<string> _describedImages = new();
+
     // 用于跟踪已输出描述的角色，按 CharacterCode 去重（章节内）
     private readonly HashSet<string> _describedCharacters = new();
 
@@ -38,7 +41,11 @@ public class MdReconstructor
     /// <param name="entries">原始的 FormattedTextEntry 列表。</param>
     /// <param name="picDescService">可选的图片描述服务，用于为 HTTP 图片链接写入 PicDesc。</param>
     /// <param name="enableDescriptions">是否输出带描述的增强格式。为 false 时保持旧版表格式。</param>
-    public MdReconstructor(EntryList entries, PicDescService? picDescService = null, bool enableDescriptions = true)
+    public MdReconstructor(
+        EntryList entries,
+        PicDescService? picDescService = null,
+        bool enableDescriptions = true
+    )
     {
         _picDescService = picDescService;
         _enableDescriptions = enableDescriptions;
@@ -57,11 +64,13 @@ public class MdReconstructor
     /// </summary>
     private async Task ProcessPicDescsAsync()
     {
-        if (_picDescService == null) return;
+        if (_picDescService == null)
+            return;
 
         foreach (var entry in lineList)
         {
-            if (entry.ResourceUrls.Count == 0) continue;
+            if (entry.ResourceUrls.Count == 0)
+                continue;
 
             var isPortraitType = entry.Type is "character" or "charactercutin" or "charslot";
 
@@ -104,13 +113,16 @@ public class MdReconstructor
 
             // 有 CharacterCode 的条目用 code 去重（包括从 charslot 传播到 dialog 的）
             // 没有 CharacterCode 的条目用 URL 自身去重（场景图等）
-            var characterCode = !string.IsNullOrEmpty(entry.CharacterCode) ? entry.CharacterCode : null;
+            var characterCode = !string.IsNullOrEmpty(entry.CharacterCode)
+                ? entry.CharacterCode
+                : null;
 
             var descs = new List<string>();
             foreach (var url in urlsToDescribe)
             {
                 var desc = await _picDescService.GetOrCreatePicDescAsync(url, characterCode);
-                if (!string.IsNullOrEmpty(desc)) descs.Add(desc);
+                if (!string.IsNullOrEmpty(desc))
+                    descs.Add(desc);
             }
             entry.PicDesc = string.Join("; ", descs);
         }
@@ -144,7 +156,8 @@ public class MdReconstructor
         {
             if (IsItemOnlyDashes(item) || temp.Count < 16)
             {
-                if (IsPortrait(item)) isPortraitGroup = true;
+                if (IsPortrait(item))
+                    isPortraitGroup = true;
                 temp.Add(item);
                 continue;
             }
@@ -168,7 +181,8 @@ public class MdReconstructor
     {
         entries.ForEach(item =>
         {
-            if (item.MdText.StartsWith('-')) item.MdText = "";
+            if (item.MdText.StartsWith('-'))
+                item.MdText = "";
         });
     }
 
@@ -178,7 +192,8 @@ public class MdReconstructor
         {
             var newGroup = new EntryList(entries);
             lineGroups.Add(newGroup);
-            if (isPortraitGroup) AppendPortrait(newGroup);
+            if (isPortraitGroup)
+                AppendPortrait(newGroup);
         }
     }
 
@@ -221,17 +236,20 @@ public class MdReconstructor
         var lines = paragraphLines;
         foreach (var line in lines)
         {
-            if (!IsPortrait(line)) continue;
+            if (!IsPortrait(line))
+                continue;
 
             portraitIndexes.Add(line.Index);
             var characterName = ExtractCharacterNameFromLines(line);
 
             // 所有的 url 标签都附加两个换行符，一个描述。
             var url = line.MdText.Split("\r\n")[0];
-            characters.Add(!string.IsNullOrWhiteSpace(characterName)
-                ? new CharacterInfo(line, characterName, url)
-                // 标记为异常或未识别的角色
-                : new CharacterInfo(line, "Unknown", string.Empty));
+            characters.Add(
+                !string.IsNullOrWhiteSpace(characterName)
+                    ? new CharacterInfo(line, characterName, url)
+                    // 标记为异常或未识别的角色
+                    : new CharacterInfo(line, "Unknown", string.Empty)
+            );
         }
         return characters;
     }
@@ -241,7 +259,8 @@ public class MdReconstructor
         // 角色名一般在链接后面第二行。
         var nameEntry = lineList.ElementAtOrDefault(line.Index + 1);
         var canReadName = nameEntry is not null && !string.IsNullOrEmpty(nameEntry.CharacterName);
-        if (!canReadName) return "";
+        if (!canReadName)
+            return "";
         return nameEntry!.CharacterName;
     }
 
@@ -287,7 +306,8 @@ public class MdReconstructor
         var charaDict = new CharacterChart();
         foreach (var character in characters)
         {
-            if (character.Name == "Unknown") continue;
+            if (character.Name == "Unknown")
+                continue;
             charaDict[character.Name] = EmbedTitleInPortraitHtml(character);
         }
         return charaDict;
@@ -300,13 +320,11 @@ public class MdReconstructor
         // <img class="portrait" src="https://prts.wiki/images/e/e0/Avg_char_220_grani_3.png" alt="char_220_grani#5" loading="lazy" style="max-height:300px">
         var htmlTag = new HtmlTagParser(character.PortraitHtml)
         {
-            Attributes =
-            {
-                ["title"] = character.Name
-            }
+            Attributes = { ["title"] = character.Name },
         };
         var portraitUrl = GetPortraitUrl(character.OriginalEntry);
-        if (!string.IsNullOrEmpty(portraitUrl)) htmlTag.Attributes["src"] = portraitUrl;
+        if (!string.IsNullOrEmpty(portraitUrl))
+            htmlTag.Attributes["src"] = portraitUrl;
         var enhancedPortrait = htmlTag.ReconstructHtml();
         // Wrap the enhanced portrait in a div with a "crop" class
         return $"<div class=\"crop\">{enhancedPortrait}</div>";
@@ -320,7 +338,8 @@ public class MdReconstructor
         _ = characterOriginalEntry.CommandSet.TryGetValue("focus", out string? focusIndex);
         if (int.TryParse(focusIndex, out var focusIdx))
         {
-            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.ResourceUrls.Count) return characterOriginalEntry.ResourceUrls[focusIdx - 1];
+            if (focusIdx > 0 && focusIdx <= characterOriginalEntry.ResourceUrls.Count)
+                return characterOriginalEntry.ResourceUrls[focusIdx - 1];
         }
         return url;
     }
@@ -336,7 +355,8 @@ public class MdReconstructor
     /// </summary>
     private void MakePortraitChart(PortraitGrp group, CharacterChart portraitLinks)
     {
-        if (portraitLinks.Count == 0) return;
+        if (portraitLinks.Count == 0)
+            return;
 
         var chartItems = string.Join("|", portraitLinks.Values);
         var chartHead = $"|{chartItems}|";
@@ -352,7 +372,12 @@ public class MdReconstructor
     }
 
     /// <summary>构建含描述行的 HTML 表格（支持多行文本）</summary>
-    private string BuildDescribedChart(PortraitGrp group, CharacterChart portraitLinks, string chartHead, string chartSeg)
+    private string BuildDescribedChart(
+        PortraitGrp group,
+        CharacterChart portraitLinks,
+        string chartHead,
+        string chartSeg
+    )
     {
         // 头像行
         var headCells = string.Join("\r\n", portraitLinks.Values.Select(v => $"    <td>{v}</td>"));
@@ -372,14 +397,16 @@ public class MdReconstructor
                     desc = GetOrGenerateDescription(mark);
                 }
             }
-            var cellText = string.IsNullOrEmpty(desc) ? charName : $"{charName}：{desc}";
+            var cellText = string.IsNullOrEmpty(desc)
+                ? charName
+                : $"【此处为对{charName}的形象描述，请结合上下文将其融入文中，不要生搬硬套】：{desc}";
             descCells.Add($"    <td>{cellText.Replace("\r\n", "<br>").Replace("\n", "<br>")}</td>");
         }
 
-        return $"<table class=\"portrait-table\">\r\n" +
-               $"<tr>\r\n{string.Join("\r\n", headCells)}\r\n</tr>\r\n" +
-               $"<tr>\r\n{string.Join("\r\n", descCells)}\r\n</tr>\r\n" +
-               $"</table>\r\n\r\n";
+        return $"<table class=\"portrait-table\">\r\n"
+            + $"<tr>\r\n{string.Join("\r\n", headCells)}\r\n</tr>\r\n"
+            + $"<tr>\r\n{string.Join("\r\n", descCells)}\r\n</tr>\r\n"
+            + $"</table>\r\n\r\n";
     }
 
     /// <summary>
@@ -391,16 +418,25 @@ public class MdReconstructor
     private string GetOrGenerateDescription(CharacterInfo mark)
     {
         var urls = mark.OriginalEntry.ResourceUrls;
-        if (urls.Count == 0) return "";
+        if (urls.Count == 0)
+            return "";
 
         var desc = mark.OriginalEntry.PicDesc;
         if (string.IsNullOrWhiteSpace(desc) && _picDescService != null)
         {
-            desc = _picDescService.GetOrCreatePicDescAsync(urls[0], mark.OriginalEntry.CharacterCode)
-                .GetAwaiter().GetResult() ?? "";
+            desc =
+                _picDescService
+                    .GetOrCreatePicDescAsync(urls[0], mark.OriginalEntry.CharacterCode)
+                    .GetAwaiter()
+                    .GetResult()
+                ?? "";
         }
 
-        if (string.IsNullOrWhiteSpace(desc) || desc.StartsWith("[PIC_DESC:") || desc.StartsWith("[DESC_ERROR:"))
+        if (
+            string.IsNullOrWhiteSpace(desc)
+            || desc.StartsWith("[PIC_DESC:")
+            || desc.StartsWith("[DESC_ERROR:")
+        )
             return "";
 
         return desc;
@@ -460,33 +496,45 @@ public class MdReconstructor
         builder.AppendLine();
     }
 
-
     List<string> GetRawMdLines(EntryList grp)
     {
+        string ExtractFileNameWithoutExtension(string url) => Path.GetFileNameWithoutExtension(url);
+
         var mdList = new List<string>();
         foreach (var entry in grp)
         {
-            if (string.IsNullOrWhiteSpace(entry.MdText)) continue;
+            if (string.IsNullOrWhiteSpace(entry.MdText))
+                continue;
 
             mdList.Add(entry.MdText);
 
             // 为非立绘的图片条目追加描述（每个 URL 只描述一次）
-            if (_enableDescriptions && entry.ResourceUrls.Count > 0 && !string.IsNullOrEmpty(entry.PicDesc) && _picDescService != null)
+            if (
+                _enableDescriptions
+                && entry.ResourceUrls.Count > 0
+                && !string.IsNullOrEmpty(entry.PicDesc)
+                && _picDescService != null
+            )
             {
                 foreach (var url in entry.ResourceUrls)
                 {
-                    if (_describedImages.Contains(url)) continue;
+                    if (_describedImages.Contains(url))
+                        continue;
 
                     var desc = entry.PicDesc;
                     // 过滤占位符、错误信息、空值、纯分号
-                    if (string.IsNullOrWhiteSpace(desc)
+                    if (
+                        string.IsNullOrWhiteSpace(desc)
                         || desc.Trim() == ";"
                         || desc.StartsWith("[PIC_DESC:")
-                        || desc.StartsWith("[DESC_ERROR:"))
+                        || desc.StartsWith("[DESC_ERROR:")
+                    )
                         continue;
 
                     _describedImages.Add(url);
-                    mdList.Add($"<p class=\"scene-desc\">{desc}</p>");
+                    mdList.Add(
+                        $"<p class=\"scene-desc\">【此处为对场景图片{ExtractFileNameWithoutExtension(entry.Bg)}的描述，请结合上下文将其融入文中】{desc}</p>"
+                    );
                 }
             }
         }
@@ -495,5 +543,9 @@ public class MdReconstructor
 
     private record PortraitGrp(EntryList SList, List<CharacterInfo> PortraitMarks);
 
-    private record CharacterInfo(FormattedTextEntry OriginalEntry, string Name, string PortraitHtml);
+    private record CharacterInfo(
+        FormattedTextEntry OriginalEntry,
+        string Name,
+        string PortraitHtml
+    );
 }

@@ -23,9 +23,10 @@ public class TtsService : IDisposable
     /// </summary>
     private static readonly string[] FemaleVoices = new[]
     {
-        "zh-CN-XiaoyiNeural",    // 活泼
-        "zh-CN-liaoning-XiaobeiNeural",  // 幽默
-        "zh-CN-shaanxi-XiaoniNeural"      // 明亮
+        "zh-CN-XiaoyiNeural",            // 标准普通话，活泼
+        "zh-CN-liaoning-XiaobeiNeural",  // 东北口音，幽默
+        "zh-TW-HsiaoChenNeural",         // 台湾口音
+        "zh-TW-HsiaoYuNeural",           // 台湾口音
     };
 
     private static readonly string[] MaleVoices = new[]
@@ -82,26 +83,52 @@ public class TtsService : IDisposable
 
     /// <summary>
     /// 根据角色名获取音色。
-    /// 无角色名时返回默认音色 XiaoXiao。
+    /// 优先使用实际性别，gender 未知时 fallback 到哈希奇偶性。
     /// </summary>
     /// <param name="characterName">角色名，为空时返回默认音色。</param>
+    /// <param name="gender">角色性别："男"、"女" 或 null（未知）。</param>
     /// <returns>音色名称。</returns>
-    public string GetVoiceForCharacter(string characterName)
+    public string GetVoiceForCharacter(string characterName, string? gender = null)
     {
         if (string.IsNullOrWhiteSpace(characterName))
         {
             return DefaultVoice;
         }
 
-        return _characterVoiceCache.GetOrAdd(characterName, name =>
+        // 缓存 key 包含 gender，避免同一角色名在不同性别下返回冲突的音色
+        var cacheKey = gender != null ? $"{characterName}|{gender}" : characterName;
+
+        return _characterVoiceCache.GetOrAdd(cacheKey, _ =>
         {
-            var hash = GetStableHash(name);
-            var isFemale = hash % 2 == 0; // 偶数为女声，奇数为男声
+            var hash = GetStableHash(characterName);
+            
+            // 优先使用实际性别
+            bool isFemale;
+            if (!string.IsNullOrWhiteSpace(gender))
+            {
+                isFemale = gender.Contains("女");
+            }
+            else
+            {
+                // fallback: 用哈希奇偶性决定性别
+                isFemale = hash % 2 == 0;
+            }
+
             var voicePool = isFemale ? FemaleVoices : MaleVoices;
             var index = Math.Abs(hash) % voicePool.Length;
             return voicePool[index];
         });
     }
+
+    /// <summary>
+    /// 获取旁白专用音色（XiaoxiaoNeural，不参与角色分配）。
+    /// </summary>
+    public string GetNarratorVoice() => NarratorVoice;
+
+    /// <summary>
+    /// 获取性别无法识别时的 fallback 音色（固定的非旁白音色）。
+    /// </summary>
+    public string GetFallbackVoice() => MaleVoices[0]; // YunxiNeural
 
     /// <summary>
     /// 根据性别获取音色。
@@ -156,9 +183,11 @@ public class TtsService : IDisposable
                msg.Contains("connection") ||
                msg.Contains("timeout") ||
                msg.Contains("reset") ||
+               msg.Contains("websocket") ||
                ex is System.Net.Http.HttpRequestException ||
                ex is System.Net.Sockets.SocketException ||
-               ex is TaskCanceledException;
+               ex is TaskCanceledException ||
+               ex.GetType().FullName?.Contains("EdgeTTS.DotNet") == true;
     }
 
     /// <summary>

@@ -39,8 +39,8 @@ public static class AlignRunner
             .Select(g => new
             {
                 Character = g.Key,
-                Voice = ttsService.GetVoiceForCharacter(g.Key),
                 Gender = g.First().Gender ?? "未知",
+                Voice = ttsService.GetVoiceForCharacter(g.Key, g.First().Gender),
                 DialogCount = g.Count()
             })
             .OrderBy(v => v.Character)
