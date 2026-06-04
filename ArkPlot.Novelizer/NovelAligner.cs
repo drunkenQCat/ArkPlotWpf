@@ -68,25 +68,39 @@ public class NovelAligner
         // 1. 从小说文本提取章节和对话
         var novelChapters = DialogExtractor.ExtractChapters(novelText);
 
-        // 2. 从 DB 加载该活动的所有章节和对话 entries
+        // 2. 从 DB 加载数据
+        var (plots, entriesByPlot, allEntriesByPlot) = await LoadActDataAsync(actName);
+
+        // 3. 构建映射
+        var nameToCode = BuildNameToCodeMap(allEntriesByPlot);
+        var charCodeAtEntry = BuildCharCodeAtEntry(allEntriesByPlot, nameToCode);
+
+        // 4. 预加载 PicDescription
+        var picDescByCode = await LoadPicDescMapAsync();
+
+        // 5. 对齐
+        return AlignChapters(novelChapters, plots, entriesByPlot, charCodeAtEntry, picDescByCode);
+    }
+
+    /// <summary>
+    /// 从 DB 加载活动的所有 Plot、FormattedTextEntry。
+    /// 返回 (plots, entriesByPlot[仅dialog], allEntriesByPlot[含charslot])。
+    /// </summary>
+    private async Task<(List<Plot> Plots,
+        Dictionary<long, List<FormattedTextEntry>> EntriesByPlot,
+        Dictionary<long, List<FormattedTextEntry>> AllEntriesByPlot)>
+        LoadActDataAsync(string actName)
+    {
         var act = await _db.Queryable<Act>()
             .FirstAsync(a => a.Name == actName && a.Lang == "zh_CN");
 
         if (act == null)
             throw new InvalidOperationException($"活动 '{actName}' 未找到。请先运行 CLI 生成原始 Markdown。");
 
-        // 按 StorySort 排序加载所有章节
-        var storyChapters = await _db.Queryable<StoryChapter>()
-            .Where(sc => sc.ActId == act.Id)
-            .OrderBy(sc => sc.StorySort)
-            .ToListAsync();
-
-        // 加载该活动所有已解析的 Plot
         var plots = await _db.Queryable<Plot>()
             .Where(p => p.ActId == act.Id && p.StoryChapterId > 0)
             .ToListAsync();
 
-        // 加载该活动所有 FormattedTextEntry（包括 charslot 和 dialog），用于构建角色名→code映射
         var plotIds = plots.Select(p => p.Id).ToList();
         var allEntriesRaw = await _db.Queryable<FormattedTextEntry>()
             .Where(e => plotIds.Contains(e.PlotId))
@@ -94,83 +108,125 @@ public class NovelAligner
             .OrderBy(e => e.Index)
             .ToListAsync();
 
-        // 按 Plot 分组
         var entriesByPlot = new Dictionary<long, List<FormattedTextEntry>>();
-        // 全局角色名 → CharacterCode 映射（从 charslot + dialog 配对中学习）
+        var allEntriesByPlot = new Dictionary<long, List<FormattedTextEntry>>();
+
+        foreach (var group in allEntriesRaw.GroupBy(e => e.PlotId))
+        {
+            var sorted = group.OrderBy(e => e.Index).ToList();
+            entriesByPlot[group.Key] = sorted.Where(e => !string.IsNullOrEmpty(e.Dialog)).ToList();
+            allEntriesByPlot[group.Key] = sorted;
+        }
+
+        return (plots, entriesByPlot, allEntriesByPlot);
+    }
+
+    /// <summary>
+    /// 从 charslot→dialog 配对中构建角色名→CharacterCode 的全局映射。
+    /// 排除 focus="none" 的 charslot（画外音）和无 name 参数的 charslot（焦点切换）。
+    /// </summary>
+    internal static Dictionary<string, string> BuildNameToCodeMap(
+        Dictionary<long, List<FormattedTextEntry>> allEntriesByPlot)
+    {
         var nameToCode = new Dictionary<string, string>();
 
-        foreach (var group in allEntriesRaw.GroupBy(e => e.PlotId))
+        foreach (var (_, entries) in allEntriesByPlot)
         {
-            var sorted = group.OrderBy(e => e.Index).ToList();
-            var dialogEntries = sorted.Where(e => !string.IsNullOrEmpty(e.Dialog)).ToList();
-            entriesByPlot[group.Key] = dialogEntries;
-
-            // 扫描：每次 charslot 后紧跟的第一个 dialog，建立 name→code 映射
-            // 只对"有 name 参数的 charslot"建立映射（无 name 的只是焦点切换）
-            // 排除 focus="none" 的 charslot（画外音，说话者不在画面中）
             FormattedTextEntry? lastCharSlot = null;
-            foreach (var entry in sorted)
+            foreach (var entry in entries)
             {
-                if (entry.Type == "charslot" && entry.CommandSet != null && entry.CommandSet.Count > 0)
+                if (entry.Type == "charslot")
                 {
-                    // 只对有 name 参数且 focus != "none" 的 charslot 感兴趣（新角色登场）
-                    if (entry.CommandSet.ContainsKey("name"))
-                    {
-                        var focusValue = entry.CommandSet.TryGetValue("focus", out var f) ? f : null;
-                        if (focusValue != "none")
-                        {
-                            lastCharSlot = entry;
-                        }
-                        // focus="none" 是画外音，跳过
-                    }
-                    // 无 name 的 charslot（如 focus="r"）只是焦点切换，跳过
+                    lastCharSlot = IsEffectiveCharSlot(entry) ? entry : lastCharSlot;
+                    continue;
                 }
-                else if (!string.IsNullOrEmpty(entry.Dialog) && !string.IsNullOrEmpty(entry.CharacterName))
+
+                if (string.IsNullOrEmpty(entry.Dialog) || string.IsNullOrEmpty(entry.CharacterName))
+                    continue;
+
+                // 这是一条有角色名的 dialog，消费最近的 charslot
+                if (lastCharSlot != null && !nameToCode.ContainsKey(entry.CharacterName))
                 {
-                    if (lastCharSlot != null && !nameToCode.ContainsKey(entry.CharacterName))
-                    {
-                        var code = ExtractCodeFromCharSlot(lastCharSlot);
-                        if (code != null)
-                            nameToCode[entry.CharacterName] = code;
-                    }
-                    lastCharSlot = null; // 已消费
+                    var code = ExtractCodeFromCharSlot(lastCharSlot);
+                    if (code != null)
+                        nameToCode[entry.CharacterName] = code;
                 }
+                lastCharSlot = null;
             }
         }
 
-        // 也加载每个 Plot 内 charslot→dialog 的 code 映射（局部，处理同角色换立绘的情况）
+        return nameToCode;
+    }
+
+    /// <summary>
+    /// 判断 charslot 是否为"有效登场"（有 name 参数且 focus ≠ "none"）。
+    /// </summary>
+    internal static bool IsEffectiveCharSlot(FormattedTextEntry entry)
+    {
+        if (entry.CommandSet == null || entry.CommandSet.Count == 0)
+            return false;
+        if (!entry.CommandSet.ContainsKey("name"))
+            return false;
+        var focus = entry.CommandSet.TryGetValue("focus", out var f) ? f : null;
+        return focus != "none";
+    }
+
+    /// <summary>
+    /// 为每个 dialog entry 计算其有效的 CharacterCode。
+    /// 优先用 nameToCode 全局映射，fallback 到该 entry 之前最近的 charslot code。
+    /// </summary>
+    internal static Dictionary<(long PlotId, int Index), string?> BuildCharCodeAtEntry(
+        Dictionary<long, List<FormattedTextEntry>> allEntriesByPlot,
+        Dictionary<string, string> nameToCode)
+    {
         var charCodeAtEntry = new Dictionary<(long PlotId, int Index), string?>();
-        foreach (var group in allEntriesRaw.GroupBy(e => e.PlotId))
+
+        foreach (var (plotId, entries) in allEntriesByPlot)
         {
-            var sorted = group.OrderBy(e => e.Index).ToList();
             string? lastCharSlotCode = null;
-            foreach (var entry in sorted)
+            foreach (var entry in entries)
             {
-                // 只对有 name 参数的 charslot 更新 lastCharSlotCode
-                if (entry.Type == "charslot" && entry.CommandSet != null && 
-                    entry.CommandSet.Count > 0 && entry.CommandSet.ContainsKey("name"))
+                if (entry.Type == "charslot")
                 {
-                    var code = ExtractCodeFromCharSlot(entry);
+                    var code = IsEffectiveCharSlot(entry) ? ExtractCodeFromCharSlot(entry) : null;
                     if (code != null) lastCharSlotCode = code;
+                    continue;
                 }
-                else if (!string.IsNullOrEmpty(entry.Dialog))
-                {
-                    // 优先用 name→code 全局映射，fallback 到最近 charslot
-                    var nameCode = !string.IsNullOrEmpty(entry.CharacterName) 
-                        ? nameToCode.GetValueOrDefault(entry.CharacterName) 
-                        : null;
-                    charCodeAtEntry[(group.Key, entry.Index)] = nameCode ?? lastCharSlotCode;
-                }
+
+                if (string.IsNullOrEmpty(entry.Dialog))
+                    continue;
+
+                var nameCode = !string.IsNullOrEmpty(entry.CharacterName)
+                    ? nameToCode.GetValueOrDefault(entry.CharacterName)
+                    : null;
+                charCodeAtEntry[(plotId, entry.Index)] = nameCode ?? lastCharSlotCode;
             }
         }
 
-        // 预加载所有 PicDescription，用于判断性别
+        return charCodeAtEntry;
+    }
+
+    /// <summary>
+    /// 加载 PicDescription 表，构建 DedupKey → PicDesc 映射。
+    /// </summary>
+    private async Task<Dictionary<string, string>> LoadPicDescMapAsync()
+    {
         var allPicDescs = await _db.Queryable<PicDescription>().ToListAsync();
-        var picDescByCode = allPicDescs
+        return allPicDescs
             .Where(p => !string.IsNullOrEmpty(p.DedupKey))
             .ToDictionary(p => p.DedupKey, p => p.PicDesc);
+    }
 
-        // 3. 匹配小说章节 ↔ Plot（按标题）
+    /// <summary>
+    /// 将小说章节与 DB Plot 按标题匹配，按对话顺序对齐，生成 AlignmentEntry 列表。
+    /// </summary>
+    private static (List<AlignmentEntry> Entries, AlignmentStats Stats) AlignChapters(
+        List<NovelChapter> novelChapters,
+        List<Plot> plots,
+        Dictionary<long, List<FormattedTextEntry>> entriesByPlot,
+        Dictionary<(long PlotId, int Index), string?> charCodeAtEntry,
+        Dictionary<string, string> picDescByCode)
+    {
         var results = new List<AlignmentEntry>();
         int totalDialogs = 0;
         int alignedDialogs = 0;
@@ -178,60 +234,34 @@ public class NovelAligner
 
         foreach (var novelChapter in novelChapters)
         {
-            // 找到标题匹配的 Plot
             var plot = plots.FirstOrDefault(p =>
                 p.Title.Contains(novelChapter.Title) || novelChapter.Title.Contains(p.Title));
-
             if (plot == null) continue;
             matchedChapters++;
 
-            // 获取该 Plot 的所有 Dialog entries（已排序）
             if (!entriesByPlot.TryGetValue(plot.Id, out var plotEntries)) continue;
 
-            // 按顺序对齐：小说对话 ↔ DB entries
             var dbQueue = new Queue<FormattedTextEntry>(plotEntries);
-
             foreach (var segment in novelChapter.Segments)
             {
-                if (segment.IsDialog)
+                if (!segment.IsDialog)
                 {
-                    totalDialogs++;
-
-                    if (dbQueue.Count > 0)
-                    {
-                        var entry = dbQueue.Dequeue();
-                        segment.CharacterName = entry.CharacterName;
-                        segment.EntryIndex = entry.Index;
-                        alignedDialogs++;
-
-                        // 使用该 dialog 之前最近的 charslot 的 CharacterCode，
-                        // 而非 entry.CharacterCode（可能是旧值/错值）
-                        var effectiveCode = charCodeAtEntry.GetValueOrDefault((plot.Id, entry.Index))
-                                            ?? entry.CharacterCode;
-                        segment.CharacterCode = effectiveCode;
-
-                        var gender = InferGender(effectiveCode, picDescByCode);
-
-                        results.Add(new AlignmentEntry(
-                            segment.Text, segment.IsDialog,
-                            entry.CharacterName, effectiveCode,
-                            entry.Index, novelChapter.Title, gender));
-                    }
-                    else
-                    {
-                        // 小说中的对话比 DB 多（LLM 可能添加了额外对话）
-                        results.Add(new AlignmentEntry(
-                            segment.Text, segment.IsDialog,
-                            null, null, -1, novelChapter.Title, null));
-                    }
+                    results.Add(MakeNarrationEntry(segment, novelChapter.Title));
+                    continue;
                 }
-                else
+
+                totalDialogs++;
+                var entry = dbQueue.Count > 0 ? dbQueue.Dequeue() : null;
+                if (entry == null)
                 {
-                    // 旁白也输出，方便 TTS 分段
-                    results.Add(new AlignmentEntry(
-                        segment.Text, segment.IsDialog,
-                        null, null, -1, novelChapter.Title, null));
+                    results.Add(MakeUnalignedDialogEntry(segment, novelChapter.Title));
+                    continue;
                 }
+
+                alignedDialogs++;
+                results.Add(MakeAlignedDialogEntry(
+                    segment, entry, plot.Id, novelChapter.Title,
+                    charCodeAtEntry, picDescByCode));
             }
         }
 
@@ -245,11 +275,36 @@ public class NovelAligner
         return (results, stats);
     }
 
+    private static AlignmentEntry MakeNarrationEntry(NovelSegment segment, string chapterTitle)
+        => new(segment.Text, false, null, null, -1, chapterTitle, null);
+
+    private static AlignmentEntry MakeUnalignedDialogEntry(NovelSegment segment, string chapterTitle)
+        => new(segment.Text, true, null, null, -1, chapterTitle, null);
+
+    private static AlignmentEntry MakeAlignedDialogEntry(
+        NovelSegment segment, FormattedTextEntry entry, long plotId, string chapterTitle,
+        Dictionary<(long PlotId, int Index), string?> charCodeAtEntry,
+        Dictionary<string, string> picDescByCode)
+    {
+        segment.CharacterName = entry.CharacterName;
+        segment.EntryIndex = entry.Index;
+
+        var effectiveCode = charCodeAtEntry.GetValueOrDefault((plotId, entry.Index))
+                            ?? entry.CharacterCode;
+        segment.CharacterCode = effectiveCode;
+
+        var gender = InferGender(effectiveCode, picDescByCode);
+        return new AlignmentEntry(
+            segment.Text, true,
+            entry.CharacterName, effectiveCode,
+            entry.Index, chapterTitle, gender);
+    }
+
     /// <summary>
     /// 从文件名中提取活动名。
     /// 格式：{活动名}_novel_{model}.md → {活动名}
     /// </summary>
-    private static string ExtractActName(string fileNameWithoutExt)
+    internal static string ExtractActName(string fileNameWithoutExt)
     {
         var novelIdx = fileNameWithoutExt.IndexOf("_novel_", StringComparison.Ordinal);
         if (novelIdx > 0)
@@ -262,7 +317,7 @@ public class NovelAligner
     /// 根据 focus 决定取 name 还是 name2，去除 # 和 $ 后缀。
     /// 这比依赖 entry.CharacterCode 更可靠，因为 DB 中的 CharacterCode 可能是旧代码留下的错误值。
     /// </summary>
-    private static string? ExtractCodeFromCharSlot(FormattedTextEntry entry)
+    internal static string? ExtractCodeFromCharSlot(FormattedTextEntry entry)
     {
         if (entry.CommandSet == null || entry.CommandSet.Count == 0)
             return entry.CharacterCode; // fallback
@@ -290,7 +345,7 @@ public class NovelAligner
     /// 根据 PicDescription 的描述文本推断角色性别。
     /// 搜索描述中的"男"或"女"关键词。
     /// </summary>
-    private static string? InferGender(string? characterCode, Dictionary<string, string> picDescByCode)
+    internal static string? InferGender(string? characterCode, Dictionary<string, string> picDescByCode)
     {
         if (string.IsNullOrEmpty(characterCode))
             return null;
