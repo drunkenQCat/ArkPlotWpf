@@ -346,7 +346,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         finally
         {
-            global::Avalonia.Threading.Dispatcher.UIThread.Post(() => IsInitialized = true);
+            IsInitialized = true;
         }
     }
 

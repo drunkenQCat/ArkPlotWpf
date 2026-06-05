@@ -131,7 +131,7 @@
                         Content="当前活动🔻"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
-                        IsEnabled="{c:Binding IsInitialized}}"
+                        IsEnabled="{c:Binding IsInitialized}"
                         Command="{Binding LoadChaptersCommand}">
                         <Button.Flyout>
                             <Flyout>
