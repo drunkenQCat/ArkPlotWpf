@@ -15,9 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
-    <PackageReference Include="EdgeTTS.DotNet" Version="0.4.0" />
     <PackageReference Include="Markdig" Version="0.30.4" />
-    <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="sqlsugarcore" Version="5.1.4.199" />
     <PackageReference Include="Typst.Net" Version="0.1.1-typst0.13.1" />

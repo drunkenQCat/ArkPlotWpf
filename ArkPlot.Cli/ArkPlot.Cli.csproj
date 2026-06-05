@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ArkPlot.Core\ArkPlot.Core.csproj" />
     <ProjectReference Include="..\ArkPlot.Novelizer\ArkPlot.Novelizer.csproj" />
+    <ProjectReference Include="..\ArkPlot.Tts\ArkPlot.Tts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

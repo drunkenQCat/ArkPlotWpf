@@ -2,47 +2,26 @@ using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using SqlSugar;
 
-namespace ArkPlot.Novelizer;
-
-/// <summary>
-/// 对齐结果：一个小说片段与对应 FormattedTextEntry 的映射。
-/// </summary>
-public record AlignmentEntry(
-    string NovelText,
-    bool IsDialog,
-    string? CharacterName,
-    string? CharacterCode,
-    int EntryIndex,
-    string ChapterTitle,
-    string? Gender = null
-);
-
-/// <summary>
-/// 对齐统计信息。
-/// </summary>
-public record AlignmentStats(
-    int TotalNovelChapters,
-    int MatchedChapters,
-    int TotalDialogs,
-    int AlignedDialogs,
-    int UnalignedDialogs
-);
+namespace ArkPlot.Tts.Alignment;
 
 /// <summary>
 /// 将小说化文本中的对话与原始 FormattedTextEntry 按顺序对齐。
-/// 
+///
 /// 核心假设：LLM 小说化时保持对话顺序不变，
 /// 因此小说中引号内对话的出现顺序 == DB 中 Dialog 字段的顺序。
 /// </summary>
 public class NovelAligner
 {
     private readonly SqlSugarClient _db;
+    private readonly GenderOverrideProvider? _genderOverrides;
 
-    public NovelAligner() : this(DbFactory.GetClient()) { }
+    public NovelAligner(GenderOverrideProvider? genderOverrides = null)
+        : this(DbFactory.GetClient(), genderOverrides) { }
 
-    public NovelAligner(SqlSugarClient db)
+    public NovelAligner(SqlSugarClient db, GenderOverrideProvider? genderOverrides = null)
     {
         _db = db;
+        _genderOverrides = genderOverrides;
     }
 
     /// <summary>
@@ -65,27 +44,14 @@ public class NovelAligner
     public async Task<(List<AlignmentEntry> Entries, AlignmentStats Stats)> AlignAsync(
         string novelText, string actName)
     {
-        // 1. 从小说文本提取章节和对话
         var novelChapters = DialogExtractor.ExtractChapters(novelText);
-
-        // 2. 从 DB 加载数据
         var (plots, entriesByPlot, allEntriesByPlot) = await LoadActDataAsync(actName);
-
-        // 3. 构建映射
         var nameToCode = BuildNameToCodeMap(allEntriesByPlot);
         var charCodeAtEntry = BuildCharCodeAtEntry(allEntriesByPlot, nameToCode);
-
-        // 4. 预加载 PicDescription
         var picDescByCode = await LoadPicDescMapAsync();
-
-        // 5. 对齐
-        return AlignChapters(novelChapters, plots, entriesByPlot, charCodeAtEntry, picDescByCode);
+        return AlignChapters(novelChapters, plots, entriesByPlot, charCodeAtEntry, picDescByCode, _genderOverrides);
     }
 
-    /// <summary>
-    /// 从 DB 加载活动的所有 Plot、FormattedTextEntry。
-    /// 返回 (plots, entriesByPlot[仅dialog], allEntriesByPlot[含charslot])。
-    /// </summary>
     private async Task<(List<Plot> Plots,
         Dictionary<long, List<FormattedTextEntry>> EntriesByPlot,
         Dictionary<long, List<FormattedTextEntry>> AllEntriesByPlot)>
@@ -121,10 +87,6 @@ public class NovelAligner
         return (plots, entriesByPlot, allEntriesByPlot);
     }
 
-    /// <summary>
-    /// 从 charslot→dialog 配对中构建角色名→CharacterCode 的全局映射。
-    /// 排除 focus="none" 的 charslot（画外音）和无 name 参数的 charslot（焦点切换）。
-    /// </summary>
     internal static Dictionary<string, string> BuildNameToCodeMap(
         Dictionary<long, List<FormattedTextEntry>> allEntriesByPlot)
     {
@@ -144,7 +106,6 @@ public class NovelAligner
                 if (string.IsNullOrEmpty(entry.Dialog) || string.IsNullOrEmpty(entry.CharacterName))
                     continue;
 
-                // 这是一条有角色名的 dialog，消费最近的 charslot
                 if (lastCharSlot != null && !nameToCode.ContainsKey(entry.CharacterName))
                 {
                     var code = ExtractCodeFromCharSlot(lastCharSlot);
@@ -158,9 +119,6 @@ public class NovelAligner
         return nameToCode;
     }
 
-    /// <summary>
-    /// 判断 charslot 是否为"有效登场"（有 name 参数且 focus ≠ "none"）。
-    /// </summary>
     internal static bool IsEffectiveCharSlot(FormattedTextEntry entry)
     {
         if (entry.CommandSet == null || entry.CommandSet.Count == 0)
@@ -171,10 +129,6 @@ public class NovelAligner
         return focus != "none";
     }
 
-    /// <summary>
-    /// 为每个 dialog entry 计算其有效的 CharacterCode。
-    /// 优先用 nameToCode 全局映射，fallback 到该 entry 之前最近的 charslot code。
-    /// </summary>
     internal static Dictionary<(long PlotId, int Index), string?> BuildCharCodeAtEntry(
         Dictionary<long, List<FormattedTextEntry>> allEntriesByPlot,
         Dictionary<string, string> nameToCode)
@@ -206,9 +160,6 @@ public class NovelAligner
         return charCodeAtEntry;
     }
 
-    /// <summary>
-    /// 加载 PicDescription 表，构建 DedupKey → PicDesc 映射。
-    /// </summary>
     private async Task<Dictionary<string, string>> LoadPicDescMapAsync()
     {
         var allPicDescs = await _db.Queryable<PicDescription>().ToListAsync();
@@ -217,15 +168,13 @@ public class NovelAligner
             .ToDictionary(p => p.DedupKey, p => p.PicDesc);
     }
 
-    /// <summary>
-    /// 将小说章节与 DB Plot 按标题匹配，按对话顺序对齐，生成 AlignmentEntry 列表。
-    /// </summary>
     private static (List<AlignmentEntry> Entries, AlignmentStats Stats) AlignChapters(
         List<NovelChapter> novelChapters,
         List<Plot> plots,
         Dictionary<long, List<FormattedTextEntry>> entriesByPlot,
         Dictionary<(long PlotId, int Index), string?> charCodeAtEntry,
-        Dictionary<string, string> picDescByCode)
+        Dictionary<string, string> picDescByCode,
+        GenderOverrideProvider? genderOverrides = null)
     {
         var results = new List<AlignmentEntry>();
         int totalDialogs = 0;
@@ -261,7 +210,7 @@ public class NovelAligner
                 alignedDialogs++;
                 results.Add(MakeAlignedDialogEntry(
                     segment, entry, plot.Id, novelChapter.Title,
-                    charCodeAtEntry, picDescByCode));
+                    charCodeAtEntry, picDescByCode, genderOverrides));
             }
         }
 
@@ -284,7 +233,8 @@ public class NovelAligner
     private static AlignmentEntry MakeAlignedDialogEntry(
         NovelSegment segment, FormattedTextEntry entry, long plotId, string chapterTitle,
         Dictionary<(long PlotId, int Index), string?> charCodeAtEntry,
-        Dictionary<string, string> picDescByCode)
+        Dictionary<string, string> picDescByCode,
+        GenderOverrideProvider? genderOverrides = null)
     {
         segment.CharacterName = entry.CharacterName;
         segment.EntryIndex = entry.Index;
@@ -293,17 +243,13 @@ public class NovelAligner
                             ?? entry.CharacterCode;
         segment.CharacterCode = effectiveCode;
 
-        var gender = InferGender(effectiveCode, picDescByCode);
+        var gender = InferGender(effectiveCode, picDescByCode, genderOverrides, entry.CharacterName);
         return new AlignmentEntry(
             segment.Text, true,
             entry.CharacterName, effectiveCode,
             entry.Index, chapterTitle, gender);
     }
 
-    /// <summary>
-    /// 从文件名中提取活动名。
-    /// 格式：{活动名}_novel_{model}.md → {活动名}
-    /// </summary>
     internal static string ExtractActName(string fileNameWithoutExt)
     {
         var novelIdx = fileNameWithoutExt.IndexOf("_novel_", StringComparison.Ordinal);
@@ -312,17 +258,11 @@ public class NovelAligner
         return fileNameWithoutExt;
     }
 
-    /// <summary>
-    /// 从 charslot 条目的 CommandSet 中提取 CharacterCode。
-    /// 根据 focus 决定取 name 还是 name2，去除 # 和 $ 后缀。
-    /// 这比依赖 entry.CharacterCode 更可靠，因为 DB 中的 CharacterCode 可能是旧代码留下的错误值。
-    /// </summary>
     internal static string? ExtractCodeFromCharSlot(FormattedTextEntry entry)
     {
         if (entry.CommandSet == null || entry.CommandSet.Count == 0)
-            return entry.CharacterCode; // fallback
+            return entry.CharacterCode;
 
-        // 根据 focus 决定取 name 还是 name2
         var nameKey = "name";
         if (entry.CommandSet.TryGetValue("focus", out var focusVal) &&
             focusVal == "2" && entry.CommandSet.ContainsKey("name2"))
@@ -331,9 +271,8 @@ public class NovelAligner
         }
 
         if (!entry.CommandSet.TryGetValue(nameKey, out var rawName) || string.IsNullOrEmpty(rawName))
-            return entry.CharacterCode; // fallback
+            return entry.CharacterCode;
 
-        // 去除 # 后缀（如 "avg_npc_1272_1#1$1" → "avg_npc_1272_1"）
         var code = rawName.ToLower();
         var hashIdx = code.IndexOf('#');
         if (hashIdx >= 0) code = code[..hashIdx];
@@ -342,27 +281,41 @@ public class NovelAligner
     }
 
     /// <summary>
-    /// 根据 PicDescription 的描述文本推断角色性别。
-    /// 搜索描述中的"男"或"女"关键词。
+    /// 推断性别：优先查 override → fallback PicDescription 推断。
     /// </summary>
-    internal static string? InferGender(string? characterCode, Dictionary<string, string> picDescByCode)
+    internal static string? InferGender(
+        string? characterCode,
+        Dictionary<string, string> picDescByCode,
+        GenderOverrideProvider? genderOverrides = null,
+        string? characterName = null)
+    {
+        // 1. 优先查 override（按角色名）
+        var overrideGender = genderOverrides?.GetOverride(characterName);
+        if (!string.IsNullOrEmpty(overrideGender))
+            return overrideGender;
+
+        // 2. Fallback: PicDescription 推断
+        return InferGenderFromPicDesc(characterCode, picDescByCode);
+    }
+
+    /// <summary>
+    /// 从 PicDescription 推断性别（原始逻辑）。
+    /// </summary>
+    internal static string? InferGenderFromPicDesc(string? characterCode, Dictionary<string, string> picDescByCode)
     {
         if (string.IsNullOrEmpty(characterCode))
             return null;
 
-        // 尝试匹配 CharacterCode（可能带 # 后缀）
         var baseCode = characterCode.Split('#')[0];
         if (!picDescByCode.TryGetValue(baseCode, out var desc))
             return null;
 
-        // 优先：检查描述前 100 字符中的"她"或"他"（适配小说化描述）
         var head = desc.Length > 100 ? desc[..100] : desc;
         if (head.Contains("她"))
             return "女";
         if (head.Contains("他"))
             return "男";
 
-        // 兜底：旧版分析性描述中的关键词
         if (desc.Contains("女性") || desc.Contains("女人") || desc.Contains("女孩") || desc.Contains("少女"))
             return "女";
         if (desc.Contains("男性") || desc.Contains("男人") || desc.Contains("男孩") || desc.Contains("少年"))

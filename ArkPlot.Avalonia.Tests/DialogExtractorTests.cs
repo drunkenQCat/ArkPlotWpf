@@ -1,4 +1,4 @@
-using ArkPlot.Novelizer;
+using ArkPlot.Tts.Alignment;
 
 namespace ArkPlot.Avalonia.Tests;
 

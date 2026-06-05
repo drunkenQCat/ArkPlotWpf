@@ -1,7 +1,7 @@
 @page "/tts"
-@using ArkPlot.Core.Services
-@using ArkPlot.Core.Model
-@inject TtsService TtsSvc
+@using ArkPlot.Tts
+@inject ITtsEngine TtsEngine
+@inject VoiceManager Voices
 @implements IDisposable
 
 <PageTitle>ArkPlot - TTS 测试</PageTitle>
@@ -24,7 +24,8 @@
                     <option value="zh-CN-XiaoxiaoNeural">Xiaoxiao（温暖·女）</option>
                     <option value="zh-CN-XiaoyiNeural">Xiaoyi（活泼·女）</option>
                     <option value="zh-CN-liaoning-XiaobeiNeural">Xiaobei（幽默·女）</option>
-                    <option value="zh-CN-shaanxi-XiaoniNeural">Xiaoni（明亮·女）</option>
+                    <option value="zh-TW-HsiaoChenNeural">HsiaoChen（台湾·女）</option>
+                    <option value="zh-TW-HsiaoYuNeural">HsiaoYu（台湾·女）</option>
                     <option value="zh-CN-YunxiNeural">Yunxi（阳光·男）</option>
                     <option value="zh-CN-YunjianNeural">Yunjian（激情·男）</option>
                     <option value="zh-CN-YunxiaNeural">Yunxia（可爱·男）</option>
@@ -70,17 +71,6 @@
         {
             <div class="alert alert-info">@voiceResult</div>
         }
-    </div>
-</div>
-
-@* 批量合成 *@
-<div class="card mb-4">
-    <div class="card-header"><strong>批量合成（章节音频）</strong></div>
-    <div class="card-body">
-        <p class="text-muted">使用预设对话列表，为每个角色自动分配音色并合并为单个 MP3。</p>
-        <button class="btn btn-success" @onclick="SynthesizeBatch" disabled="@isBusy">
-            @(isBusy ? "合成中…" : "🎬 批量合成示例对话")
-        </button>
     </div>
 </div>
 
@@ -139,14 +129,13 @@
 
         try
         {
-            var tts = new TtsService(rate, volume);
             var fileName = $"single_{DateTime.Now:yyyyMMddHHmmss}.mp3";
             var outputPath = Path.Combine(AudioDir, fileName);
 
             Log($"开始合成: 音色={selectedVoice}, 语速={rate}, 音量={volume}");
             Log($"文本: {singleText}");
 
-            await tts.SynthesizeAsync(singleText, selectedVoice, outputPath);
+            await TtsEngine.SynthesizeAsync(singleText, selectedVoice, outputPath, rate, volume);
 
             audioUrl = $"audio/{fileName}";
             Log($"✅ 合成完成: {fileName}");
@@ -165,52 +154,9 @@
     private void LookupVoice()
     {
         if (string.IsNullOrWhiteSpace(characterName)) return;
-        var voice = TtsSvc.GetVoiceForCharacter(characterName);
+        var voice = Voices.GetVoiceForCharacter(characterName);
         voiceResult = $"角色「{characterName}」→ 音色: {voice}";
         Log(voiceResult);
-    }
-
-    private async Task SynthesizeBatch()
-    {
-        isBusy = true;
-        audioUrl = null;
-        StateHasChanged();
-
-        try
-        {
-            var entries = new List<FormattedTextEntry>
-            {
-                new() { Index = 1, CharacterName = "林晓", Dialog = "今天的天气真不错，我们出去走走吧。" },
-                new() { Index = 2, CharacterName = "陈风", Dialog = "好啊，我正想出去透透气呢。" },
-                new() { Index = 3, CharacterName = "林晓", Dialog = "那我们去公园怎么样？听说樱花开了。" },
-                new() { Index = 4, CharacterName = "陈风", Dialog = "太棒了！我最喜欢樱花了，走吧！" },
-                new() { Index = 5, CharacterName = "", Dialog = "两人一起走出了家门，向着公园的方向走去。" },
-            };
-
-            Log($"批量合成: {entries.Count} 条对话");
-            foreach (var e in entries)
-            {
-                var v = TtsSvc.GetVoiceForCharacter(e.CharacterName ?? "");
-                Log($"  [{e.Index}] {e.CharacterName ?? "(旁白)"} → {v}: {e.Dialog}");
-            }
-
-            var fileName = $"batch_{DateTime.Now:yyyyMMddHHmmss}.mp3";
-            var outputPath = Path.Combine(AudioDir, fileName);
-
-            await TtsSvc.GenerateChapterAudioAsync(entries, outputPath);
-
-            audioUrl = $"audio/{fileName}";
-            Log($"✅ 批量合成完成: {fileName}");
-        }
-        catch (Exception ex)
-        {
-            Log($"❌ 错误: {ex.Message}");
-        }
-        finally
-        {
-            isBusy = false;
-            StateHasChanged();
-        }
     }
 
     public void Dispose() { }

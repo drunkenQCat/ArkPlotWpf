@@ -1,6 +1,6 @@
 using System.Text.Json;
-using ArkPlot.Core.Services;
-using ArkPlot.Novelizer;
+using ArkPlot.Tts;
+using ArkPlot.Tts.Alignment;
 
 namespace ArkPlot.Cli.Pipeline;
 
@@ -31,7 +31,7 @@ public static class AlignRunner
         Console.WriteLine($"   未对齐:   {stats.UnalignedDialogs}");
 
         // TTS voice 分配预览
-        var ttsService = new TtsService();
+        var voices = new VoiceManager();
         var dialogEntries = entries.Where(e => e.IsDialog).ToList();
         var voiceMap = dialogEntries
             .Where(e => e.CharacterName != null)
@@ -40,7 +40,7 @@ public static class AlignRunner
             {
                 Character = g.Key,
                 Gender = g.First().Gender ?? "未知",
-                Voice = ttsService.GetVoiceForCharacter(g.Key, g.First().Gender),
+                Voice = voices.GetVoiceForCharacter(g.Key, g.First().Gender),
                 DialogCount = g.Count()
             })
             .OrderBy(v => v.Character)

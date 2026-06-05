@@ -1,4 +1,5 @@
-using ArkPlot.Core.Services;
+using ArkPlot.Tts;
+using ArkPlot.Tts.Engines;
 using ArkPlot.WebDemo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +9,8 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddSingleton<StoryService>();
 builder.Services.AddScoped<VisionService>();
-builder.Services.AddScoped<TtsService>();
+builder.Services.AddScoped<ITtsEngine, EdgeTtsEngine>();
+builder.Services.AddScoped<VoiceManager>();
 
 var app = builder.Build();
 

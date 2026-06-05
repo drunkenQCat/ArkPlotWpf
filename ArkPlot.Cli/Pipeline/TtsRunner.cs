@@ -1,11 +1,13 @@
+using System.Text.Json;
 using ArkPlot.Core.Model;
-using ArkPlot.Core.Services;
 using ArkPlot.Cli.Infrastructure;
+using ArkPlot.Tts;
+using ArkPlot.Tts.Engines;
 
 namespace ArkPlot.Cli.Pipeline;
 
 /// <summary>
-/// Step 9: TTS 音频生成。
+/// Step 9: TTS 音频生成（主管线，处理原始 FormattedTextEntry）。
 /// </summary>
 public static class TtsRunner
 {
@@ -15,29 +17,36 @@ public static class TtsRunner
         Console.WriteLine("[9/9] 正在生成 TTS 音频...");
         try
         {
-            using var ttsService = new TtsService();
-            var audioOutputPath = Path.Combine(outputDir,
-                $"{FileHelper.SanitizeFileName(actName)}_{FileHelper.SanitizeFileName(chapterName)}.mp3");
+            // 序列化 entries 为临时 JSON 供 TtsPipeline 消费
+            var tempJson = Path.Combine(outputDir, $".tts_raw_{Guid.NewGuid():N}.json");
+            var json = JsonSerializer.Serialize(
+                processedEntries.Select(e => new { e.CharacterName, e.Dialog }),
+                new JsonSerializerOptions { WriteIndented = false });
+            await File.WriteAllTextAsync(tempJson, json);
 
-            var entriesWithDialog = processedEntries.Where(e => !string.IsNullOrWhiteSpace(e.Dialog)).ToList();
-            var characterVoices = new Dictionary<string, string>();
-
-            foreach (var entry in entriesWithDialog)
+            try
             {
-                var voice = ttsService.GetVoiceForCharacter(entry.CharacterName ?? "");
-                characterVoices.TryAdd(entry.CharacterName ?? "(无)", voice);
+                var cacheDir = Path.Combine(outputDir, "_tts_cache");
+                var request = new TtsRequest(
+                    TtsInputMode.RawEntries,
+                    tempJson,
+                    outputDir);
+
+                var engine = new EdgeTtsEngine();
+                var voices = new VoiceManager();
+                var cache = new TtsCacheService(cacheDir);
+
+                using var pipeline = new TtsPipeline(engine, voices, cache);
+                var progress = new Progress<string>(msg => Console.WriteLine($"    {msg}"));
+
+                var result = await pipeline.GenerateAsync(request, progress: progress);
+
+                Console.WriteLine($"    🎵 输出文件: {result.OutputFiles.Count}");
             }
-
-            Console.WriteLine("    角色音色分配统计：");
-            foreach (var (character, voice) in characterVoices.OrderBy(kv => kv.Key))
-                Console.WriteLine($"      {character} → {voice}");
-
-            Console.WriteLine($"\n    开始合成 {entriesWithDialog.Count} 条对话...");
-            await ttsService.GenerateChapterAudioAsync(processedEntries, audioOutputPath);
-
-            var ttsStats = ttsService.GetStats();
-            Console.WriteLine($"    🎵 音频文件：{audioOutputPath}");
-            Console.WriteLine($"    👥 已分配音色角色数：{ttsStats.CharacterVoiceCount}");
+            finally
+            {
+                try { File.Delete(tempJson); } catch { }
+            }
         }
         catch (OperationCanceledException)
         {
