@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using ArkPlot.Core.Model;
 
 namespace ArkPlot.Core.Utilities.TagProcessingComponents;

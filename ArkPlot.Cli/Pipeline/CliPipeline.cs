@@ -1,5 +1,4 @@
 using ArkPlot.Cli.Dump;
-using ArkPlot.Cli.Infrastructure;
 
 namespace ArkPlot.Cli.Pipeline;
 

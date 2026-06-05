@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Forms.VisualStyles;
 using ArkPlot.Core.Model;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

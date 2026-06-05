@@ -8,7 +8,6 @@ namespace ArkPlot.Novelizer;
 public class NovelizerPipeline
 {
     private readonly BailianClient _client;
-    private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
     private readonly string _systemPrompt;
 
@@ -71,7 +70,6 @@ public class NovelizerPipeline
     )
     {
         _client = client;
-        _config = config;
         _onLog = onLog;
         _systemPrompt = string.IsNullOrWhiteSpace(systemPrompt)
             ? DefaultSystemPrompt

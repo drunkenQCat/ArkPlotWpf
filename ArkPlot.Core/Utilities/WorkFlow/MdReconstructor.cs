@@ -1,6 +1,4 @@
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 // the character name and character portrait pair
@@ -441,13 +439,6 @@ public class MdReconstructor
 
         return desc;
     }
-
-    /// <summary>
-    /// 为立绘组生成描述文本（已废弃，由 MakePortraitChart 内第二行替代）。
-    /// 仅保留用于过渡兼容。
-    /// </summary>
-    [Obsolete("描述已移至表格第二行，不再需要此方法")]
-    private string GeneratePortraitDescriptions(List<CharacterInfo> portraitMarks) => "";
 
     /// <summary>
     /// 在制作完成表格之后，原本的立绘便要删除。

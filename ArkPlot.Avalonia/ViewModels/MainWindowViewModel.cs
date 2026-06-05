@@ -5,14 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using ArkPlot.Avalonia.Models;
 using ArkPlot.Avalonia.Services;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities; // Added for AkpProcessor
-using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
@@ -27,7 +25,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 using Newtonsoft.Json;
-using SukiUI.Controls;
 using SukiUI.Toasts;
 
 // ReSharper disable InconsistentNaming
@@ -452,7 +449,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 picDescService.InitializeCleanup();
                 noticeBlock.RaiseCommonEvent($"✅ 图片描述已启用（{providerName} {model}）");
 
-                skipVision:;
+            skipVision:;
             }
             catch (Exception ex)
             {

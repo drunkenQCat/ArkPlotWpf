@@ -1,12 +1,7 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using EdgeTTS.DotNet;
 using NAudio.Wave;
 using ArkPlot.Core.Model;
@@ -101,7 +96,7 @@ public class TtsService : IDisposable
         return _characterVoiceCache.GetOrAdd(cacheKey, _ =>
         {
             var hash = GetStableHash(characterName);
-            
+
             // 优先使用实际性别
             bool isFemale;
             if (!string.IsNullOrWhiteSpace(gender))
@@ -373,6 +368,7 @@ public class TtsService : IDisposable
     public void Dispose()
     {
         Cleanup();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

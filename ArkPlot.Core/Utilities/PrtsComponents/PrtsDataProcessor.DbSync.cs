@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text.Json;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;

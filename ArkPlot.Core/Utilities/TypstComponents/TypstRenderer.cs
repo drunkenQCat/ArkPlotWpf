@@ -5,13 +5,10 @@ namespace ArkPlot.Core.Utilities.TypstComponents;
 
 public class TypstRenderer
 {
-    private readonly string _chapterName;
     private readonly string _typstCode;
 
-    // 构造函数直接接收 TypstTranslator 对象
     public TypstRenderer(TypstTranslator translator)
     {
-        _chapterName = translator.ChapterName;
         _typstCode = translator.TypCode;
     }
 

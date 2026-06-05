@@ -1,4 +1,3 @@
-using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
 

@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Text.Json;
 using ArkPlot.Core.Data;
 using ArkPlot.Core.Model;

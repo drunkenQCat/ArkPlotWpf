@@ -61,7 +61,7 @@ public static class ChapterTtsRunner
         {
             if (!entry.IsDialog || string.IsNullOrEmpty(entry.CharacterName))
                 continue;
-            
+
             // 只统计第一章
             if (entry.ChapterTitle != "CR-ST-1 特别参观通道 幕间")
                 continue;
@@ -69,7 +69,7 @@ public static class ChapterTtsRunner
             var name = entry.CharacterName;
             if (!characterStats.ContainsKey(name))
                 characterStats[name] = (entry.Gender, 0);
-            
+
             var stats = characterStats[name];
             characterStats[name] = (stats.Gender ?? entry.Gender, stats.Count + 1);
         }

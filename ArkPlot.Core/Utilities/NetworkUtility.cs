@@ -1,6 +1,4 @@
-using System;
 using System.Net.Http;
-using System.Threading.Tasks;
 using ArkPlot.Core.Services;
 
 namespace ArkPlot.Core.Utilities;

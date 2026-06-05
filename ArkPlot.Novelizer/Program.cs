@@ -1,6 +1,5 @@
 using System.Text.Json;
 using ArkPlot.Core.Model;
-using Microsoft.Extensions.Configuration;
 
 namespace ArkPlot.Novelizer;
 
@@ -50,7 +49,7 @@ class Program
         {
             models = compare ? config.Models : [config.Models[0]];
         }
-        
+
         Console.WriteLine($"🔌 平台: {config.Provider}, 模型: {string.Join(", ", models)}");
 
         using var http = new HttpClient();

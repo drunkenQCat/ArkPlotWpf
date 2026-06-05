@@ -1,4 +1,3 @@
-using ArkPlot.Novelizer;
 using Xunit;
 
 namespace ArkPlot.Novelizer.Tests;

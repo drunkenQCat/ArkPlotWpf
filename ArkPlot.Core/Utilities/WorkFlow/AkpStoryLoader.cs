@@ -18,7 +18,6 @@ public class AkpStoryLoader
     private readonly List<StoryChapter> _chapters;
 
     private readonly NotificationBlock notifyBlock = NotificationBlock.Instance;
-    private readonly List<Task> tasks = new();
 
     /// <param name="act">当前活动</param>
     /// <param name="chapters">该活动下的章节列表</param>
@@ -88,7 +87,7 @@ public class AkpStoryLoader
 
         // 收集需要下载的章节
         var chaptersToDownload = new List<(string title, string url, long chapterId)>();
-        
+
         foreach (var chapter in filteredChapters)
         {
             // 已缓存（Status=2）→ 从 DB 加载

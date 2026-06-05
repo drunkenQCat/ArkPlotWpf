@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using SqlSugar;
@@ -185,53 +178,6 @@ public class PicDescService : IDisposable
         return description;
     }
 
-    /// <summary>
-    /// 下载图片到临时缓存目录。
-    /// </summary>
-    private static async Task<string> DownloadImageAsync(string imageUrl)
-    {
-        var fileName = ComputeMd5(imageUrl);
-        var extension = ExtractImageExtension(imageUrl);
-        var tempFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "PicCache", $"{fileName}{extension}");
-
-        if (File.Exists(tempFilePath))
-            return tempFilePath;
-
-        using var http = new HttpClient();
-        http.Timeout = TimeSpan.FromMinutes(5);
-
-        var response = await http.GetAsync(imageUrl, HttpCompletionOption.ResponseHeadersRead);
-        response.EnsureSuccessStatusCode();
-
-        var contentStream = await response.Content.ReadAsStreamAsync();
-        await using var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-        await contentStream.CopyToAsync(fileStream);
-
-        return tempFilePath;
-    }
-
-    private static string ExtractImageExtension(string imageUrl)
-    {
-        try
-        {
-            var uri = new Uri(imageUrl);
-            var ext = Path.GetExtension(uri.LocalPath).ToLowerInvariant();
-            return string.IsNullOrEmpty(ext) || ext == "." ? ".png" : ext;
-        }
-        catch
-        {
-            var parts = imageUrl.Split('?')[0];
-            var ext = Path.GetExtension(parts).ToLowerInvariant();
-            return string.IsNullOrEmpty(ext) || ext == "." ? ".png" : ext;
-        }
-    }
-
-    private static string ComputeMd5(string input)
-    {
-        using var md5 = MD5.Create();
-        var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
-        return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-    }
 
     /// <summary>
     /// 清理临时图片缓存目录中的所有文件。
@@ -314,35 +260,6 @@ public class PicDescService : IDisposable
                 ImageUrl = imageUrl,
                 PicDesc = desc,
                 Source = "Vision",
-                CreatedAt = now,
-                UpdatedAt = now
-            }).ExecuteCommand();
-        }
-    }
-
-    /// <summary>
-    /// 旧版 Upsert（仅按 ImageUrl 匹配，迁移用）
-    /// </summary>
-    private void UpsertPicDescLegacy(string imageUrl, string desc)
-    {
-        var now = DateTime.UtcNow;
-        var existing = _db.Queryable<PicDescription>()
-            .First(it => it.ImageUrl == imageUrl);
-
-        if (existing != null)
-        {
-            _db.Updateable<PicDescription>()
-                .SetColumns(it => it.PicDesc == desc)
-                .SetColumns(it => it.UpdatedAt == now)
-                .Where(it => it.ImageUrl == imageUrl)
-                .ExecuteCommand();
-        }
-        else
-        {
-            _db.Insertable(new PicDescription
-            {
-                ImageUrl = imageUrl,
-                PicDesc = desc,
                 CreatedAt = now,
                 UpdatedAt = now
             }).ExecuteCommand();

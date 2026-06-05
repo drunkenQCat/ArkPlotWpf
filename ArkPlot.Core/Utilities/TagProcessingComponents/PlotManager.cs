@@ -1,6 +1,4 @@
 using ArkPlot.Core.Model;
-using System;
-using System.Linq;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities.WorkFlow;
 

@@ -221,7 +221,11 @@ public class BailianVisionClient : IDisposable
         return description.Trim();
     }
 
-    public void Dispose() => _http.Dispose();
+    public void Dispose()
+    {
+        _http.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
 
 /// <summary>

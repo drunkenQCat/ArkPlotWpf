@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -205,7 +204,11 @@ public class OllamaVisionClient : IDisposable
         return results;
     }
 
-    public void Dispose() => _http.Dispose();
+    public void Dispose()
+    {
+        _http.Dispose();
+        GC.SuppressFinalize(this);
+    }
 }
 
 /// <summary>

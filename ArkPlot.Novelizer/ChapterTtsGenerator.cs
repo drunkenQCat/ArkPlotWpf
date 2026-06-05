@@ -261,5 +261,6 @@ public class ChapterTtsGenerator : IDisposable
                 Directory.Delete(_tempDir, true);
         }
         catch { }
+        GC.SuppressFinalize(this);
     }
 }

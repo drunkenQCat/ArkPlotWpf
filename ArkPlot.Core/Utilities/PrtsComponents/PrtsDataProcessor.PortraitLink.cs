@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using ArkPlot.Core.Data;
 using ArkPlot.Core.Services;

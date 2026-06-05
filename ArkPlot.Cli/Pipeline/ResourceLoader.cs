@@ -1,4 +1,3 @@
-using ArkPlot.Core.Utilities.ArknightsDbComponents;
 using ArkPlot.Core.Utilities.PrtsComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
 

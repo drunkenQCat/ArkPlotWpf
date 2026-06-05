@@ -1,7 +1,4 @@
-using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Utilities.TagProcessingComponents;
 using ArkPlot.Core.Utilities.WorkFlow;
