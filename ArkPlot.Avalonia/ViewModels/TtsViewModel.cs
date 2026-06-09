@@ -60,55 +60,42 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     partial void OnSelectedSegmentChanged(SegmentRow? value)
     {
         if (value == null) return;
-        _ = UpdateComponentsForSegmentAsync(value);
+        UpdateComponentsForSegment(value);
     }
 
     // ── 事件监听：音色配置选中变化 ──
     partial void OnSelectedVoiceConfigChanged(VoiceConfigItem? value)
     {
         if (value == null) return;
-        _ = UpdatePortraitForVoiceConfigAsync(value);
+        UpdatePortraitForVoiceConfig(value);
     }
 
-    private async Task UpdateComponentsForSegmentAsync(SegmentRow seg)
+    private void UpdateComponentsForSegment(SegmentRow seg)
     {
-        // 更新立绘
-        var portraitUrl = await LoadPortraitAsync(seg.EntryIndex);
+        var portraitUrl = GetPortraitUrl(seg.EntryIndex);
         PortraitPanel.Update(portraitUrl, seg.CharacterName);
-
-        // 更新 Gallery
         UpdateGalleryForSegment(seg);
     }
 
-    private async Task UpdatePortraitForVoiceConfigAsync(VoiceConfigItem config)
+    private void UpdatePortraitForVoiceConfig(VoiceConfigItem config)
     {
-        // 从 CharacterCode 加载立绘
         if (string.IsNullOrEmpty(config.CharacterCode))
         {
             PortraitPanel.Clear();
             return;
         }
 
-        // 从数据库查找该角色的立绘
-        try
-        {
-            var db = DbFactory.GetClient();
-            var entry = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.CharacterCode == config.CharacterCode && e.Portraits != null && e.Portraits.Count > 0)
-                .FirstAsync();
+        var entry = _allEntries.FirstOrDefault(e =>
+            e.CharacterCode == config.CharacterCode &&
+            e.Portraits != null && e.Portraits.Count > 0);
 
-            if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
-            {
-                var portraitUrl = entry.Portraits
-                    .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
-                PortraitPanel.Update(portraitUrl, config.CharacterName);
-            }
-            else
-            {
-                PortraitPanel.Clear();
-            }
+        if (entry?.Portraits != null && entry.Portraits.Count > 0)
+        {
+            var portraitUrl = entry.Portraits
+                .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
+            PortraitPanel.Update(portraitUrl, config.CharacterName);
         }
-        catch
+        else
         {
             PortraitPanel.Clear();
         }
@@ -500,12 +487,8 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                 ct.ThrowIfCancellationRequested();
 
                 seg.IsPlaying = true;
-                SelectedSegment = seg;
+                SelectedSegment = seg; // OnSelectedSegmentChanged 自动更新组件
 
-                // 更新立绘和 Gallery（等待完成，确保 UI 同步）
-                await UpdateComponentsForSegmentAsync(seg);
-
-                // 播放音频
                 await PlayAudioFile(seg.AudioFilePath, ct);
 
                 seg.IsPlaying = false;
@@ -741,34 +724,16 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         return string.Concat(text.Where(c => !invalid.Contains(c)));
     }
 
-    /// <summary>从 FormattedTextEntry.Portraits 加载角色立绘 URL。</summary>
-    private async Task<string?> LoadPortraitAsync(int entryIndex)
+    /// <summary>从 _allEntries 获取角色立绘 URL。</summary>
+    private string? GetPortraitUrl(int entryIndex)
     {
         if (entryIndex < 0) return null;
-        try
-        {
-            var db = DbFactory.GetClient();
 
-            // 直接按 Index 查询对应的 FormattedTextEntry
-            var entry = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.Index == entryIndex)
-                .FirstAsync();
+        var entry = _allEntries.FirstOrDefault(e => e.EntryIndex == entryIndex);
+        if (entry?.Portraits == null || entry.Portraits.Count == 0) return null;
 
-            if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
-            {
-                // 取第一个非 transparent 的立绘
-                var portraitUrl = entry.Portraits
-                    .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
-                
-                return portraitUrl;
-            }
-
-            return null;
-        }
-        catch
-        {
-            return null;
-        }
+        return entry.Portraits
+            .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
     }
 
     public void Dispose()
