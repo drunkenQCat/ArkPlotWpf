@@ -1,0 +1,277 @@
+<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+    xmlns:sukiUi="using:SukiUI.Controls"
+    xmlns:c="using:CalcBinding"
+    mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
+    x:Class="ArkPlot.Avalonia.Views.TtsWindow"
+    x:DataType="vm:TtsViewModel"
+    Title="TTS 语音生成"
+    Width="1100" Height="750"
+    MinWidth="900" MinHeight="600">
+
+  <Grid ColumnDefinitions="320,*">
+    <!-- ======================== 左面板 ======================== -->
+    <Border Grid.Column="0" BorderBrush="#30FFFFFF" BorderThickness="0,0,1,0">
+      <DockPanel Margin="12,8">
+
+        <!-- 角色立绘区域 -->
+        <Border DockPanel.Dock="Top" Height="200" Margin="0,0,0,8"
+                CornerRadius="8" ClipToBounds="True"
+                Background="{DynamicResource SukiBackground}">
+          <Grid>
+            <Image Source="{Binding CurrentPortrait}"
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+              <Image.OpacityMask>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                  <GradientStop Color="#00000000" Offset="0"/>
+                  <GradientStop Color="#FF000000" Offset="0.15"/>
+                  <GradientStop Color="#FF000000" Offset="0.85"/>
+                  <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+              </Image.OpacityMask>
+            </Image>
+            <TextBlock Text="{Binding CurrentSpeaker}"
+                       VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                       FontSize="14" FontWeight="SemiBold"
+                       Margin="0,0,0,8" Opacity="0.8"/>
+          </Grid>
+        </Border>
+
+        <!-- 小说文件选择 -->
+        <TextBlock DockPanel.Dock="Top" Text="小说文件" FontSize="12"
+                   Opacity="0.6" Margin="0,0,0,4"/>
+        <Border DockPanel.Dock="Top" BorderBrush="#30FFFFFF"
+                BorderThickness="1" CornerRadius="4" Margin="0,0,0,8"
+                MaxHeight="80">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding NovelFiles}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <CheckBox Content="{Binding FileName}"
+                            IsChecked="{Binding IsSelected}"
+                            Margin="4,2"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+        <!-- 输出目录 -->
+        <TextBlock DockPanel.Dock="Top" Text="输出目录" FontSize="12"
+                   Opacity="0.6" Margin="0,0,0,4"/>
+        <TextBox DockPanel.Dock="Top" Text="{Binding TtsOutputDir}"
+                 Margin="0,0,0,8"/>
+
+        <!-- 音色配置 -->
+        <TextBlock DockPanel.Dock="Top" Text="音色配置" FontSize="12"
+                   Opacity="0.6" Margin="0,4,0,4"/>
+        <Border DockPanel.Dock="Top" BorderBrush="#30FFFFFF"
+                BorderThickness="1" CornerRadius="4" Margin="0,0,0,8"
+                MaxHeight="140">
+          <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding VoiceConfigs}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,Auto" Margin="4,2">
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                      <Run Text="{Binding CharacterName}"/>
+                      <Run Text=" "/>
+                      <Run Text="{Binding Gender}" FontSize="11" Foreground="#80FFFFFF"/>
+                    </TextBlock>
+                    <ComboBox Grid.Column="1" Width="120"
+                              ItemsSource="{Binding AvailableVoices}"
+                              SelectedItem="{Binding SelectedVoice}"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+        <!-- 进度 -->
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+          <TextBlock Text="{Binding ProgressText}" FontSize="12" Margin="0,0,0,4"/>
+          <ProgressBar Value="{Binding ProgressValue}" Maximum="100" Height="6"
+                       CornerRadius="3"/>
+          <TextBlock Text="{Binding TotalProgressText}" FontSize="11"
+                     Opacity="0.5" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- 按钮 -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                    HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,8">
+          <Button Content="开始生成" Command="{Binding StartGenerateCommand}"
+                  IsEnabled="{c:Binding !IsGenerating}"
+                  Width="120" Classes="Rounded Accent"/>
+          <Button Content="取消" Command="{Binding CancelCommand}"
+                  IsEnabled="{Binding IsGenerating}"
+                  Width="120" Classes="Rounded"/>
+        </StackPanel>
+
+        <!-- 日志 -->
+        <Border DockPanel.Dock="Top" BorderBrush="#20FFFFFF"
+                BorderThickness="1" CornerRadius="4">
+          <ScrollViewer MaxHeight="200">
+            <TextBox Text="{Binding LogText}" IsReadOnly="True"
+                     TextWrapping="Wrap" Background="Transparent"
+                     FontSize="11" AcceptsReturn="False"/>
+          </ScrollViewer>
+        </Border>
+      </DockPanel>
+    </Border>
+
+    <!-- ======================== 右面板 ======================== -->
+    <DockPanel Grid.Column="1" Margin="12,8">
+
+      <!-- 顶部: 章节选择 + 搜索 -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto"
+            Margin="0,0,0,8">
+        <ComboBox Grid.Column="0"
+                  ItemsSource="{Binding Chapters}"
+                  SelectedItem="{Binding SelectedChapter}"
+                  PlaceholderText="选择章节..."/>
+        <Button Grid.Column="1" Content="◄"
+                Command="{Binding PrevChapterCommand}" Margin="4,0"/>
+        <Button Grid.Column="2" Content="►"
+                Command="{Binding NextChapterCommand}"/>
+      </Grid>
+
+      <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}"
+               Watermark="搜索片段或角色名..." Margin="0,0,0,8"/>
+
+      <!-- 播放/暂停按钮 -->
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                  HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,8">
+        <Button Content="{Binding PlayButtonText}"
+                Command="{Binding PlayFromSelectedCommand}"
+                IsEnabled="{c:Binding !IsGenerating}"
+                HorizontalAlignment="Center"
+                Height="40" MinWidth="200" FontSize="16"
+                Classes="Rounded Accent"/>
+        <Button Content="■ 停止"
+                Command="{Binding StopPlayCommand}"
+                IsEnabled="{Binding IsPlaying}"
+                Height="40" Width="80" FontSize="16"
+                Classes="Rounded"/>
+      </StackPanel>
+
+      <!-- 导出按钮 -->
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                  HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,8">
+        <Button Content="导出当前章节 MP3"
+                Command="{Binding ExportCurrentChapterCommand}"/>
+        <Button Content="导出全部章节 MP3"
+                Command="{Binding ExportAllChaptersCommand}"/>
+      </StackPanel>
+
+      <!-- 片段表格 + Gallery -->
+      <Grid RowDefinitions="*,Auto">
+        <!-- 片段表格 -->
+        <DataGrid Grid.Row="0"
+                  ItemsSource="{Binding FilteredSegments}"
+                  SelectedItem="{Binding SelectedSegment}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  Margin="0,0,0,8">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40"/>
+            <DataGridTextColumn Header="角色" Binding="{Binding CharacterName}" Width="100"/>
+            <DataGridTextColumn Header="类型" Binding="{Binding SegmentType}" Width="50"/>
+            <DataGridTemplateColumn Header="音频" Width="*">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="4"
+                              VerticalAlignment="Center">
+                    <Button Content="▶" IsVisible="{Binding HasAudio}"
+                            Command="{Binding PlaySingleCommand}"
+                            Classes="Flat" Padding="4,0" FontSize="10"/>
+                    <TextBlock Text="{Binding AudioStatus}"
+                               VerticalAlignment="Center"
+                               Opacity="{Binding AudioOpacity}"/>
+                    <TextBlock Text="{Binding DurationText}"
+                               VerticalAlignment="Center"
+                               Opacity="0.5" FontSize="11"/>
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 场景 Gallery -->
+        <Border Grid.Row="1" Height="220" BorderBrush="#20FFFFFF"
+                BorderThickness="1" CornerRadius="8" ClipToBounds="True"
+                Background="{DynamicResource SukiBackground}">
+          <Grid ColumnDefinitions="*,8*,*" Margin="0,4">
+            <!-- 左图 10% 裁剪 -->
+            <Border Grid.Column="0" CornerRadius="4" ClipToBounds="True"
+                    Margin="4,0,0,0" Opacity="0.5">
+              <Image Source="{Binding PrevBackground}"
+                     Stretch="UniformToFill"
+                     HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- 中心 100% -->
+            <Grid Grid.Column="1" Margin="8,0">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+              </Grid.RowDefinitions>
+
+              <!-- 上文 -->
+              <StackPanel Grid.Row="0" Margin="0,0,0,4">
+                <TextBlock Text="{Binding UpperContext1}" FontSize="11"
+                           Opacity="0.3" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding UpperContext2}" FontSize="12"
+                           Opacity="0.5" TextTrimming="CharacterEllipsis"/>
+              </StackPanel>
+
+              <!-- 中心背景图 -->
+              <Border Grid.Row="1" CornerRadius="4" ClipToBounds="True">
+                <Image Source="{Binding CurrentBackground}"
+                       Stretch="Uniform"/>
+                <Border.OpacityMask>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Color="#FF000000" Offset="0.05"/>
+                    <GradientStop Color="#FF000000" Offset="0.95"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.OpacityMask>
+              </Border>
+              <!-- PicDesc tooltip 通过 ToolTip.Tip 实现 -->
+              <ToolTip.Tip>
+                <TextBlock Text="{Binding CurrentPicDescription}"
+                           MaxWidth="300" TextWrapping="Wrap"/>
+              </ToolTip.Tip>
+
+              <!-- 下文 -->
+              <StackPanel Grid.Row="2" Margin="0,4,0,0">
+                <TextBlock Text="{Binding LowerContext1}" FontSize="12"
+                           Opacity="0.5" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding LowerContext2}" FontSize="11"
+                           Opacity="0.3" TextTrimming="CharacterEllipsis"/>
+              </StackPanel>
+            </Grid>
+
+            <!-- 右图 10% 裁剪 -->
+            <Border Grid.Column="2" CornerRadius="4" ClipToBounds="True"
+                    Margin="0,0,4,0" Opacity="0.5">
+              <Image Source="{Binding NextBackground}"
+                     Stretch="UniformToFill"
+                     HorizontalAlignment="Center"/>
+            </Border>
+          </Grid>
+        </Border>
+      </Grid>
+    </DockPanel>
+  </Grid>
+</sukiUi:SukiWindow>

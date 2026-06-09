@@ -725,6 +725,45 @@ public partial class MainWindowViewModel : ViewModelBase
         messenger.Send(new OpenWindowMessage("SettingsWindow", JsonPath));
     }
 
+    [RelayCommand]
+    private void OpenTts()
+    {
+        if (string.IsNullOrEmpty(activeTitle))
+        {
+            ToastManager
+                .CreateToast()
+                .OfType(NotificationType.Warning)
+                .WithTitle("TTS 语音生成")
+                .WithContent("请先选择一个活动并生成内容")
+                .Dismiss()
+                .After(TimeSpan.FromSeconds(3))
+                .Queue();
+            return;
+        }
+
+        var storyOutputDir = Path.Combine(OutputPath, activeTitle);
+
+        // 检测输出目录是否有小说化缓存
+        var hasNovelCache = Directory.Exists(storyOutputDir)
+            && Directory.GetFiles(storyOutputDir, "*_novel_*.md").Length > 0;
+
+        if (!hasNovelCache)
+        {
+            ToastManager
+                .CreateToast()
+                .OfType(NotificationType.Warning)
+                .WithTitle("TTS 语音生成")
+                .WithContent($"输出目录中没有找到小说化缓存，请先生成内容并启用小说化")
+                .Dismiss()
+                .After(TimeSpan.FromSeconds(5))
+                .Queue();
+            return;
+        }
+
+        var messenger = WeakReferenceMessenger.Default;
+        messenger.Send(new OpenWindowMessage("TtsWindow", storyOutputDir));
+    }
+
     private void SubscribeCommonNotification()
     {
         noticeBlock.CommonEventHandler += (_, args) => ConsoleOutput += $"\n{args}";

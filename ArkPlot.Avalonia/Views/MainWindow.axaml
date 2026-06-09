@@ -235,6 +235,12 @@
                     VerticalAlignment="Center" Command="{Binding OpenSettingsCommand}" Width="100">
                     设置
                 </Button>
+                <Button
+                    Margin="0 0 0 10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" Command="{Binding OpenTtsCommand}" Width="100">
+                    TTS语音生成
+                </Button>
                 <CheckBox
                     Content="生成时使用本地资源"
                     IsChecked="{Binding IsLocalResChecked}"

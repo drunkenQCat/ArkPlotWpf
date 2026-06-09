@@ -27,6 +27,13 @@ public partial class App : Application
                         settingsView.DataContext = settingsViewModel;
                         settingsView.Show();
                     }
+                    else if (message.WindowName == "TtsWindow")
+                    {
+                        var ttsView = new TtsWindow();
+                        var ttsViewModel = new ViewModels.TtsViewModel(message.JsonPath);
+                        ttsView.DataContext = ttsViewModel;
+                        ttsView.Show();
+                    }
                 });
 
     }
