@@ -16,7 +16,8 @@
   <Grid ColumnDefinitions="320,*">
     <!-- ======================== 左面板 ======================== -->
     <Border Grid.Column="0" BorderBrush="#30FFFFFF" BorderThickness="0,0,1,0">
-      <DockPanel Margin="12,8">
+      <ScrollViewer>
+        <DockPanel Margin="12,8">
 
         <!-- 角色立绘 -->
         <views:PortraitPanel DockPanel.Dock="Top" Margin="0,0,0,8"
@@ -103,7 +104,8 @@
                      FontSize="11" AcceptsReturn="False"/>
           </ScrollViewer>
         </Border>
-      </DockPanel>
+        </DockPanel>
+      </ScrollViewer>
     </Border>
 
     <!-- ======================== 右面板 ======================== -->

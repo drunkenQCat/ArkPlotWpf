@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
-             mc:Ignorable="d" d:DesignWidth="296" d:DesignHeight="200"
+             mc:Ignorable="d" d:DesignWidth="296" d:DesignHeight="526"
              x:Class="ArkPlot.Avalonia.Views.PortraitPanel"
              x:DataType="vm:PortraitPanelViewModel">
-  <Border Height="200" CornerRadius="8" ClipToBounds="True"
+  <Border Width="296" Height="526" CornerRadius="8" ClipToBounds="True"
           Background="#404040">
     <Grid>
       <!-- 立绘图片 -->
