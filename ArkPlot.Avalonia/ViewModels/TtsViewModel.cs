@@ -196,25 +196,20 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         {
             var db = DbFactory.GetClient();
 
-            // 获取当前活动的所有 FormattedTextEntry（按 PlotId + Index 排序）
-            var charCodes = entries
-                .Where(e => !string.IsNullOrEmpty(e.CharacterCode))
-                .Select(e => e.CharacterCode!)
-                .Distinct()
-                .ToList();
-
-            if (charCodes.Count == 0) return;
-
-            // 从 FormattedTextEntry 中找 charslot 类型且有 ResourceUrls 的条目
-            var allEntries = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.Type == "charslot" && e.ResourceUrls != null && e.ResourceUrls.Count > 0)
+            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再内存过滤
+            var allCharSlots = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Type == "charslot")
                 .ToListAsync();
+
+            var filteredEntries = allCharSlots
+                .Where(e => e.ResourceUrls != null && e.ResourceUrls.Count > 0)
+                .ToList();
 
             var picDescs = await db.Queryable<PicDescription>().ToListAsync();
             var picDescMap = picDescs.ToDictionary(p => p.DedupKey ?? "", p => p.PicDesc ?? "");
 
             // 按 Index 排序，关联到对齐结果
-            foreach (var fte in allEntries.OrderBy(e => e.Index))
+            foreach (var fte in filteredEntries.OrderBy(e => e.Index))
             {
                 var bgUrl = fte.ResourceUrls.FirstOrDefault();
                 if (string.IsNullOrEmpty(bgUrl)) continue;
@@ -699,20 +694,28 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             var db = DbFactory.GetClient();
             var baseCode = characterCode.Split('#')[0];
 
-            // 找最近的包含该角色的 charslot 条目
-            var entry = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.Type == "charslot" && e.Portraits != null && e.Portraits.Count > 0)
-                .OrderByDescending(e => e.Index)
-                .FirstAsync();
+            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再内存过滤
+            var charSlotEntries = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Type == "charslot")
+                .ToListAsync();
 
-            if (entry != null && entry.Portraits.Count > 0)
-                return entry.Portraits[0];
+            var withPortraits = charSlotEntries
+                .Where(e => e.Portraits != null && e.Portraits.Count > 0)
+                .OrderByDescending(e => e.Index)
+                .FirstOrDefault();
+
+            if (withPortraits != null && withPortraits.Portraits.Count > 0)
+                return withPortraits.Portraits[0];
 
             // Fallback: 从任何包含角色名的条目中找
-            var fallback = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.CharacterName != null && e.CharacterName.Contains(baseCode)
+            var allEntries = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.CharacterName != null)
+                .ToListAsync();
+
+            var fallback = allEntries
+                .Where(e => e.CharacterName!.Contains(baseCode)
                     && e.Portraits != null && e.Portraits.Count > 0)
-                .FirstAsync();
+                .FirstOrDefault();
 
             return fallback?.Portraits.FirstOrDefault();
         }

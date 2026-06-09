@@ -72,6 +72,28 @@ if (args.Length > 0 && args[0].Equals("chapter-tts", StringComparison.OrdinalIgn
     return;
 }
 
+if (args.Length > 0 && args[0].Equals("verify-tts", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 2)
+    {
+        Console.Error.WriteLine("用法: ArkPlot.Cli verify-tts <output_dir> [--segments N]");
+        Console.Error.WriteLine("  端到端验证整套 TTS 工作流");
+        Console.Error.WriteLine("  --segments N: 测试片段数 (默认 3)");
+        return;
+    }
+    int segments = 3;
+    for (int i = 2; i < args.Length; i++)
+    {
+        if (args[i] == "--segments" && i + 1 < args.Length && int.TryParse(args[i + 1], out var s))
+        {
+            segments = s;
+            i++;
+        }
+    }
+    await VerifyTtsRunner.RunAsync(args[1], segments);
+    return;
+}
+
 // 清空旧的 PicDescription 记录
 var db = DbFactory.GetClient();
 var before = db.Queryable<PicDescription>().Count();
