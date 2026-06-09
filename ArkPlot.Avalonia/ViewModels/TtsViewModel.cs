@@ -36,6 +36,9 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private ObservableCollection<SegmentRow> _filteredSegments = [];
     [ObservableProperty] private SegmentRow? _selectedSegment;
 
+    // ── 音色配置选中项 ──
+    [ObservableProperty] private VoiceConfigItem? _selectedVoiceConfig;
+
     // ── 状态 ──
     [ObservableProperty] private bool _isGenerating;
     [ObservableProperty] private bool _isPlaying;
@@ -49,44 +52,67 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _progressText = "就绪";
     [ObservableProperty] private string _totalProgressText = "";
 
-    // ── 立绘 ──
-    [ObservableProperty] private string? _currentPortrait;
-    [ObservableProperty] private string _currentSpeaker = "";
+    // ── 子组件 ViewModel ──
+    public PortraitPanelViewModel PortraitPanel { get; } = new();
+    public GalleryPanelViewModel GalleryPanel { get; } = new();
 
-    /// <summary>是否有立绘图片。</summary>
-    public bool HasPortrait => !string.IsNullOrEmpty(CurrentPortrait);
-
-    /// <summary>无立绘时占位块透明度。</summary>
-    public double PortraitPlaceholderOpacity => HasPortrait ? 0 : 1;
-
-    partial void OnCurrentPortraitChanged(string? value)
+    // ── 事件监听：DataGrid 选中行变化 ──
+    partial void OnSelectedSegmentChanged(SegmentRow? value)
     {
-        OnPropertyChanged(nameof(HasPortrait));
-        OnPropertyChanged(nameof(PortraitPlaceholderOpacity));
+        if (value == null) return;
+        _ = UpdateComponentsForSegmentAsync(value);
     }
 
-    // ── Gallery ──
-    [ObservableProperty] private string? _currentBackground;
-    [ObservableProperty] private string? _prevBackground;
-    [ObservableProperty] private string? _nextBackground;
-    [ObservableProperty] private string _currentPicDescription = "";
-    [ObservableProperty] private string _upperContext1 = "";
-    [ObservableProperty] private string _upperContext2 = "";
-    [ObservableProperty] private string _lowerContext1 = "";
-    [ObservableProperty] private string _lowerContext2 = "";
+    // ── 事件监听：音色配置选中变化 ──
+    partial void OnSelectedVoiceConfigChanged(VoiceConfigItem? value)
+    {
+        if (value == null) return;
+        _ = UpdatePortraitForVoiceConfigAsync(value);
+    }
 
-    /// <summary>是否有当前背景图。</summary>
-    public bool HasCurrentBackground => !string.IsNullOrEmpty(CurrentBackground);
+    private async Task UpdateComponentsForSegmentAsync(SegmentRow seg)
+    {
+        // 更新立绘
+        var portraitUrl = await LoadPortraitAsync(seg.EntryIndex);
+        PortraitPanel.Update(portraitUrl, seg.CharacterName);
 
-    /// <summary>是否有上一张背景图。</summary>
-    public bool HasPrevBackground => !string.IsNullOrEmpty(PrevBackground);
+        // 更新 Gallery
+        UpdateGalleryForSegment(seg);
+    }
 
-    /// <summary>是否有下一张背景图。</summary>
-    public bool HasNextBackground => !string.IsNullOrEmpty(NextBackground);
+    private async Task UpdatePortraitForVoiceConfigAsync(VoiceConfigItem config)
+    {
+        // 从 CharacterCode 加载立绘
+        if (string.IsNullOrEmpty(config.CharacterCode))
+        {
+            PortraitPanel.Clear();
+            return;
+        }
 
-    partial void OnCurrentBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasCurrentBackground));
-    partial void OnPrevBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasPrevBackground));
-    partial void OnNextBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasNextBackground));
+        // 从数据库查找该角色的立绘
+        try
+        {
+            var db = DbFactory.GetClient();
+            var entry = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.CharacterCode == config.CharacterCode && e.Portraits != null && e.Portraits.Count > 0)
+                .FirstAsync();
+
+            if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
+            {
+                var portraitUrl = entry.Portraits
+                    .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
+                PortraitPanel.Update(portraitUrl, config.CharacterName);
+            }
+            else
+            {
+                PortraitPanel.Clear();
+            }
+        }
+        catch
+        {
+            PortraitPanel.Clear();
+        }
+    }
 
     // ── 日志 ──
     [ObservableProperty] private string _logText = "";
@@ -242,6 +268,7 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                     picDescMap.TryGetValue(cs.CharacterCode, out var desc))
                     picDesc = desc;
 
+                // 关联到对齐结果
                 _backgrounds.Add(new BackgroundItem(cs.Bg, picDesc, cs.Index, []));
             }
         }
@@ -473,14 +500,10 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                 ct.ThrowIfCancellationRequested();
 
                 seg.IsPlaying = true;
-                CurrentSpeaker = seg.CharacterName;
                 SelectedSegment = seg;
 
-                // 加载立绘
-                CurrentPortrait = await LoadPortraitAsync(seg.EntryIndex);
-
-                // 更新 Gallery
-                UpdateGalleryForSegment(seg);
+                // 更新立绘和 Gallery（等待完成，确保 UI 同步）
+                await UpdateComponentsForSegmentAsync(seg);
 
                 // 播放音频
                 await PlayAudioFile(seg.AudioFilePath, ct);
@@ -552,7 +575,11 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
 
     private void UpdateGalleryForSegment(SegmentRow seg)
     {
-        if (_backgrounds.Count == 0) return;
+        if (_backgrounds.Count == 0)
+        {
+            GalleryPanel.Clear();
+            return;
+        }
 
         // 找到当前片段最近的背景图
         var bg = _backgrounds
@@ -561,24 +588,30 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             .FirstOrDefault();
 
         if (bg == null) bg = _backgrounds.FirstOrDefault();
-        if (bg == null) return;
+        if (bg == null)
+        {
+            GalleryPanel.Clear();
+            return;
+        }
 
         var bgIdx = _backgrounds.IndexOf(bg);
 
-        // 只在背景图切换时更新 Gallery
-        if (CurrentBackground != bg.ImageUrl)
-        {
-            CurrentBackground = bg.ImageUrl;
-            CurrentPicDescription = bg.PicDescription ?? "";
-            PrevBackground = bgIdx > 0 ? _backgrounds[bgIdx - 1].ImageUrl : null;
-            NextBackground = bgIdx < _backgrounds.Count - 1 ? _backgrounds[bgIdx + 1].ImageUrl : null;
+        // 更新 GalleryPanel
+        var prevBg = bgIdx > 0 ? _backgrounds[bgIdx - 1].ImageUrl : null;
+        var nextBg = bgIdx < _backgrounds.Count - 1 ? _backgrounds[bgIdx + 1].ImageUrl : null;
+        
+        var (upper1, upper2, lower1, lower2) = GetContextTexts(bg);
 
-            // 更新上下文
-            UpdateContextTexts(bg);
-        }
+        GalleryPanel.Update(
+            bg.ImageUrl,
+            prevBg,
+            nextBg,
+            bg.PicDescription ?? "",
+            upper1, upper2, lower1, lower2
+        );
     }
 
-    private void UpdateContextTexts(BackgroundItem bg)
+    private (string, string, string, string) GetContextTexts(BackgroundItem bg)
     {
         // 从 FormattedTextEntry 获取上下文
         var nearbyEntries = _allEntries
@@ -600,10 +633,12 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             .Select(e => e.NovelText ?? "")
             .ToList();
 
-        UpperContext2 = upper.Count > 1 ? upper[0] : "";
-        UpperContext1 = upper.Count > 0 ? upper[^1] : "";
-        LowerContext1 = lower.Count > 0 ? lower[0] : "";
-        LowerContext2 = lower.Count > 1 ? lower[1] : "";
+        return (
+            upper.Count > 0 ? upper[^1] : "",
+            upper.Count > 1 ? upper[0] : "",
+            lower.Count > 0 ? lower[0] : "",
+            lower.Count > 1 ? lower[1] : ""
+        );
     }
 
     // ════════════════════════════════════════════
@@ -722,10 +757,10 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
             {
                 // 取第一个非 transparent 的立绘
-                var portrait = entry.Portraits
+                var portraitUrl = entry.Portraits
                     .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
-                if (!string.IsNullOrEmpty(portrait))
-                    return portrait;
+                
+                return portraitUrl;
             }
 
             return null;

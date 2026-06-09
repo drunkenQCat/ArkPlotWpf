@@ -19,7 +19,8 @@
       <DockPanel Margin="12,8">
 
         <!-- 角色立绘 -->
-        <views:PortraitPanel DockPanel.Dock="Top" Margin="0,0,0,8"/>
+        <views:PortraitPanel DockPanel.Dock="Top" Margin="0,0,0,8"
+                             DataContext="{Binding PortraitPanel}"/>
 
         <!-- 小说文件选择 -->
         <TextBlock DockPanel.Dock="Top" Text="小说文件" FontSize="12"
@@ -53,24 +54,24 @@
         <Border DockPanel.Dock="Top" BorderBrush="#30FFFFFF"
                 BorderThickness="1" CornerRadius="4" Margin="0,0,0,8"
                 MaxHeight="140">
-          <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding VoiceConfigs}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Grid ColumnDefinitions="*,Auto" Margin="4,2">
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center">
-                      <Run Text="{Binding CharacterName}"/>
-                      <Run Text=" "/>
-                      <Run Text="{Binding Gender}" FontSize="11" Foreground="#80FFFFFF"/>
-                    </TextBlock>
-                    <ComboBox Grid.Column="1" Width="120"
-                              ItemsSource="{Binding AvailableVoices}"
-                              SelectedItem="{Binding SelectedVoice}"/>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
+          <ListBox ItemsSource="{Binding VoiceConfigs}"
+                   SelectedItem="{Binding SelectedVoiceConfig}"
+                   Background="Transparent">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="*,Auto" Margin="4,2">
+                  <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                    <Run Text="{Binding CharacterName}"/>
+                    <Run Text=" "/>
+                    <Run Text="{Binding Gender}" FontSize="11" Foreground="#80FFFFFF"/>
+                  </TextBlock>
+                  <ComboBox Grid.Column="1" Width="120"
+                            ItemsSource="{Binding AvailableVoices}"
+                            SelectedItem="{Binding SelectedVoice}"/>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
         </Border>
 
         <!-- 进度 -->
@@ -209,7 +210,7 @@
         </DataGrid>
 
         <!-- 场景 Gallery -->
-        <views:GalleryPanel Grid.Row="1"/>
+        <views:GalleryPanel Grid.Row="1" DataContext="{Binding GalleryPanel}"/>
       </Grid>
     </DockPanel>
   </Grid>

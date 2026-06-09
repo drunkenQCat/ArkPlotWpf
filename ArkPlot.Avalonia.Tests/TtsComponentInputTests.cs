@@ -88,6 +88,41 @@ public class TtsComponentInputTests : System.IDisposable
         // 验证：立绘不为空，角色名正确
         Assert.NotNull(portrait);
         Assert.Contains("prts.wiki", portrait!);
+
+        // 诊断：创建 TestWindow，设置 URL，检查绑定值
+        var testVm = new TestViewModel();
+        testVm.PortraitTest.Panel.Update(portrait, "小贾斯汀");
+
+        var testWindow = new TestWindow
+        {
+            DataContext = testVm
+        };
+        testWindow.Show();
+
+        // 等待 AsyncImageLoader 异步加载（给 3 秒）
+        await Task.Delay(3000);
+
+        // 诊断：检查 ViewModel 的值是否正确传递
+        Console.WriteLine($"=== 诊断信息 ===");
+        Console.WriteLine($"Panel.PortraitUrl: {testVm.PortraitTest.Panel.PortraitUrl}");
+        Console.WriteLine($"Panel.SpeakerName: {testVm.PortraitTest.Panel.SpeakerName}");
+        Console.WriteLine($"Panel.HasPortrait: {testVm.PortraitTest.Panel.HasPortrait}");
+
+        // 检查窗口是否可见
+        Console.WriteLine($"TestWindow.IsVisible: {testWindow.IsVisible}");
+        Console.WriteLine($"TestWindow.Width: {testWindow.Width}, Height: {testWindow.Height}");
+
+        // 保存到文件
+        var diagnosticPath = Path.Combine(_outputDir, "portrait_diagnostic.txt");
+        File.WriteAllText(diagnosticPath,
+            $"PortraitUrl: {testVm.PortraitTest.Panel.PortraitUrl}\n" +
+            $"SpeakerName: {testVm.PortraitTest.Panel.SpeakerName}\n" +
+            $"HasPortrait: {testVm.PortraitTest.Panel.HasPortrait}\n" +
+            $"Window: {testWindow.Width}x{testWindow.Height}, Visible={testWindow.IsVisible}\n"
+        );
+        Console.WriteLine($"✅ 诊断信息已保存: {diagnosticPath}");
+
+        testWindow.Close();
     }
 
     [AvaloniaFact]
@@ -174,10 +209,9 @@ public class TtsComponentInputTests : System.IDisposable
     {
         var vm = new TtsViewModel("nonexistent_dir");
 
-        // 默认状态
-        Assert.Null(vm.CurrentPortrait);
-        Assert.False(vm.HasPortrait);
-        Assert.Equal(1, vm.PortraitPlaceholderOpacity);
+        // 默认状态：子组件 ViewModel 为空
+        Assert.Null(vm.PortraitPanel.PortraitUrl);
+        Assert.False(vm.PortraitPanel.HasPortrait);
     }
 
     [AvaloniaFact]
@@ -186,10 +220,10 @@ public class TtsComponentInputTests : System.IDisposable
         var vm = new TtsViewModel("nonexistent_dir");
 
         // 设置立绘
-        vm.CurrentPortrait = "https://example.com/portrait.png";
+        vm.PortraitPanel.Update("https://example.com/portrait.png", "测试角色");
 
-        Assert.True(vm.HasPortrait);
-        Assert.Equal(0, vm.PortraitPlaceholderOpacity);
+        Assert.True(vm.PortraitPanel.HasPortrait);
+        Assert.Equal("测试角色", vm.PortraitPanel.SpeakerName);
     }
 
     [AvaloniaFact]
@@ -198,10 +232,10 @@ public class TtsComponentInputTests : System.IDisposable
         var vm = new TtsViewModel("nonexistent_dir");
 
         // 默认状态
-        Assert.Null(vm.CurrentBackground);
-        Assert.False(vm.HasCurrentBackground);
-        Assert.False(vm.HasPrevBackground);
-        Assert.False(vm.HasNextBackground);
+        Assert.Null(vm.GalleryPanel.CurrentBackground);
+        Assert.False(vm.GalleryPanel.HasCurrentBackground);
+        Assert.False(vm.GalleryPanel.HasPrevBackground);
+        Assert.False(vm.GalleryPanel.HasNextBackground);
     }
 
     [AvaloniaFact]
@@ -209,13 +243,16 @@ public class TtsComponentInputTests : System.IDisposable
     {
         var vm = new TtsViewModel("nonexistent_dir");
 
-        vm.CurrentBackground = "https://example.com/bg.png";
-        vm.PrevBackground = "https://example.com/prev.png";
-        vm.NextBackground = "https://example.com/next.png";
+        vm.GalleryPanel.Update(
+            "https://example.com/bg.png",
+            "https://example.com/prev.png",
+            "https://example.com/next.png",
+            "测试背景描述",
+            "上文1", "上文2", "下文1", "下文2");
 
-        Assert.True(vm.HasCurrentBackground);
-        Assert.True(vm.HasPrevBackground);
-        Assert.True(vm.HasNextBackground);
+        Assert.True(vm.GalleryPanel.HasCurrentBackground);
+        Assert.True(vm.GalleryPanel.HasPrevBackground);
+        Assert.True(vm.GalleryPanel.HasNextBackground);
     }
 
     public void Dispose()

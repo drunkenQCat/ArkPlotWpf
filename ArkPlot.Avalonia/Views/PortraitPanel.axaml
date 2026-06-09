@@ -3,17 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              mc:Ignorable="d" d:DesignWidth="296" d:DesignHeight="200"
              x:Class="ArkPlot.Avalonia.Views.PortraitPanel"
-             x:DataType="vm:TtsViewModel">
+             x:DataType="vm:PortraitPanelViewModel">
   <Border Height="200" CornerRadius="8" ClipToBounds="True"
           Background="#404040">
     <Grid>
-      <!-- 默认灰色占位 -->
-      <Border Background="#555555" Opacity="{Binding PortraitPlaceholderOpacity}"/>
-
       <!-- 立绘图片 -->
-      <Image Source="{Binding CurrentPortrait}"
+      <Image asyncImageLoader:ImageLoader.Source="{Binding PortraitUrl}"
              Stretch="UniformToFill"
              HorizontalAlignment="Center"
              VerticalAlignment="Center"
@@ -29,7 +27,7 @@
       </Image>
 
       <!-- 角色名 -->
-      <TextBlock Text="{Binding CurrentSpeaker}"
+      <TextBlock Text="{Binding SpeakerName}"
                  VerticalAlignment="Bottom" HorizontalAlignment="Center"
                  FontSize="14" FontWeight="SemiBold"
                  Margin="0,0,0,8" Opacity="0.8"

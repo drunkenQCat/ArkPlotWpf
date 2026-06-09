@@ -44,9 +44,11 @@
     <StackPanel>
         <Canvas Height="30">
             <Image
+                x:Name="BannerImage"
                 Source="avares://ArkPlot.Avalonia/Assets/slogan.jpg"
                 Width="456" Canvas.Left="0" HorizontalAlignment="Center" Canvas.Top="0"
-                VerticalAlignment="Top">
+                VerticalAlignment="Top"
+                Tapped="BannerImage_Tapped">
                 <Image.Clip>
                     <RectangleGeometry Rect="0,0,400,70" />
                 </Image.Clip>
