@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ArkPlot.Avalonia.Models;
 using ArkPlot.Avalonia.ViewModels;
+using ArkPlot.Avalonia.ViewModels.Test;
 using ArkPlot.Avalonia.Views;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
@@ -89,14 +90,11 @@ public class TtsComponentInputTests : System.IDisposable
         Assert.NotNull(portrait);
         Assert.Contains("prts.wiki", portrait!);
 
-        // 诊断：创建 TestWindow，设置 URL，检查绑定值
-        var testVm = new TestViewModel();
-        testVm.PortraitTest.Panel.Update(portrait, "小贾斯汀");
+        // 诊断：创建 PortraitTestViewModel，设置 URL，检查绑定值
+        var testVm = new PortraitTestViewModel();
+        testVm.Panel.Update(portrait, "小贾斯汀");
 
-        var testWindow = new TestWindow
-        {
-            DataContext = testVm
-        };
+        var testWindow = new TestWindow();
         testWindow.Show();
 
         // 等待 AsyncImageLoader 异步加载（给 3 秒）
@@ -104,9 +102,9 @@ public class TtsComponentInputTests : System.IDisposable
 
         // 诊断：检查 ViewModel 的值是否正确传递
         Console.WriteLine($"=== 诊断信息 ===");
-        Console.WriteLine($"Panel.PortraitUrl: {testVm.PortraitTest.Panel.PortraitUrl}");
-        Console.WriteLine($"Panel.SpeakerName: {testVm.PortraitTest.Panel.SpeakerName}");
-        Console.WriteLine($"Panel.HasPortrait: {testVm.PortraitTest.Panel.HasPortrait}");
+        Console.WriteLine($"Panel.PortraitUrl: {testVm.Panel.PortraitUrl}");
+        Console.WriteLine($"Panel.SpeakerName: {testVm.Panel.SpeakerName}");
+        Console.WriteLine($"Panel.HasPortrait: {testVm.Panel.HasPortrait}");
 
         // 检查窗口是否可见
         Console.WriteLine($"TestWindow.IsVisible: {testWindow.IsVisible}");
@@ -115,9 +113,9 @@ public class TtsComponentInputTests : System.IDisposable
         // 保存到文件
         var diagnosticPath = Path.Combine(_outputDir, "portrait_diagnostic.txt");
         File.WriteAllText(diagnosticPath,
-            $"PortraitUrl: {testVm.PortraitTest.Panel.PortraitUrl}\n" +
-            $"SpeakerName: {testVm.PortraitTest.Panel.SpeakerName}\n" +
-            $"HasPortrait: {testVm.PortraitTest.Panel.HasPortrait}\n" +
+            $"PortraitUrl: {testVm.Panel.PortraitUrl}\n" +
+            $"SpeakerName: {testVm.Panel.SpeakerName}\n" +
+            $"HasPortrait: {testVm.Panel.HasPortrait}\n" +
             $"Window: {testWindow.Width}x{testWindow.Height}, Visible={testWindow.IsVisible}\n"
         );
         Console.WriteLine($"✅ 诊断信息已保存: {diagnosticPath}");

@@ -92,5 +92,7 @@ public record BackgroundItem(
     string ImageUrl,
     string? PicDescription,
     int EntryIndex,
-    List<string> ContextDialogs
+    List<string> ContextDialogs,
+    long PlotId,
+    string ChapterTitle
 );

@@ -60,6 +60,7 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     partial void OnSelectedSegmentChanged(SegmentRow? value)
     {
         if (value == null) return;
+        Log($"[诊断] 选中行 #{value.Index}: {value.CharacterName}, EntryIndex={value.EntryIndex}");
         UpdateComponentsForSegment(value);
     }
 
@@ -72,7 +73,11 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
 
     private void UpdateComponentsForSegment(SegmentRow seg)
     {
-        var portraitUrl = GetPortraitUrl(seg.EntryIndex);
+        var portraitUrl = GetPortraitUrl(seg);
+        #region debug-point portrait-selection-input
+        Log($"[诊断] 立绘输入: EntryIndex={seg.EntryIndex}, Chapter={seg.ChapterTitle}, Character={seg.CharacterName}, Code={seg.CharacterCode ?? "(null)"}");
+        #endregion
+        Log($"[诊断] 立绘: {portraitUrl ?? "(null)"}, 角色: {seg.CharacterName}");
         PortraitPanel.Update(portraitUrl, seg.CharacterName);
         UpdateGalleryForSegment(seg);
     }
@@ -91,8 +96,7 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
 
         if (entry?.Portraits != null && entry.Portraits.Count > 0)
         {
-            var portraitUrl = entry.Portraits
-                .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
+            var portraitUrl = SelectPortraitUrl(entry.Portraits, config.CharacterCode ?? entry.CharacterCode);
             PortraitPanel.Update(portraitUrl, config.CharacterName);
         }
         else
@@ -234,21 +238,55 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         {
             var db = DbFactory.GetClient();
 
-            // 从 FormattedTextEntry 中找 charslot 类型且有 Bg 字段的条目
-            var allCharSlots = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.Type == "charslot")
-                .ToListAsync();
-
-            var withBg = allCharSlots
-                .Where(e => !string.IsNullOrEmpty(e.Bg))
-                .OrderBy(e => e.Index)
+            var chapterTitles = entries
+                .Select(e => e.ChapterTitle)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Distinct()
                 .ToList();
+
+            var plots = chapterTitles.Count > 0
+                ? await db.Queryable<Plot>()
+                    .Where(p => chapterTitles.Contains(p.Title))
+                    .ToListAsync()
+                : [];
+
+            var plotIdToTitle = plots.ToDictionary(p => p.Id, p => p.Title ?? "");
+            var plotIds = plots.Select(p => p.Id).ToList();
+
+            var allPlotEntries = plotIds.Count > 0
+                ? await db.Queryable<FormattedTextEntry>()
+                    .Where(e => plotIds.Contains(e.PlotId) && !string.IsNullOrEmpty(e.Bg))
+                    .OrderBy(e => e.PlotId)
+                    .OrderBy(e => e.Index)
+                    .ToListAsync()
+                : [];
+
+            var bgAnchors = new List<FormattedTextEntry>();
+            foreach (var group in allPlotEntries.GroupBy(e => e.PlotId))
+            {
+                string? lastBg = null;
+                foreach (var e in group.OrderBy(x => x.Index))
+                {
+                    if (string.IsNullOrEmpty(e.Bg))
+                        continue;
+                    if (e.Bg == lastBg)
+                        continue;
+                    bgAnchors.Add(e);
+                    lastBg = e.Bg;
+                }
+            }
+
+            #region debug-point gallery-bg-load
+            Log($"[诊断] Gallery 背景加载: _backgrounds(before)={_backgrounds.Count}, chapters={chapterTitles.Count}, plots={plotIds.Count}, entries(withBg)={allPlotEntries.Count}, anchors={bgAnchors.Count}");
+            #endregion
 
             var picDescs = await db.Queryable<PicDescription>().ToListAsync();
             var picDescMap = picDescs.ToDictionary(p => p.DedupKey ?? "", p => p.PicDesc ?? "");
 
             // 关联到对齐结果
-            foreach (var cs in withBg)
+            foreach (var cs in bgAnchors
+                         .OrderBy(e => e.PlotId)
+                         .ThenBy(e => e.Index))
             {
                 var picDesc = "";
                 if (!string.IsNullOrEmpty(cs.CharacterCode) &&
@@ -256,8 +294,18 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                     picDesc = desc;
 
                 // 关联到对齐结果
-                _backgrounds.Add(new BackgroundItem(cs.Bg, picDesc, cs.Index, []));
+                _backgrounds.Add(new BackgroundItem(
+                    cs.Bg,
+                    picDesc,
+                    cs.Index,
+                    [],
+                    cs.PlotId,
+                    plotIdToTitle.GetValueOrDefault(cs.PlotId, "")));
             }
+
+            #region debug-point gallery-bg-load-done
+            Log($"[诊断] Gallery 背景加载: _backgrounds(after)={_backgrounds.Count}");
+            #endregion
         }
         catch (Exception ex)
         {
@@ -564,26 +612,85 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        #region debug-point gallery-bg-select-input
+        Log($"[诊断] Gallery 输入: Chapter={seg.ChapterTitle}, EntryIndex={seg.EntryIndex}, Character={seg.CharacterName}, SegmentType={seg.SegmentType}");
+        #endregion
+
+        static bool IsBlackBg(string? url) =>
+            string.Equals(url, "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png", StringComparison.Ordinal);
+
+        var effectiveEntryIndex = seg.EntryIndex;
+        if (effectiveEntryIndex < 0)
+        {
+            var segIndex = FilteredSegments.IndexOf(seg);
+            for (int i = segIndex - 1; i >= 0; i--)
+            {
+                if (FilteredSegments[i].EntryIndex >= 0 &&
+                    string.Equals(FilteredSegments[i].ChapterTitle, seg.ChapterTitle, StringComparison.Ordinal))
+                {
+                    effectiveEntryIndex = FilteredSegments[i].EntryIndex;
+                    break;
+                }
+            }
+        }
+
+        var chapterBgs = _backgrounds
+            .Where(b => string.Equals(b.ChapterTitle, seg.ChapterTitle, StringComparison.Ordinal))
+            .ToList();
+
+        if (chapterBgs.Count == 0)
+        {
+            GalleryPanel.Clear();
+            return;
+        }
+
         // 找到当前片段最近的背景图
-        var bg = _backgrounds
-            .Where(b => b.EntryIndex <= seg.EntryIndex)
+        var bg = chapterBgs
+            .Where(b => b.EntryIndex <= effectiveEntryIndex)
             .OrderByDescending(b => b.EntryIndex)
+            .FirstOrDefault(b => !IsBlackBg(b.ImageUrl));
+
+        if (bg == null)
+            bg = chapterBgs
+                .Where(b => b.EntryIndex <= effectiveEntryIndex)
+                .OrderByDescending(b => b.EntryIndex)
             .FirstOrDefault();
 
-        if (bg == null) bg = _backgrounds.FirstOrDefault();
+        if (bg == null) bg = chapterBgs.FirstOrDefault();
         if (bg == null)
         {
             GalleryPanel.Clear();
             return;
         }
 
-        var bgIdx = _backgrounds.IndexOf(bg);
+        var bgIdx = chapterBgs.IndexOf(bg);
 
         // 更新 GalleryPanel
-        var prevBg = bgIdx > 0 ? _backgrounds[bgIdx - 1].ImageUrl : null;
-        var nextBg = bgIdx < _backgrounds.Count - 1 ? _backgrounds[bgIdx + 1].ImageUrl : null;
+        string? prevBg = null;
+        for (int i = bgIdx - 1; i >= 0; i--)
+        {
+            if (!IsBlackBg(chapterBgs[i].ImageUrl))
+            {
+                prevBg = chapterBgs[i].ImageUrl;
+                break;
+            }
+        }
+
+        string? nextBg = null;
+        for (int i = bgIdx + 1; i < chapterBgs.Count; i++)
+        {
+            if (!IsBlackBg(chapterBgs[i].ImageUrl))
+            {
+                nextBg = chapterBgs[i].ImageUrl;
+                break;
+            }
+        }
         
         var (upper1, upper2, lower1, lower2) = GetContextTexts(bg);
+
+        #region debug-point gallery-bg-select-result
+        Log($"[诊断] Gallery 命中: BgChapter={bg.ChapterTitle}, BgEntryIndex={bg.EntryIndex}, EffectiveEntryIndex={effectiveEntryIndex}, Current={bg.ImageUrl}, Prev={prevBg ?? "(null)"}, Next={nextBg ?? "(null)"}");
+        #endregion
 
         GalleryPanel.Update(
             bg.ImageUrl,
@@ -598,7 +705,7 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     {
         // 从 FormattedTextEntry 获取上下文
         var nearbyEntries = _allEntries
-            .Where(e => e.EntryIndex >= 0)
+            .Where(e => e.EntryIndex >= 0 && string.Equals(e.ChapterTitle, bg.ChapterTitle, StringComparison.Ordinal))
             .OrderBy(e => e.EntryIndex)
             .ToList();
 
@@ -724,16 +831,74 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         return string.Concat(text.Where(c => !invalid.Contains(c)));
     }
 
-    /// <summary>从 _allEntries 获取角色立绘 URL。</summary>
-    private string? GetPortraitUrl(int entryIndex)
+    /// <summary>从 _allEntries 获取当前选中角色的立绘 URL。</summary>
+    private string? GetPortraitUrl(SegmentRow seg)
     {
-        if (entryIndex < 0) return null;
+        if (seg.EntryIndex < 0) return null;
 
-        var entry = _allEntries.FirstOrDefault(e => e.EntryIndex == entryIndex);
+        var entry = FindPortraitEntry(seg);
         if (entry?.Portraits == null || entry.Portraits.Count == 0) return null;
 
-        return entry.Portraits
-            .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
+        #region debug-point portrait-selection-candidates
+        Log($"[诊断] 立绘候选: EntryIndex={seg.EntryIndex}, Character={entry.CharacterName ?? "(null)"}, Code={entry.CharacterCode ?? "(null)"}, Portraits=[{string.Join(", ", entry.Portraits)}]");
+        #endregion
+
+        var portraitUrl = SelectPortraitUrl(entry.Portraits, seg.CharacterCode ?? entry.CharacterCode);
+
+        #region debug-point portrait-selection-result
+        Log($"[诊断] 立绘命中: EntryIndex={seg.EntryIndex}, Character={seg.CharacterName}, Code={seg.CharacterCode ?? "(null)"}, Selected={portraitUrl ?? "(null)"}");
+        #endregion
+
+        return portraitUrl;
+    }
+
+    private AlignmentEntry? FindPortraitEntry(SegmentRow seg)
+    {
+        var exactMatch = _allEntries.FirstOrDefault(e =>
+            e.EntryIndex == seg.EntryIndex &&
+            string.Equals(e.ChapterTitle, seg.ChapterTitle, StringComparison.Ordinal) &&
+            string.Equals(e.CharacterName, seg.CharacterName, StringComparison.Ordinal) &&
+            string.Equals(e.CharacterCode, seg.CharacterCode, StringComparison.OrdinalIgnoreCase));
+        if (exactMatch != null) return exactMatch;
+
+        var chapterMatch = _allEntries.FirstOrDefault(e =>
+            e.EntryIndex == seg.EntryIndex &&
+            string.Equals(e.ChapterTitle, seg.ChapterTitle, StringComparison.Ordinal) &&
+            string.Equals(e.CharacterName, seg.CharacterName, StringComparison.Ordinal));
+        if (chapterMatch != null) return chapterMatch;
+
+        return _allEntries.FirstOrDefault(e => e.EntryIndex == seg.EntryIndex);
+    }
+
+    private static string? SelectPortraitUrl(IEnumerable<string>? portraits, string? characterCode)
+    {
+        if (portraits == null) return null;
+
+        var candidates = portraits
+            .Where(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"))
+            .ToList();
+        if (candidates.Count == 0) return null;
+
+        var normalizedCode = NormalizeCharacterCode(characterCode);
+        if (!string.IsNullOrEmpty(normalizedCode))
+        {
+            var matched = candidates.FirstOrDefault(p =>
+                p.Contains(normalizedCode, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(matched))
+                return matched;
+        }
+
+        return candidates[0];
+    }
+
+    private static string? NormalizeCharacterCode(string? characterCode)
+    {
+        if (string.IsNullOrWhiteSpace(characterCode))
+            return null;
+
+        var normalized = characterCode.Trim().ToLowerInvariant();
+        var hashIndex = normalized.IndexOf('#');
+        return hashIndex >= 0 ? normalized[..hashIndex] : normalized;
     }
 
     public void Dispose()

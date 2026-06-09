@@ -132,6 +132,47 @@ if (args.Length > 0 && args[0].Equals("verify-tts-component-inputs", StringCompa
     return;
 }
 
+if (args.Length > 0 && args[0].Equals("repair-db-portraits", StringComparison.OrdinalIgnoreCase))
+{
+    string? dbPath = null;
+    long? plotId = null;
+    bool dryRun = false;
+    string? outPath = null;
+    int show = 20;
+
+    for (int i = 1; i < args.Length; i++)
+    {
+        if (args[i] == "--db" && i + 1 < args.Length)
+        {
+            dbPath = args[i + 1];
+            i++;
+        }
+        else if (args[i] == "--plot" && i + 1 < args.Length && long.TryParse(args[i + 1], out var p))
+        {
+            plotId = p;
+            i++;
+        }
+        else if (args[i] == "--out" && i + 1 < args.Length)
+        {
+            outPath = args[i + 1];
+            i++;
+        }
+        else if (args[i] == "--show" && i + 1 < args.Length && int.TryParse(args[i + 1], out var s))
+        {
+            show = s;
+            i++;
+        }
+        else if (args[i] == "--dry-run")
+        {
+            dryRun = true;
+        }
+    }
+
+    var exitCode = await RepairDbPortraitsRunner.RunAsync(dbPath, plotId, dryRun, outPath, show);
+    Environment.Exit(exitCode);
+    return;
+}
+
 // 清空旧的 PicDescription 记录
 var db = DbFactory.GetClient();
 var before = db.Queryable<PicDescription>().Count();

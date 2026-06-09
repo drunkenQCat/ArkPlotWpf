@@ -13,6 +13,8 @@
 *.ipynb
 all_plots.json
 *.csx
+.dbg/
+trae-debug-log-*.ndjson
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
