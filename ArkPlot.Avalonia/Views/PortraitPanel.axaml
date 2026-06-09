@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
-             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              mc:Ignorable="d" d:DesignWidth="296" d:DesignHeight="200"
              x:Class="ArkPlot.Avalonia.Views.PortraitPanel"
              x:DataType="vm:TtsViewModel">
@@ -14,7 +13,7 @@
       <Border Background="#555555" Opacity="{Binding PortraitPlaceholderOpacity}"/>
 
       <!-- 立绘图片 -->
-      <Image asyncImageLoader:ImageLoader.Source="{Binding CurrentPortrait}"
+      <Image Source="{Binding CurrentPortrait}"
              Stretch="UniformToFill"
              HorizontalAlignment="Center"
              VerticalAlignment="Center"

@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
-             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="220"
              x:Class="ArkPlot.Avalonia.Views.GalleryPanel"
              x:DataType="vm:TtsViewModel">
@@ -16,7 +15,7 @@
               Margin="4,0,0,0" Opacity="0.5">
         <Grid>
           <Border Background="#383838"/>
-          <Image asyncImageLoader:ImageLoader.Source="{Binding PrevBackground}"
+          <Image Source="{Binding PrevBackground}"
                  Stretch="UniformToFill"
                  HorizontalAlignment="Center"
                  IsVisible="{Binding HasPrevBackground}"/>
@@ -43,7 +42,7 @@
         <Border Grid.Row="1" CornerRadius="4" ClipToBounds="True">
           <Grid>
             <Border Background="#505050"/>
-            <Image asyncImageLoader:ImageLoader.Source="{Binding CurrentBackground}"
+            <Image Source="{Binding CurrentBackground}"
                    Stretch="Uniform"
                    IsVisible="{Binding HasCurrentBackground}">
               <Image.OpacityMask>
@@ -76,7 +75,7 @@
               Margin="0,0,4,0" Opacity="0.5">
         <Grid>
           <Border Background="#484848"/>
-          <Image asyncImageLoader:ImageLoader.Source="{Binding NextBackground}"
+          <Image Source="{Binding NextBackground}"
                  Stretch="UniformToFill"
                  HorizontalAlignment="Center"
                  IsVisible="{Binding HasNextBackground}"/>

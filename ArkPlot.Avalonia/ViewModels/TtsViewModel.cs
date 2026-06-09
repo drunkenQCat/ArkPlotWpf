@@ -242,7 +242,6 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                     picDescMap.TryGetValue(cs.CharacterCode, out var desc))
                     picDesc = desc;
 
-                // 关联到对齐结果
                 _backgrounds.Add(new BackgroundItem(cs.Bg, picDesc, cs.Index, []));
             }
         }
@@ -723,10 +722,10 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
             {
                 // 取第一个非 transparent 的立绘
-                var portraitUrl = entry.Portraits
+                var portrait = entry.Portraits
                     .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
-                
-                return portraitUrl;
+                if (!string.IsNullOrEmpty(portrait))
+                    return portrait;
             }
 
             return null;
