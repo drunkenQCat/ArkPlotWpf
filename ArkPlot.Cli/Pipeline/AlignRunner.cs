@@ -28,6 +28,8 @@ public static class AlignRunner
         Console.WriteLine($"   匹配章节: {stats.MatchedChapters}");
         Console.WriteLine($"   总对话数: {stats.TotalDialogs}");
         Console.WriteLine($"   已对齐:   {stats.AlignedDialogs}");
+        Console.WriteLine($"     ├ 锚点匹配: {stats.AnchorMatches}");
+        Console.WriteLine($"     └ 窗口匹配: {stats.WindowMatches}");
         Console.WriteLine($"   未对齐:   {stats.UnalignedDialogs}");
 
         // TTS voice 分配预览
@@ -67,5 +69,17 @@ public static class AlignRunner
 
         Console.WriteLine($"\n✅ 对齐结果已保存: {jsonPath}");
         Console.WriteLine($"   总片段数: {entries.Count} (对话: {dialogEntries.Count}, 旁白: {entries.Count - dialogEntries.Count})");
+
+        // 未对齐对话预览
+        var unaligned = dialogEntries.Where(e => e.EntryIndex < 0).Take(10).ToList();
+        if (unaligned.Count > 0)
+        {
+            Console.WriteLine($"\n⚠️ 未对齐对话预览 (前{unaligned.Count}条):");
+            foreach (var u in unaligned)
+            {
+                var preview = u.NovelText.Length > 40 ? u.NovelText[..40] + "…" : u.NovelText;
+                Console.WriteLine($"   [{u.ChapterTitle}] {preview}");
+            }
+        }
     }
 }

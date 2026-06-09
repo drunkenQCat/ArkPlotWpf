@@ -1,3 +1,4 @@
+using System.Text;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using SqlSugar;
@@ -168,6 +169,10 @@ public class NovelAligner
             .ToDictionary(p => p.DedupKey, p => p.PicDesc);
     }
 
+    // ── 锚点 + 窗口对齐 配置 ──
+    internal const int WindowSize = 5;
+    internal const double WindowMatchThreshold = 0.4;
+
     private static (List<AlignmentEntry> Entries, AlignmentStats Stats) AlignChapters(
         List<NovelChapter> novelChapters,
         List<Plot> plots,
@@ -179,6 +184,8 @@ public class NovelAligner
         var results = new List<AlignmentEntry>();
         int totalDialogs = 0;
         int alignedDialogs = 0;
+        int anchorMatches = 0;
+        int windowMatches = 0;
         int matchedChapters = 0;
 
         foreach (var novelChapter in novelChapters)
@@ -190,7 +197,71 @@ public class NovelAligner
 
             if (!entriesByPlot.TryGetValue(plot.Id, out var plotEntries)) continue;
 
-            var dbQueue = new Queue<FormattedTextEntry>(plotEntries);
+            var dialogs = novelChapter.Segments.Where(s => s.IsDialog).ToList();
+            totalDialogs += dialogs.Count;
+
+            // Phase 1: 找锚点（高置信度文本匹配）
+            var anchors = FindAnchors(dialogs, plotEntries);
+            anchorMatches += anchors.Count;
+
+            // Phase 2: 构建对齐映射（novel dialog idx → DB entry idx）
+            var alignmentMap = new Dictionary<int, int>();
+            foreach (var (ni, di) in anchors)
+                alignmentMap[ni] = di;
+
+            // Phase 3: 锚点间的窗口匹配
+            var anchorBounds = new List<(int Ni, int Di)> { (-1, -1) };
+            anchorBounds.AddRange(anchors);
+            anchorBounds.Add((dialogs.Count, plotEntries.Count));
+
+            for (int k = 0; k < anchorBounds.Count - 1; k++)
+            {
+                var (prevNi, prevDi) = anchorBounds[k];
+                var (nextNi, nextDi) = anchorBounds[k + 1];
+
+                int nGap = nextNi - prevNi - 1;
+                int dGap = nextDi - prevDi - 1;
+                if (nGap <= 0 || dGap <= 0) continue;
+
+                int dbCursor = 0;
+                for (int i = 0; i < nGap; i++)
+                {
+                    int novelIdx = prevNi + 1 + i;
+                    var novelNorm = NormalizeLoose(dialogs[novelIdx].Text);
+                    if (string.IsNullOrEmpty(novelNorm)) continue;
+
+                    int expectedPos = dGap > 1 ? (int)((long)i * dGap / nGap) : 0;
+                    int searchStart = Math.Max(dbCursor, expectedPos - WindowSize);
+                    int searchEnd = Math.Min(dGap - 1, expectedPos + WindowSize);
+
+                    int bestJ = -1;
+                    double bestScore = 0;
+
+                    for (int j = searchStart; j <= searchEnd; j++)
+                    {
+                        int dbIdx = prevDi + 1 + j;
+                        var dbNorm = NormalizeLoose(plotEntries[dbIdx].Dialog ?? "");
+                        if (string.IsNullOrEmpty(dbNorm)) continue;
+
+                        double score = ComputeSimilarity(novelNorm, dbNorm);
+                        if (score > bestScore && score >= WindowMatchThreshold)
+                        {
+                            bestJ = j;
+                            bestScore = score;
+                        }
+                    }
+
+                    if (bestJ >= 0)
+                    {
+                        alignmentMap[novelIdx] = prevDi + 1 + bestJ;
+                        windowMatches++;
+                        dbCursor = bestJ + 1;
+                    }
+                }
+            }
+
+            // Phase 4: 构建结果
+            int dialogIdx = 0;
             foreach (var segment in novelChapter.Segments)
             {
                 if (!segment.IsDialog)
@@ -199,18 +270,19 @@ public class NovelAligner
                     continue;
                 }
 
-                totalDialogs++;
-                var entry = dbQueue.Count > 0 ? dbQueue.Dequeue() : null;
-                if (entry == null)
+                if (alignmentMap.TryGetValue(dialogIdx, out int dbEntryIdx))
+                {
+                    alignedDialogs++;
+                    results.Add(MakeAlignedDialogEntry(
+                        segment, plotEntries[dbEntryIdx], plot.Id, novelChapter.Title,
+                        charCodeAtEntry, picDescByCode, genderOverrides));
+                }
+                else
                 {
                     results.Add(MakeUnalignedDialogEntry(segment, novelChapter.Title));
-                    continue;
                 }
 
-                alignedDialogs++;
-                results.Add(MakeAlignedDialogEntry(
-                    segment, entry, plot.Id, novelChapter.Title,
-                    charCodeAtEntry, picDescByCode, genderOverrides));
+                dialogIdx++;
             }
         }
 
@@ -219,9 +291,98 @@ public class NovelAligner
             MatchedChapters: matchedChapters,
             TotalDialogs: totalDialogs,
             AlignedDialogs: alignedDialogs,
-            UnalignedDialogs: totalDialogs - alignedDialogs);
+            UnalignedDialogs: totalDialogs - alignedDialogs,
+            AnchorMatches: anchorMatches,
+            WindowMatches: windowMatches);
 
         return (results, stats);
+    }
+
+    // ── 锚点查找 ──
+
+    internal static List<(int NovelIdx, int DbIdx)> FindAnchors(
+        List<NovelSegment> novelDialogs,
+        List<FormattedTextEntry> dbEntries)
+    {
+        var anchors = new List<(int, int)>();
+        int dbCursor = 0;
+
+        for (int ni = 0; ni < novelDialogs.Count; ni++)
+        {
+            var novelNorm = NormalizeStrict(novelDialogs[ni].Text);
+            if (novelNorm.Length < 3) continue;
+
+            for (int di = dbCursor; di < dbEntries.Count; di++)
+            {
+                var dbText = dbEntries[di].Dialog ?? "";
+                var dbNorm = NormalizeStrict(dbText);
+                if (dbNorm.Length < 3) continue;
+
+                if (IsAnchorMatch(novelNorm, dbNorm))
+                {
+                    anchors.Add((ni, di));
+                    dbCursor = di + 1;
+                    break;
+                }
+            }
+        }
+
+        return anchors;
+    }
+
+    // ── 文本标准化 ──
+
+    internal static string NormalizeStrict(string text)
+    {
+        var s = DialogExtractor.Normalize(text);
+        s = s.Replace('，', ',').Replace('。', '.').Replace('！', '!').Replace('？', '?');
+        s = s.Replace('；', ';').Replace('：', ':').Replace('、', ',');
+        s = s.Replace('\u201C', '"').Replace('\u201D', '"');
+        s = s.Replace('\u2018', '\'').Replace('\u2019', '\'');
+        return s.Trim();
+    }
+
+    internal static string NormalizeLoose(string text)
+    {
+        var sb = new StringBuilder(text.Length);
+        foreach (var c in text)
+        {
+            if (char.IsLetterOrDigit(c))
+                sb.Append(c);
+        }
+        return sb.ToString();
+    }
+
+    internal static bool IsAnchorMatch(string novelNorm, string dbNorm)
+    {
+        if (novelNorm == dbNorm) return true;
+
+        int minLen = Math.Min(novelNorm.Length, dbNorm.Length);
+        if (minLen < 4) return false;
+
+        if (novelNorm.Contains(dbNorm) || dbNorm.Contains(novelNorm))
+        {
+            double ratio = (double)minLen / Math.Max(novelNorm.Length, dbNorm.Length);
+            return ratio >= 0.7;
+        }
+
+        return false;
+    }
+
+    internal static double ComputeSimilarity(string a, string b)
+    {
+        if (a == b) return 1.0;
+        if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b)) return 0;
+
+        if (a.Contains(b)) return (double)b.Length / a.Length;
+        if (b.Contains(a)) return (double)a.Length / b.Length;
+
+        int commonLen = 0;
+        int maxLen = Math.Min(a.Length, b.Length);
+        while (commonLen < maxLen && a[commonLen] == b[commonLen])
+            commonLen++;
+
+        return (double)commonLen / Math.Max(a.Length, b.Length);
     }
 
     private static AlignmentEntry MakeNarrationEntry(NovelSegment segment, string chapterTitle)
@@ -247,7 +408,7 @@ public class NovelAligner
         return new AlignmentEntry(
             segment.Text, true,
             entry.CharacterName, effectiveCode,
-            entry.Index, chapterTitle, gender);
+            entry.Index, chapterTitle, gender, entry.Portraits);
     }
 
     internal static string ExtractActName(string fileNameWithoutExt)

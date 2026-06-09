@@ -38,7 +38,8 @@ public record AlignmentEntry(
     string? CharacterCode,
     int EntryIndex,
     string ChapterTitle,
-    string? Gender = null
+    string? Gender = null,
+    List<string>? Portraits = null
 );
 
 /// <summary>
@@ -49,5 +50,7 @@ public record AlignmentStats(
     int MatchedChapters,
     int TotalDialogs,
     int AlignedDialogs,
-    int UnalignedDialogs
+    int UnalignedDialogs,
+    int AnchorMatches = 0,
+    int WindowMatches = 0
 );
