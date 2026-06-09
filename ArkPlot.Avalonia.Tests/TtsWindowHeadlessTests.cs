@@ -44,7 +44,8 @@ public class TtsWindowHeadlessTests : IDisposable
         var vm = new TtsViewModel(_tempDir);
 
         Assert.Equal(2, vm.NovelFiles.Count);
-        Assert.All(vm.NovelFiles, f => Assert.True(f.IsSelected));
+        Assert.True(vm.NovelFiles[0].IsSelected);
+        Assert.False(vm.NovelFiles[1].IsSelected);
     }
 
     [AvaloniaFact]
@@ -238,13 +239,31 @@ public class TtsWindowHeadlessTests : IDisposable
     }
 
     [AvaloniaFact]
-    public void NovelFileItem_DefaultSelected()
+    public void NovelFileItem_DefaultNotSelected()
     {
         File.WriteAllText(Path.Combine(_tempDir, "test.md"), "content");
         var item = new NovelFileItem(Path.Combine(_tempDir, "test.md"));
 
-        Assert.True(item.IsSelected);
+        Assert.False(item.IsSelected);
         Assert.Equal("test.md", item.FileName);
+    }
+
+    [AvaloniaFact]
+    public void TtsViewModel_SingleSelect_OnlyFirstSelected()
+    {
+        File.WriteAllText(Path.Combine(_tempDir, "a_novel_flash.md"), "# 内容");
+        File.WriteAllText(Path.Combine(_tempDir, "a_novel_pro.md"), "# 内容");
+
+        var vm = new TtsViewModel(_tempDir);
+
+        Assert.True(vm.NovelFiles[0].IsSelected);
+        Assert.False(vm.NovelFiles[1].IsSelected);
+
+        // 选第二个 → 第一个自动取消
+        vm.NovelFiles[1].IsSelected = true;
+
+        Assert.False(vm.NovelFiles[0].IsSelected);
+        Assert.True(vm.NovelFiles[1].IsSelected);
     }
 
     public void Dispose()

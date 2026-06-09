@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,11 +13,12 @@ using ArkPlot.Tts.Alignment;
 using ArkPlot.Tts.Engines;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NAudio.Wave;
 using SqlSugar;
 
 namespace ArkPlot.Avalonia.ViewModels;
 
-public partial class TtsViewModel : ViewModelBase
+public partial class TtsViewModel : ViewModelBase, IDisposable
 {
     // ── 小说文件 ──
     [ObservableProperty] private ObservableCollection<NovelFileItem> _novelFiles = [];
@@ -74,12 +74,23 @@ public partial class TtsViewModel : ViewModelBase
     private readonly VoiceManager _voiceManager = new();
     private readonly string _outputBaseDir;
 
+    // NAudio 播放器
+    private IWavePlayer? _wavePlayer;
+    private AudioFileReader? _audioReader;
+
     public TtsViewModel(string outputBaseDir)
     {
         _outputBaseDir = outputBaseDir;
         TtsOutputDir = Path.Combine(outputBaseDir, "tts");
 
         ScanNovelFiles();
+
+        // 窗口打开后自动触发对齐
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(100);
+            await LoadAlignmentAsync();
+        });
     }
 
     // ════════════════════════════════════════════
@@ -91,8 +102,29 @@ public partial class TtsViewModel : ViewModelBase
         if (!Directory.Exists(_outputBaseDir)) return;
 
         var files = Directory.GetFiles(_outputBaseDir, "*_novel_*.md");
-        NovelFiles = new ObservableCollection<NovelFileItem>(
-            files.Select(f => new NovelFileItem(f)));
+        var items = files.Select(f => new NovelFileItem(f)).ToList();
+
+        // 默认只选第一个
+        if (items.Count > 0)
+            items[0].IsSelected = true;
+
+        NovelFiles = new ObservableCollection<NovelFileItem>(items);
+
+        // 单选：选中一个时取消其他
+        foreach (var item in items)
+        {
+            item.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(NovelFileItem.IsSelected) && item.IsSelected)
+                {
+                    foreach (var other in NovelFiles)
+                    {
+                        if (other != item)
+                            other.IsSelected = false;
+                    }
+                }
+            };
+        }
     }
 
     // ════════════════════════════════════════════
@@ -163,34 +195,44 @@ public partial class TtsViewModel : ViewModelBase
         try
         {
             var db = DbFactory.GetClient();
+
+            // 获取当前活动的所有 FormattedTextEntry（按 PlotId + Index 排序）
+            var charCodes = entries
+                .Where(e => !string.IsNullOrEmpty(e.CharacterCode))
+                .Select(e => e.CharacterCode!)
+                .Distinct()
+                .ToList();
+
+            if (charCodes.Count == 0) return;
+
+            // 从 FormattedTextEntry 中找 charslot 类型且有 ResourceUrls 的条目
+            var allEntries = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Type == "charslot" && e.ResourceUrls != null && e.ResourceUrls.Count > 0)
+                .ToListAsync();
+
             var picDescs = await db.Queryable<PicDescription>().ToListAsync();
             var picDescMap = picDescs.ToDictionary(p => p.DedupKey ?? "", p => p.PicDesc ?? "");
 
-            // 从 entries 的 CharacterCode 找到对应的背景图
-            // 背景图在 FormattedTextEntry 的 ResourceUrls 中
-            // 简化：从 PicDescription 中找 bg_ 开头的
-            foreach (var entry in entries.Where(e => !string.IsNullOrEmpty(e.CharacterCode)))
+            // 按 Index 排序，关联到对齐结果
+            foreach (var fte in allEntries.OrderBy(e => e.Index))
             {
-                var code = entry.CharacterCode!;
-                if (picDescMap.TryGetValue(code, out var desc) && !string.IsNullOrEmpty(desc))
-                {
-                    // 尝试从 PrtsResource 获取图片 URL
-                    var resource = await db.Queryable<PrtsResource>()
-                        .Where(r => r.ResourceKey == code)
-                        .FirstAsync();
+                var bgUrl = fte.ResourceUrls.FirstOrDefault();
+                if (string.IsNullOrEmpty(bgUrl)) continue;
 
-                    if (resource != null && !string.IsNullOrEmpty(resource.ResourceUrl))
-                    {
-                        _backgrounds.Add(new BackgroundItem(
-                            resource.ResourceUrl, desc, entry.EntryIndex, []));
-                    }
-                }
+                var picDesc = "";
+                if (!string.IsNullOrEmpty(fte.CharacterCode) &&
+                    picDescMap.TryGetValue(fte.CharacterCode, out var desc))
+                    picDesc = desc;
+
+                _backgrounds.Add(new BackgroundItem(bgUrl, picDesc, fte.Index, []));
             }
         }
         catch
         {
             // 背景加载失败不影响核心功能
         }
+
+        await Task.CompletedTask;
     }
 
     private void BuildVoiceConfigs()
@@ -346,22 +388,11 @@ public partial class TtsViewModel : ViewModelBase
 
                 Log($"✅ 完成: {result.OutputFiles.Count} 个文件, {result.TotalSegments} 个片段");
 
-                // 标记已生成的片段
-                foreach (var seg in FilteredSegments)
-                {
-                    var mp3 = result.OutputFiles.FirstOrDefault(f =>
-                        f.Contains(sanitized(seg.ChapterTitle)));
-                    if (mp3 != null)
-                    {
-                        seg.HasAudio = true;
-                        seg.AudioFilePath = mp3;
-                        seg.AudioOpacity = 1.0;
-                        seg.AudioStatus = "▂▃▅▆▇▅▃";
-                    }
-                }
-
                 ProgressValue = 100;
                 TotalProgressText = $"已生成 {result.OutputFiles.Count} 个章节 MP3";
+
+                // 刷新音频状态
+                RefreshAudioStatus();
             }
         }
         catch (OperationCanceledException)
@@ -429,6 +460,9 @@ public partial class TtsViewModel : ViewModelBase
                 CurrentSpeaker = seg.CharacterName;
                 SelectedSegment = seg;
 
+                // 加载立绘
+                CurrentPortrait = await LoadPortraitAsync(seg.CharacterCode);
+
                 // 更新 Gallery
                 UpdateGalleryForSegment(seg);
 
@@ -454,7 +488,17 @@ public partial class TtsViewModel : ViewModelBase
     [RelayCommand]
     private void StopPlay()
     {
+        _wavePlayer?.Stop();
         _playCts?.Cancel();
+    }
+
+    private void CleanupPlayer()
+    {
+        _wavePlayer?.Stop();
+        _wavePlayer?.Dispose();
+        _wavePlayer = null;
+        _audioReader?.Dispose();
+        _audioReader = null;
     }
 
     private async Task PlayAudioFile(string filePath, CancellationToken ct)
@@ -464,28 +508,30 @@ public partial class TtsViewModel : ViewModelBase
 
         try
         {
-            // 使用系统默认播放器
-            var psi = new ProcessStartInfo
-            {
-                FileName = filePath,
-                UseShellExecute = true,
-                CreateNoWindow = true
-            };
-            using var process = Process.Start(psi);
-            if (process != null)
-            {
-                // 等待播放完成或取消
-                // 简化：估算时长后等待
-                var fileInfo = new FileInfo(filePath);
-                var estimatedMs = (int)(fileInfo.Length / 2000); // 粗略估算
-                estimatedMs = Math.Max(estimatedMs, 1000);
-                estimatedMs = Math.Min(estimatedMs, 30000);
+            CleanupPlayer();
+            _audioReader = new AudioFileReader(filePath);
+            _wavePlayer = new WaveOutEvent();
+            _wavePlayer.Init(_audioReader);
+            _wavePlayer.Play();
 
-                await Task.Delay(estimatedMs, ct);
+            // 轮询等待播放结束或取消
+            while (_wavePlayer.PlaybackState == PlaybackState.Playing)
+            {
+                ct.ThrowIfCancellationRequested();
+                await Task.Delay(50, ct);
             }
+
+            CleanupPlayer();
         }
-        catch (OperationCanceledException) { throw; }
-        catch { /* 播放失败跳过 */ }
+        catch (OperationCanceledException)
+        {
+            CleanupPlayer();
+            throw;
+        }
+        catch
+        {
+            CleanupPlayer();
+        }
     }
 
     private void UpdateGalleryForSegment(SegmentRow seg)
@@ -549,13 +595,15 @@ public partial class TtsViewModel : ViewModelBase
     // ════════════════════════════════════════════
 
     [RelayCommand]
-    private void ExportCurrentChapter()
+    private async Task ExportCurrentChapter()
     {
         if (SelectedChapter == null) return;
 
-        var pattern = $"*{sanitized(SelectedChapter.Title)}*.mp3";
+        var pattern = sanitized(SelectedChapter.Title);
         var files = Directory.Exists(TtsOutputDir)
-            ? Directory.GetFiles(TtsOutputDir, pattern)
+            ? Directory.GetFiles(TtsOutputDir, "*.mp3")
+                .Where(f => Path.GetFileName(f).Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                .ToArray()
             : [];
 
         if (files.Length == 0)
@@ -564,11 +612,18 @@ public partial class TtsViewModel : ViewModelBase
             return;
         }
 
-        Log($"📥 当前章节: {files.Length} 个 MP3 → {TtsOutputDir}");
+        var exportDir = Path.Combine(_outputBaseDir, "tts_export", sanitized(SelectedChapter.Title));
+        Directory.CreateDirectory(exportDir);
+
+        foreach (var f in files)
+            File.Copy(f, Path.Combine(exportDir, Path.GetFileName(f)), overwrite: true);
+
+        Log($"📥 导出 {files.Length} 个 MP3 → {exportDir}");
+        await Task.CompletedTask;
     }
 
     [RelayCommand]
-    private void ExportAllChapters()
+    private async Task ExportAllChapters()
     {
         var files = Directory.Exists(TtsOutputDir)
             ? Directory.GetFiles(TtsOutputDir, "*.mp3")
@@ -580,7 +635,14 @@ public partial class TtsViewModel : ViewModelBase
             return;
         }
 
-        Log($"📥 全部章节: {files.Length} 个 MP3 → {TtsOutputDir}");
+        var exportDir = Path.Combine(_outputBaseDir, "tts_export");
+        Directory.CreateDirectory(exportDir);
+
+        foreach (var f in files)
+            File.Copy(f, Path.Combine(exportDir, Path.GetFileName(f)), overwrite: true);
+
+        Log($"📥 导出 {files.Length} 个 MP3 → {exportDir}");
+        await Task.CompletedTask;
     }
 
     // ════════════════════════════════════════════
@@ -592,9 +654,81 @@ public partial class TtsViewModel : ViewModelBase
         LogText += $"[{DateTime.Now:HH:mm:ss}] {msg}\n";
     }
 
+    /// <summary>扫描输出目录，标记已有音频的片段。</summary>
+    private void RefreshAudioStatus()
+    {
+        if (!Directory.Exists(TtsOutputDir)) return;
+        var mp3Files = Directory.GetFiles(TtsOutputDir, "*.mp3");
+        if (mp3Files.Length == 0) return;
+
+        foreach (var seg in FilteredSegments)
+        {
+            var chapterSafe = sanitized(seg.ChapterTitle);
+            var match = mp3Files.FirstOrDefault(f =>
+                Path.GetFileName(f).Contains(chapterSafe, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                seg.HasAudio = true;
+                seg.AudioFilePath = match;
+                seg.AudioOpacity = 1.0;
+                seg.AudioStatus = "▂▃▅▆▇▅▃";
+
+                try
+                {
+                    using var reader = new AudioFileReader(match);
+                    seg.DurationText = reader.TotalTime.TotalSeconds.ToString("F1") + "s";
+                }
+                catch { seg.DurationText = ""; }
+            }
+        }
+    }
+
     private static string sanitized(string text)
     {
         var invalid = Path.GetInvalidFileNameChars();
         return string.Concat(text.Where(c => !invalid.Contains(c)));
+    }
+
+    /// <summary>从 FormattedTextEntry.Portraits 加载角色立绘 URL。</summary>
+    private async Task<string?> LoadPortraitAsync(string? characterCode)
+    {
+        if (string.IsNullOrEmpty(characterCode)) return null;
+        try
+        {
+            var db = DbFactory.GetClient();
+            var baseCode = characterCode.Split('#')[0];
+
+            // 找最近的包含该角色的 charslot 条目
+            var entry = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Type == "charslot" && e.Portraits != null && e.Portraits.Count > 0)
+                .OrderByDescending(e => e.Index)
+                .FirstAsync();
+
+            if (entry != null && entry.Portraits.Count > 0)
+                return entry.Portraits[0];
+
+            // Fallback: 从任何包含角色名的条目中找
+            var fallback = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.CharacterName != null && e.CharacterName.Contains(baseCode)
+                    && e.Portraits != null && e.Portraits.Count > 0)
+                .FirstAsync();
+
+            return fallback?.Portraits.FirstOrDefault();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _generateCts?.Cancel();
+        _generateCts?.Dispose();
+        _playCts?.Cancel();
+        _playCts?.Dispose();
+        CleanupPlayer();
+        GC.SuppressFinalize(this);
     }
 }

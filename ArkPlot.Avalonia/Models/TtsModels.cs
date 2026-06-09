@@ -14,7 +14,7 @@ public partial class NovelFileItem : ObservableObject
     public string FilePath { get; }
     public string FileName { get; }
 
-    [ObservableProperty] private bool _isSelected = true;
+    [ObservableProperty] private bool _isSelected;
 
     public NovelFileItem(string filePath)
     {

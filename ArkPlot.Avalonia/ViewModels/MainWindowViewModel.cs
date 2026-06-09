@@ -728,7 +728,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void OpenTts()
     {
-        if (string.IsNullOrEmpty(activeTitle))
+        // 优先用当前选中的活动名，回退到上次 LoadMd 设置的 activeTitle
+        var actName = CurrentAct?.Name ?? activeTitle;
+
+        if (string.IsNullOrEmpty(actName))
         {
             ToastManager
                 .CreateToast()
@@ -741,7 +744,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        var storyOutputDir = Path.Combine(OutputPath, activeTitle);
+        var storyOutputDir = Path.Combine(OutputPath, actName);
 
         // 检测输出目录是否有小说化缓存
         var hasNovelCache = Directory.Exists(storyOutputDir)

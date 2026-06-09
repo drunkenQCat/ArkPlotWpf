@@ -52,9 +52,10 @@
             <ItemsControl ItemsSource="{Binding NovelFiles}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <CheckBox Content="{Binding FileName}"
-                            IsChecked="{Binding IsSelected}"
-                            Margin="4,2"/>
+                  <RadioButton Content="{Binding FileName}"
+                               IsChecked="{Binding IsSelected}"
+                               GroupName="NovelFile"
+                               Margin="4,2"/>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
@@ -134,7 +135,13 @@
         <ComboBox Grid.Column="0"
                   ItemsSource="{Binding Chapters}"
                   SelectedItem="{Binding SelectedChapter}"
-                  PlaceholderText="选择章节..."/>
+                  PlaceholderText="选择章节...">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DisplayText}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
         <Button Grid.Column="1" Content="◄"
                 Command="{Binding PrevChapterCommand}" Margin="4,0"/>
         <Button Grid.Column="2" Content="►"
