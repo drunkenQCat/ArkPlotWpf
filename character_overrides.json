@@ -1,0 +1,4 @@
+{
+  "_comment": "角色性别覆盖配置。用于修正 PicDescription 性别推断不准确的情况。",
+  "_example": { "gender": "女" }
+}

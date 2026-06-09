@@ -1,0 +1,9 @@
+{
+  "csharp": {
+    "command": ".lsp-server\\Microsoft.CodeAnalysis.LanguageServer.exe",
+    "args": ["--stdio", "--autoLoadProjects"],
+    "extensionToLanguage": {
+      ".cs": "csharp"
+    }
+  }
+}

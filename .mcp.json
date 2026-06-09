@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sharplens": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "sharplens-mcp"],
+      "env": {
+        "DOTNET_SOLUTION_PATH": "C:\\TechProjects\\About_MyRepos\\ArkPlot\\ArkPlot.sln"
+      }
+    }
+  }
+}

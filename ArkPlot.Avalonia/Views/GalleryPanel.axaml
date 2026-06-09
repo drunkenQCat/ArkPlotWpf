@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="220"
+             x:Class="ArkPlot.Avalonia.Views.GalleryPanel"
+             x:DataType="vm:TtsViewModel">
+  <Border Height="220" BorderBrush="#20FFFFFF"
+          BorderThickness="1" CornerRadius="8" ClipToBounds="True"
+          Background="#404040">
+    <Grid ColumnDefinitions="*,8*,*" Margin="0,4">
+      <!-- 左图 10% 裁剪 (默认灰色) -->
+      <Border Grid.Column="0" CornerRadius="4" ClipToBounds="True"
+              Margin="4,0,0,0" Opacity="0.5">
+        <Grid>
+          <Border Background="#383838"/>
+          <Image asyncImageLoader:ImageLoader.Source="{Binding PrevBackground}"
+                 Stretch="UniformToFill"
+                 HorizontalAlignment="Center"
+                 IsVisible="{Binding HasPrevBackground}"/>
+        </Grid>
+      </Border>
+
+      <!-- 中心 100% -->
+      <Grid Grid.Column="1" Margin="8,0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 上文 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,4">
+          <TextBlock Text="{Binding UpperContext1}" FontSize="11"
+                     Opacity="0.3" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Text="{Binding UpperContext2}" FontSize="12"
+                     Opacity="0.5" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+
+        <!-- 中心背景图 (默认灰色) -->
+        <Border Grid.Row="1" CornerRadius="4" ClipToBounds="True">
+          <Grid>
+            <Border Background="#505050"/>
+            <Image asyncImageLoader:ImageLoader.Source="{Binding CurrentBackground}"
+                   Stretch="Uniform"
+                   IsVisible="{Binding HasCurrentBackground}">
+              <Image.OpacityMask>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                  <GradientStop Color="#FF000000" Offset="0.05"/>
+                  <GradientStop Color="#FF000000" Offset="0.95"/>
+                  <GradientStop Color="#00000000" Offset="1"/>
+                </LinearGradientBrush>
+              </Image.OpacityMask>
+            </Image>
+          </Grid>
+        </Border>
+        <!-- PicDesc tooltip -->
+        <ToolTip.Tip>
+          <TextBlock Text="{Binding CurrentPicDescription}"
+                     MaxWidth="300" TextWrapping="Wrap"/>
+        </ToolTip.Tip>
+
+        <!-- 下文 -->
+        <StackPanel Grid.Row="2" Margin="0,4,0,0">
+          <TextBlock Text="{Binding LowerContext1}" FontSize="12"
+                     Opacity="0.5" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Text="{Binding LowerContext2}" FontSize="11"
+                     Opacity="0.3" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+      </Grid>
+
+      <!-- 右图 10% 裁剪 (默认灰色) -->
+      <Border Grid.Column="2" CornerRadius="4" ClipToBounds="True"
+              Margin="0,0,4,0" Opacity="0.5">
+        <Grid>
+          <Border Background="#484848"/>
+          <Image asyncImageLoader:ImageLoader.Source="{Binding NextBackground}"
+                 Stretch="UniformToFill"
+                 HorizontalAlignment="Center"
+                 IsVisible="{Binding HasNextBackground}"/>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

@@ -263,25 +263,24 @@ public static class VerifyTtsRunner
         }
 
         // ── Step 8: 背景图提取 ──
-        Console.WriteLine("\n── Step 8: 背景图提取 (charslot ResourceUrls) ──");
+        Console.WriteLine("\n── Step 8: 背景图提取 (charslot.Bg) ──");
         try
         {
             var db = DbFactory.GetClient();
-            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再过滤
             var allCharSlots = await db.Queryable<FormattedTextEntry>()
                 .Where(e => e.Type == "charslot")
                 .OrderBy(e => e.Index)
                 .ToListAsync();
 
             var charSlots = allCharSlots
-                .Where(e => e.ResourceUrls != null && e.ResourceUrls.Count > 0)
+                .Where(e => !string.IsNullOrEmpty(e.Bg))
                 .Take(10)
                 .ToList();
 
             Console.WriteLine($"  charslot 带背景图: {charSlots.Count} 条 (前10)");
             foreach (var cs in charSlots.Take(5))
             {
-                var url = cs.ResourceUrls.FirstOrDefault() ?? "";
+                var url = cs.Bg ?? "";
                 var shortUrl = url.Length > 60 ? url[..57] + "..." : url;
                 Console.WriteLine($"    [{cs.Index}] {shortUrl}");
             }
@@ -308,32 +307,55 @@ public static class VerifyTtsRunner
         try
         {
             var db = DbFactory.GetClient();
-            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再过滤
-            var allEntries = await db.Queryable<FormattedTextEntry>()
-                .Take(500)
+            
+            // 查询所有 charslot 条目（SqlSugar 不支持 .Count 在 WHERE 中）
+            var allCharSlots = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Type == "charslot")
                 .ToListAsync();
 
-            var withPortraits = allEntries
-                .Where(e => e.Portraits != null && e.Portraits.Count > 0)
-                .Take(10)
+            // 在内存中过滤有真实立绘的条目
+            var realPortraits = allCharSlots
+                .Where(e => e.Portraits != null && e.Portraits.Any(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png")))
+                .Take(5)
                 .ToList();
 
-            Console.WriteLine($"  带立绘的条目: {withPortraits.Count} 条 (前10)");
-            foreach (var p in withPortraits.Take(5))
+            var totalCount = allCharSlots.Count(e => e.Portraits != null && e.Portraits.Any(p => !p.Contains("transparent.png")));
+            Console.WriteLine($"  charslot 带真实立绘: {totalCount} 条");
+            foreach (var p in realPortraits)
             {
-                var portrait = p.Portraits.FirstOrDefault() ?? "";
+                var portrait = p.Portraits
+                    .FirstOrDefault(pt => !string.IsNullOrEmpty(pt) && !pt.Contains("transparent.png")) ?? "(transparent)";
                 var shortUrl = portrait.Length > 60 ? portrait[..57] + "..." : portrait;
-                Console.WriteLine($"    [{p.Index}] {p.CharacterName ?? "?"} → {shortUrl}");
+                var charName = p.CommandSet.ContainsKey("name") ? p.CommandSet["name"] : "?";
+                Console.WriteLine($"    [{p.Index}] {charName} → {shortUrl}");
             }
 
-            if (withPortraits.Count > 0)
+            // 测试直接按 Index 查询（与 UI 相同逻辑）
+            if (realPortraits.Count > 0)
+            {
+                var testIndex = realPortraits[0].Index;
+                var byIndex = await db.Queryable<FormattedTextEntry>()
+                    .Where(e => e.Index == testIndex)
+                    .FirstAsync();
+
+                if (byIndex != null && byIndex.Portraits != null && byIndex.Portraits.Count > 0)
+                {
+                    var realPortrait = byIndex.Portraits
+                        .FirstOrDefault(pt => !string.IsNullOrEmpty(pt) && !pt.Contains("transparent.png"));
+                    Console.WriteLine($"\n  按 Index={testIndex} 直接查询: {(realPortrait != null ? "✅ 命中" : "⚠️ 仅transparent")}");
+                    if (realPortrait != null)
+                        Console.WriteLine($"    URL: {realPortrait[..Math.Min(60, realPortrait.Length)]}");
+                }
+            }
+
+            if (realPortraits.Count > 0)
             {
                 Console.WriteLine("  ✅ 立绘加载正常");
-                report.Pass("立绘加载", $"{withPortraits.Count}条");
+                report.Pass("立绘加载", $"{totalCount}条真实立绘");
             }
             else
             {
-                Console.WriteLine("  ⚠️ 无立绘数据（可能 DB 未填充）");
+                Console.WriteLine("  ⚠️ 无真实立绘数据（可能 DB 未填充）");
                 report.Warn("立绘加载", "无数据");
             }
         }

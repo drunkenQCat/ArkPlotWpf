@@ -53,6 +53,18 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string? _currentPortrait;
     [ObservableProperty] private string _currentSpeaker = "";
 
+    /// <summary>是否有立绘图片。</summary>
+    public bool HasPortrait => !string.IsNullOrEmpty(CurrentPortrait);
+
+    /// <summary>无立绘时占位块透明度。</summary>
+    public double PortraitPlaceholderOpacity => HasPortrait ? 0 : 1;
+
+    partial void OnCurrentPortraitChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasPortrait));
+        OnPropertyChanged(nameof(PortraitPlaceholderOpacity));
+    }
+
     // ── Gallery ──
     [ObservableProperty] private string? _currentBackground;
     [ObservableProperty] private string? _prevBackground;
@@ -62,6 +74,19 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _upperContext2 = "";
     [ObservableProperty] private string _lowerContext1 = "";
     [ObservableProperty] private string _lowerContext2 = "";
+
+    /// <summary>是否有当前背景图。</summary>
+    public bool HasCurrentBackground => !string.IsNullOrEmpty(CurrentBackground);
+
+    /// <summary>是否有上一张背景图。</summary>
+    public bool HasPrevBackground => !string.IsNullOrEmpty(PrevBackground);
+
+    /// <summary>是否有下一张背景图。</summary>
+    public bool HasNextBackground => !string.IsNullOrEmpty(NextBackground);
+
+    partial void OnCurrentBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasCurrentBackground));
+    partial void OnPrevBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasPrevBackground));
+    partial void OnNextBackgroundChanged(string? value) => OnPropertyChanged(nameof(HasNextBackground));
 
     // ── 日志 ──
     [ObservableProperty] private string _logText = "";
@@ -196,38 +221,35 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         {
             var db = DbFactory.GetClient();
 
-            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再内存过滤
+            // 从 FormattedTextEntry 中找 charslot 类型且有 Bg 字段的条目
             var allCharSlots = await db.Queryable<FormattedTextEntry>()
                 .Where(e => e.Type == "charslot")
                 .ToListAsync();
 
-            var filteredEntries = allCharSlots
-                .Where(e => e.ResourceUrls != null && e.ResourceUrls.Count > 0)
+            var withBg = allCharSlots
+                .Where(e => !string.IsNullOrEmpty(e.Bg))
+                .OrderBy(e => e.Index)
                 .ToList();
 
             var picDescs = await db.Queryable<PicDescription>().ToListAsync();
             var picDescMap = picDescs.ToDictionary(p => p.DedupKey ?? "", p => p.PicDesc ?? "");
 
-            // 按 Index 排序，关联到对齐结果
-            foreach (var fte in filteredEntries.OrderBy(e => e.Index))
+            // 关联到对齐结果
+            foreach (var cs in withBg)
             {
-                var bgUrl = fte.ResourceUrls.FirstOrDefault();
-                if (string.IsNullOrEmpty(bgUrl)) continue;
-
                 var picDesc = "";
-                if (!string.IsNullOrEmpty(fte.CharacterCode) &&
-                    picDescMap.TryGetValue(fte.CharacterCode, out var desc))
+                if (!string.IsNullOrEmpty(cs.CharacterCode) &&
+                    picDescMap.TryGetValue(cs.CharacterCode, out var desc))
                     picDesc = desc;
 
-                _backgrounds.Add(new BackgroundItem(bgUrl, picDesc, fte.Index, []));
+                // 关联到对齐结果
+                _backgrounds.Add(new BackgroundItem(cs.Bg, picDesc, cs.Index, []));
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 背景加载失败不影响核心功能
+            Log($"背景图加载失败: {ex.Message}");
         }
-
-        await Task.CompletedTask;
     }
 
     private void BuildVoiceConfigs()
@@ -456,7 +478,7 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
                 SelectedSegment = seg;
 
                 // 加载立绘
-                CurrentPortrait = await LoadPortraitAsync(seg.CharacterCode);
+                CurrentPortrait = await LoadPortraitAsync(seg.EntryIndex);
 
                 // 更新 Gallery
                 UpdateGalleryForSegment(seg);
@@ -686,38 +708,28 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>从 FormattedTextEntry.Portraits 加载角色立绘 URL。</summary>
-    private async Task<string?> LoadPortraitAsync(string? characterCode)
+    private async Task<string?> LoadPortraitAsync(int entryIndex)
     {
-        if (string.IsNullOrEmpty(characterCode)) return null;
+        if (entryIndex < 0) return null;
         try
         {
             var db = DbFactory.GetClient();
-            var baseCode = characterCode.Split('#')[0];
 
-            // SqlSugar 不支持 JSON 列的 .Count > 0 在 WHERE 中，先查再内存过滤
-            var charSlotEntries = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.Type == "charslot")
-                .ToListAsync();
+            // 直接按 Index 查询对应的 FormattedTextEntry
+            var entry = await db.Queryable<FormattedTextEntry>()
+                .Where(e => e.Index == entryIndex)
+                .FirstAsync();
 
-            var withPortraits = charSlotEntries
-                .Where(e => e.Portraits != null && e.Portraits.Count > 0)
-                .OrderByDescending(e => e.Index)
-                .FirstOrDefault();
+            if (entry != null && entry.Portraits != null && entry.Portraits.Count > 0)
+            {
+                // 取第一个非 transparent 的立绘
+                var portraitUrl = entry.Portraits
+                    .FirstOrDefault(p => !string.IsNullOrEmpty(p) && !p.Contains("transparent.png"));
+                
+                return portraitUrl;
+            }
 
-            if (withPortraits != null && withPortraits.Portraits.Count > 0)
-                return withPortraits.Portraits[0];
-
-            // Fallback: 从任何包含角色名的条目中找
-            var allEntries = await db.Queryable<FormattedTextEntry>()
-                .Where(e => e.CharacterName != null)
-                .ToListAsync();
-
-            var fallback = allEntries
-                .Where(e => e.CharacterName!.Contains(baseCode)
-                    && e.Portraits != null && e.Portraits.Count > 0)
-                .FirstOrDefault();
-
-            return fallback?.Portraits.FirstOrDefault();
+            return null;
         }
         catch
         {

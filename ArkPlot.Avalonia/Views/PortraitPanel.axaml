@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="296" d:DesignHeight="200"
+             x:Class="ArkPlot.Avalonia.Views.PortraitPanel"
+             x:DataType="vm:TtsViewModel">
+  <Border Height="200" CornerRadius="8" ClipToBounds="True"
+          Background="#404040">
+    <Grid>
+      <!-- 默认灰色占位 -->
+      <Border Background="#555555" Opacity="{Binding PortraitPlaceholderOpacity}"/>
+
+      <!-- 立绘图片 -->
+      <Image asyncImageLoader:ImageLoader.Source="{Binding CurrentPortrait}"
+             Stretch="UniformToFill"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             IsVisible="{Binding HasPortrait}">
+        <Image.OpacityMask>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#00000000" Offset="0"/>
+            <GradientStop Color="#FF000000" Offset="0.15"/>
+            <GradientStop Color="#FF000000" Offset="0.85"/>
+            <GradientStop Color="#00000000" Offset="1"/>
+          </LinearGradientBrush>
+        </Image.OpacityMask>
+      </Image>
+
+      <!-- 角色名 -->
+      <TextBlock Text="{Binding CurrentSpeaker}"
+                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                 FontSize="14" FontWeight="SemiBold"
+                 Margin="0,0,0,8" Opacity="0.8"
+                 IsVisible="{Binding HasPortrait}"/>
+    </Grid>
+  </Border>
+</UserControl>

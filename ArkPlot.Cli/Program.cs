@@ -94,6 +94,44 @@ if (args.Length > 0 && args[0].Equals("verify-tts", StringComparison.OrdinalIgno
     return;
 }
 
+if (args.Length > 0 && args[0].Equals("diagnose-tts-assets", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 2)
+    {
+        Console.Error.WriteLine("用法: ArkPlot.Cli diagnose-tts-assets <act_name>");
+        Console.Error.WriteLine("  诊断立绘和背景图在 DB 中的真实数据");
+        return;
+    }
+    await DiagnoseTtsAssetsRunner.RunAsync(args[1]);
+    return;
+}
+
+if (args.Length > 0 && args[0].Equals("simulate-tts-click", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 3)
+    {
+        Console.Error.WriteLine("用法: ArkPlot.Cli simulate-tts-click <novel_file.md> <角色名> [点击第几行]");
+        Console.Error.WriteLine("  模拟点击某角色的一行，验证立绘和 Gallery 组件输入");
+        return;
+    }
+    int clickRow = args.Length >= 4 && int.TryParse(args[3], out var r) ? r : 3;
+    await SimulateTtsClickRunner.RunAsync(args[1], args[2], clickRow);
+    return;
+}
+
+if (args.Length > 0 && args[0].Equals("verify-tts-component-inputs", StringComparison.OrdinalIgnoreCase))
+{
+    if (args.Length < 3)
+    {
+        Console.Error.WriteLine("用法: ArkPlot.Cli verify-tts-component-inputs <novel_file.md> <角色名>");
+        Console.Error.WriteLine("  自动化验证立绘和 Gallery 组件输入是否正确");
+        return;
+    }
+    var exitCode = await VerifyTtsComponentInputsRunner.RunAsync(args[1], args[2]);
+    Environment.Exit(exitCode);
+    return;
+}
+
 // 清空旧的 PicDescription 记录
 var db = DbFactory.GetClient();
 var before = db.Queryable<PicDescription>().Count();
