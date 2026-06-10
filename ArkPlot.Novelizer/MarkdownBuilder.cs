@@ -13,7 +13,9 @@ public static partial class MarkdownBuilder
     /// </summary>
     public static string PreprocessMdContent(string rawMd)
     {
-        var text = HtmlTagRegex().Replace(rawMd, "");
+        var text = HttpsSrcQuotedUrlRegex().Replace(rawMd, "$1$2");
+        text = HttpsSrcUnquotedUrlRegex().Replace(text, "$1");
+        text = HtmlTagRegex().Replace(text, "");
 
         // 去掉表格分隔线（|---|---|之类）
         text = TableSeparatorRegex().Replace(text, "");
@@ -39,7 +41,8 @@ public static partial class MarkdownBuilder
             // 跳过分隔线
             if (text.Trim() == "---") continue;
 
-            // 去除 HTML 标签（img、audio、source 等）
+            text = HttpsSrcQuotedUrlRegex().Replace(text, "$1$2");
+            text = HttpsSrcUnquotedUrlRegex().Replace(text, "$1");
             text = HtmlTagRegex().Replace(text, "");
 
             // 清理多余空行
@@ -74,6 +77,12 @@ public static partial class MarkdownBuilder
 
     [GeneratedRegex(@"<[^>]+>")]
     private static partial Regex HtmlTagRegex();
+
+    [GeneratedRegex("(?i)(src\\s*=\\s*[\"'])https://[^\"']+([\"'])")]
+    private static partial Regex HttpsSrcQuotedUrlRegex();
+
+    [GeneratedRegex("(?i)(src\\s*=\\s*)https://[^\\s>]+")]
+    private static partial Regex HttpsSrcUnquotedUrlRegex();
 
     [GeneratedRegex(@"^\|?[-:|\s]+\|?$", RegexOptions.Multiline)]
     private static partial Regex TableSeparatorRegex();

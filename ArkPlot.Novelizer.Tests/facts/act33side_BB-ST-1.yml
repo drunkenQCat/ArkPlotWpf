@@ -1,0 +1,23 @@
+sample_id: act33side_first_chapter
+act_id: act33side
+activity_name: 巴别塔
+story_code: BB-ST-1
+story_name: 未完成的告别
+avg_tag: 幕间
+plot_id: 69
+entry_count: 452
+
+# TODO: 由后续 agent 补全以下字段
+required_characters:
+  - TODO
+
+required_scenes:
+  - TODO
+
+required_events:
+  - TODO
+
+forbidden_failures:
+  - 混淆角色标签
+  - 将多场景压缩为摘要
+  - 漏掉核心背景切换

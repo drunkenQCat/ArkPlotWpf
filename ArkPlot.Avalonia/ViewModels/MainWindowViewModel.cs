@@ -423,6 +423,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 else
                 {
                     var apiKey = vision.GetApiKeyForProvider(providerName);
+                    if (string.IsNullOrEmpty(apiKey))
+                        apiKey = settings.GetApiKey(providerName);
                     var baseUrl = vision.GetBaseUrlForProvider(providerName);
 
                     if (string.IsNullOrEmpty(apiKey))

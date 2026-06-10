@@ -1,4 +1,27 @@
-# Novelizer 提示词打擂台评测工作流
+# Novelizer 提示词评测工作流（历史版本）
+
+> 状态说明：
+> - 本文档保留为早期“静态 Markdown + 单 prompt 打擂台”方案的历史记录。
+> - 它**不再是当前主流程规范**。
+> - 当前唯一标准请以 `ArkPlot.Avalonia` 的 `LoadMd -> ExportDocuments -> RunNovelizerIfEnabled` 为准。
+> - 当前正式设计与 bootstrap 实现请优先查看 `PROMPT_EVAL_DB_DRIVEN_DESIGN.md`。
+
+## 当前口径
+
+当前评测与 bootstrap 必须遵守以下原则：
+
+1. 主输入源是数据库，而不是 `samples/*.md`
+2. `PicDesc` 会动态参与 Markdown 导出，因此 `Vision prompt` 必须纳入端到端评测
+3. 允许在“仅修改 Novelizer prompt”时复用历史缓存
+4. 正式评测产物至少包括：
+   - 导出的 `md`
+   - `PicDesc` 快照或表内结果
+   - 最终 `novel md`
+5. 若本文与 `PROMPT_EVAL_DB_DRIVEN_DESIGN.md` 冲突，以后者为准
+
+---
+
+# 以下内容为历史方案存档
 
 ## 概述
 

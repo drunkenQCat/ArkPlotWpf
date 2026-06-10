@@ -1,0 +1,10 @@
+{
+  "BundleId": "00_baseline",
+  "DisplayName": "当前生产默认值",
+  "Kind": "baseline",
+  "Summary": "以当前 Novelizer 默认 system prompt + 当前 Vision 默认 system prompt 为基线。",
+  "NovelizerModelHint": "deepseek-v4-flash",
+  "VisionModelHint": "qwen3-vl-flash",
+  "ParentBundleId": "",
+  "ChangedDimension": "baseline"
+}

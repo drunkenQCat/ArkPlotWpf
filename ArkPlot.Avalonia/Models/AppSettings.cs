@@ -39,23 +39,31 @@ public record AppSettings(NovelizerSettings Novelizer, VisionSettings? Vision = 
     /// </summary>
     public static AppSettings Load()
     {
-        if (!File.Exists(FilePath))
+        return LoadFromFile(FilePath);
+    }
+
+    /// <summary>
+    /// 从指定路径加载配置；文件不存在或反序列化失败时自动生成默认值并保存到该路径。
+    /// </summary>
+    public static AppSettings LoadFromFile(string filePath)
+    {
+        if (!File.Exists(filePath))
         {
             var defaults = CreateDefaults();
-            defaults.Save();
+            defaults.SaveToFile(filePath);
             return defaults;
         }
 
         try
         {
-            var json = File.ReadAllText(FilePath);
+            var json = File.ReadAllText(filePath);
             var settings = JsonSerializer.Deserialize<AppSettings>(json, SerializeOptions);
             return settings ?? CreateDefaults();
         }
         catch
         {
             var defaults = CreateDefaults();
-            defaults.Save();
+            defaults.SaveToFile(filePath);
             return defaults;
         }
     }
@@ -65,8 +73,16 @@ public record AppSettings(NovelizerSettings Novelizer, VisionSettings? Vision = 
     /// </summary>
     public void Save()
     {
+        SaveToFile(FilePath);
+    }
+
+    /// <summary>
+    /// 保存配置到指定文件。
+    /// </summary>
+    public void SaveToFile(string filePath)
+    {
         var json = JsonSerializer.Serialize(this, SerializeOptions);
-        File.WriteAllText(FilePath, json);
+        File.WriteAllText(filePath, json);
     }
 
     /// <summary>
@@ -154,7 +170,7 @@ public record NovelizerSettings(
 
 ---
 
-**【即刻执行】** 请提供你需要改写的《明日方舟》AVG剧情脚本。我将直接输出符合上述标准的小说正文，不包含任何前言、后记或解释性说明。
+**【即刻执行】** 请提供你需要改写的《明日方舟》AVG剧情脚本。改写时注意：所有角色外貌描写必须用自己的语言重新表达，严禁照抄输入原文中的任何句子（特别是"站在空无一物的虚空中"等元描述必须删除）。直接输出小说正文，不包含任何前言、后记或解释性说明。
 """;
 
     /// <summary>

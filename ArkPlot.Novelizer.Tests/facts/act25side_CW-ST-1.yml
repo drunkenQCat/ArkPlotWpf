@@ -1,0 +1,23 @@
+sample_id: act25side_first_chapter
+act_id: act25side
+activity_name: 孤星
+story_code: CW-ST-1
+story_name: 阴云密布
+avg_tag: 幕间
+plot_id: 31
+entry_count: 826
+
+# TODO: 由后续 agent 补全以下字段
+required_characters:
+  - TODO
+
+required_scenes:
+  - TODO
+
+required_events:
+  - TODO
+
+forbidden_failures:
+  - 混淆角色标签
+  - 将多场景压缩为摘要
+  - 漏掉核心背景切换

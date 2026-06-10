@@ -490,3 +490,4 @@ $RECYCLE.BIN/
 .env
 .qwen/
 .reasonix/
+ArkPlot.Novelizer.Tests/bootstrap/current_prompts
