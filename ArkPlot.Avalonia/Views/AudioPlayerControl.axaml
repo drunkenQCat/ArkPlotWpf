@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkPlot.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="60"
+             x:Class="ArkPlot.Avalonia.Views.AudioPlayerControl"
+             x:DataType="vm:AudioPlayerViewModel">
+  <UserControl.Styles>
+    <Style Selector="Slider">
+      <Setter Property="Height" Value="28"/>
+    </Style>
+    <Style Selector="Slider /template/ Track#PART_Track">
+      <Setter Property="Height" Value="4"/>
+    </Style>
+    <Style Selector="Slider /template/ Thumb#PART_Thumb">
+      <Setter Property="Width" Value="12"/>
+      <Setter Property="Height" Value="12"/>
+    </Style>
+  </UserControl.Styles>
+  <Border Background="#303030" CornerRadius="6" Padding="10,6">
+    <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+
+      <Button Grid.Column="0"
+              Content="{Binding PlayButtonText}"
+              Command="{Binding TogglePlayCommand}"
+              Width="28" Height="28"
+              FontSize="14"
+              Padding="0"
+              HorizontalContentAlignment="Center"
+              VerticalContentAlignment="Center"
+              Margin="0,0,8,0"/>
+
+      <Slider Grid.Column="1"
+              Minimum="0"
+              Maximum="{Binding Duration}"
+              Value="{Binding Position, Mode=TwoWay}"
+              VerticalAlignment="Center"/>
+
+      <TextBlock Grid.Column="2"
+                 Margin="8,0,0,0"
+                 VerticalAlignment="Center"
+                 FontSize="11"
+                 FontFamily="Consolas">
+        <Run Text="{Binding CurrentTimeText}"/>
+        <Run Text=" / "/>
+        <Run Text="{Binding TotalTimeText}"/>
+      </TextBlock>
+
+    </Grid>
+  </Border>
+</UserControl>

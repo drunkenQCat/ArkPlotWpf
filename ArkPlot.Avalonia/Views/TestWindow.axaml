@@ -16,6 +16,11 @@
       <testViews:PortraitTestPanel x:Name="PortraitTestTab"/>
     </TabItem>
 
+    <!-- 音频播放测试 -->
+    <TabItem Header="音频播放">
+      <testViews:AudioTestPanel x:Name="AudioTestTab"/>
+    </TabItem>
+
     <!-- 未来可加更多 Tab -->
     <TabItem Header="Gallery (待做)" IsEnabled="False">
       <TextBlock Text="GalleryPanel 测试待实现" Margin="16" Opacity="0.5"/>

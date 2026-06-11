@@ -191,8 +191,24 @@ public class TtsWindowHeadlessTests : IDisposable
             .Select(b => b.Content?.ToString() ?? "")
             .ToList();
 
-        Assert.Contains(buttons, b => b.Contains("开始生成"));
+        Assert.Contains(buttons, b => b.Contains("生成整章"));
         Assert.Contains(buttons, b => b.Contains("取消"));
+    }
+
+    [AvaloniaFact]
+    public void TtsWindow_DataGrid_HasContextMenuAndExtendedSelection()
+    {
+        var vm = new TtsViewModel(_tempDir);
+        var window = new TtsWindow(vm);
+        window.Show();
+
+        var dataGrid = window.GetVisualDescendants()
+            .OfType<DataGrid>()
+            .FirstOrDefault();
+
+        Assert.NotNull(dataGrid);
+        Assert.Equal(DataGridSelectionMode.Extended, dataGrid.SelectionMode);
+        Assert.NotNull(dataGrid.ContextMenu);
     }
 
     [AvaloniaFact]
@@ -224,6 +240,25 @@ public class TtsWindowHeadlessTests : IDisposable
         Assert.False(row.HasAudio);
         Assert.Equal("— — — — —", row.AudioStatus);
         Assert.Equal(0.3, row.AudioOpacity);
+    }
+
+    [AvaloniaFact]
+    public void TtsViewModel_SelectedSegmentRows_IsInitiallyEmpty()
+    {
+        var vm = new TtsViewModel(_tempDir);
+        Assert.NotNull(vm.SelectedSegmentRows);
+        Assert.Empty(vm.SelectedSegmentRows);
+    }
+
+    [AvaloniaFact]
+    public void TtsViewModel_GenerateSelectedSegments_NoSelection_LogsWarning()
+    {
+        var vm = new TtsViewModel(_tempDir);
+        // 无选中行时执行命令应记录警告
+        vm.GenerateSelectedSegmentsCommand.Execute(null);
+        // 命令是 async 的，等待完成
+        System.Threading.Thread.Sleep(200);
+        Assert.Contains("请先选择", vm.LogText);
     }
 
     [AvaloniaFact]

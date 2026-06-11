@@ -36,6 +36,9 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private ObservableCollection<SegmentRow> _filteredSegments = [];
     [ObservableProperty] private SegmentRow? _selectedSegment;
 
+    /// <summary>DataGrid 多选时同步的选中行集合（由 View code-behind 更新）。</summary>
+    public ObservableCollection<SegmentRow> SelectedSegmentRows { get; } = [];
+
     // ── 音色配置选中项 ──
     [ObservableProperty] private VoiceConfigItem? _selectedVoiceConfig;
 
@@ -115,10 +118,6 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     private List<BackgroundItem> _backgrounds = [];
     private readonly VoiceManager _voiceManager = new();
     private readonly string _outputBaseDir;
-
-    // NAudio 播放器
-    private IWavePlayer? _wavePlayer;
-    private AudioFileReader? _audioReader;
 
     public TtsViewModel(string outputBaseDir)
     {
@@ -393,6 +392,9 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         }).ToList();
 
         FilteredSegments = new ObservableCollection<SegmentRow>(rows);
+
+        // 扫描已有音频文件，标记可播放的行
+        RefreshAudioStatus();
     }
 
     [RelayCommand]
@@ -418,6 +420,116 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private async Task StartGenerateAsync()
     {
+        if (FilteredSegments.Count == 0)
+        {
+            Log("⚠️ 当前没有可生成的片段");
+            return;
+        }
+
+        IsGenerating = true;
+        _generateCts = new CancellationTokenSource();
+        var ct = _generateCts.Token;
+
+        try
+        {
+            Directory.CreateDirectory(TtsOutputDir);
+            var cacheDir = Path.Combine(TtsOutputDir, "_tts_cache");
+
+            var engine = new EdgeTtsEngine();
+            var cache = new TtsCacheService(cacheDir);
+
+            using var pipeline = new TtsPipeline(engine, _voiceManager, cache);
+
+            var chapterSafe = SelectedChapter != null
+                ? sanitized(SelectedChapter.Title) : "unknown";
+            var chapterIdx = SelectedChapter?.Index ?? 0;
+            var fileNamePrefix = $"{chapterSafe}_{chapterIdx:D2}";
+
+            var segments = new List<TtsSegment>();
+            var segmentIndices = new List<int>();
+
+            foreach (var row in FilteredSegments)
+            {
+                var isDialog = row.SegmentType != "旁白";
+                var voice = pipeline.ResolveVoice(row.CharacterName, row.Gender, isDialog);
+                segments.Add(new TtsSegment(row.NovelText, voice,
+                    isDialog ? $"{row.CharacterName}({row.Gender ?? "?"})" : "旁白",
+                    row.ChapterTitle));
+                segmentIndices.Add(row.Index);
+            }
+
+            Log($"🎵 生成整章: {segments.Count} 个片段");
+            ProgressValue = 0;
+
+            var total = segments.Count;
+            var completed = 0;
+
+            var progress = new Progress<string>(msg => Log(msg));
+
+            var fileProgress = new Progress<(int Index, string FilePath)>(tuple =>
+            {
+                completed++;
+                ProgressValue = (double)completed / total * 100;
+                ProgressText = $"进度: {completed}/{total}";
+
+                // 直接更新对应行的音频状态
+                if (tuple.Index >= 0 && tuple.Index < FilteredSegments.Count)
+                {
+                    var row = FilteredSegments[tuple.Index];
+                    row.HasAudio = true;
+                    row.AudioFilePath = tuple.FilePath;
+                    row.AudioOpacity = 1.0;
+                    row.AudioStatus = "▂▃▅▆▇▅▃";
+
+                    try
+                    {
+                        using var reader = new AudioFileReader(tuple.FilePath);
+                        row.DurationText = reader.TotalTime.TotalSeconds.ToString("F1") + "s";
+                    }
+                    catch { row.DurationText = ""; }
+                }
+            });
+
+            var result = await pipeline.SynthesizeSegmentsAsync(
+                segments, segmentIndices, TtsOutputDir, fileNamePrefix, 1000, ct, progress, fileProgress);
+
+            Log($"✅ 完成: {result.Count} 个片段已生成");
+            ProgressValue = 100;
+            TotalProgressText = $"已生成 {result.Count} 个片段";
+        }
+        catch (OperationCanceledException)
+        {
+            Log("⚠️ 生成已取消");
+        }
+        catch (Exception ex)
+        {
+            Log($"❌ 生成失败: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+            _generateCts = null;
+        }
+    }
+
+    [RelayCommand]
+    private void Cancel()
+    {
+        _generateCts?.Cancel();
+    }
+
+    [RelayCommand]
+    private async Task GenerateSelectedSegmentsAsync()
+    {
+        var rows = SelectedSegmentRows.ToList();
+        if (rows.Count == 0 && SelectedSegment != null)
+            rows.Add(SelectedSegment);
+        if (rows.Count == 0)
+        {
+            Log("⚠️ 请先选择要生成的行");
+            return;
+        }
+
         var selectedFiles = NovelFiles.Where(f => f.IsSelected).Select(f => f.FilePath).ToList();
         if (selectedFiles.Count == 0)
         {
@@ -442,36 +554,56 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
 
             using var pipeline = new TtsPipeline(engine, _voiceManager, cache);
 
-            foreach (var filePath in selectedFiles)
+            // 计算文件名前缀：{章节安全名}_{章节索引:D2}
+            var chapterSafe = SelectedChapter != null
+                ? sanitized(SelectedChapter.Title) : "unknown";
+            var chapterIdx = SelectedChapter?.Index ?? 0;
+            var fileNamePrefix = $"{chapterSafe}_{chapterIdx:D2}";
+
+            var segments = new List<TtsSegment>();
+            var segmentIndices = new List<int>();
+            var rowByIndex = new Dictionary<int, SegmentRow>();
+
+            foreach (var row in rows)
             {
-                ct.ThrowIfCancellationRequested();
-
-                var request = new TtsRequest(
-                    TtsInputMode.NovelChapter,
-                    filePath,
-                    TtsOutputDir,
-                    RequestDelayMs: 1000);
-
-                Log($"🎵 开始生成: {Path.GetFileName(filePath)}");
-
-                var progress = new Progress<string>(msg =>
-                {
-                    Log(msg);
-                    // 简单解析进度
-                    if (msg.Contains("完成"))
-                        ProgressValue = 100;
-                });
-
-                var result = await pipeline.GenerateAsync(request, ct, progress);
-
-                Log($"✅ 完成: {result.OutputFiles.Count} 个文件, {result.TotalSegments} 个片段");
-
-                ProgressValue = 100;
-                TotalProgressText = $"已生成 {result.OutputFiles.Count} 个章节 MP3";
-
-                // 刷新音频状态
-                RefreshAudioStatus();
+                var isDialog = row.SegmentType != "旁白";
+                var voice = pipeline.ResolveVoice(row.CharacterName, row.Gender, isDialog);
+                var seg = new TtsSegment(row.NovelText, voice,
+                    isDialog ? $"{row.CharacterName}({row.Gender ?? "?"})" : "旁白",
+                    row.ChapterTitle);
+                segments.Add(seg);
+                segmentIndices.Add(row.Index);
+                rowByIndex[row.Index] = row;
             }
+
+            Log($"🎤 生成选中行: {rows.Count} 个片段");
+
+            var progress = new Progress<string>(msg => Log(msg));
+
+            var fileProgress = new Progress<(int Index, string FilePath)>(tuple =>
+            {
+                // Index 是 segments 列表中的位置（0-based）
+                if (tuple.Index >= 0 && tuple.Index < segmentIndices.Count
+                    && rowByIndex.TryGetValue(segmentIndices[tuple.Index], out var row))
+                {
+                    row.HasAudio = true;
+                    row.AudioFilePath = tuple.FilePath;
+                    row.AudioOpacity = 1.0;
+                    row.AudioStatus = "▂▃▅▆▇▅▃";
+
+                    try
+                    {
+                        using var reader = new AudioFileReader(tuple.FilePath);
+                        row.DurationText = reader.TotalTime.TotalSeconds.ToString("F1") + "s";
+                    }
+                    catch { row.DurationText = ""; }
+                }
+            });
+
+            var result = await pipeline.SynthesizeSegmentsAsync(
+                segments, segmentIndices, TtsOutputDir, fileNamePrefix, 1000, ct, progress, fileProgress);
+
+            Log($"✅ 完成: {result.Count}/{rows.Count} 个片段已生成");
         }
         catch (OperationCanceledException)
         {
@@ -486,12 +618,6 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
             IsGenerating = false;
             _generateCts = null;
         }
-    }
-
-    [RelayCommand]
-    private void Cancel()
-    {
-        _generateCts?.Cancel();
     }
 
     // ════════════════════════════════════════════
@@ -558,17 +684,12 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private void StopPlay()
     {
-        _wavePlayer?.Stop();
+        foreach (var seg in FilteredSegments.Where(s => s.IsPlaying))
+        {
+            seg.AudioPlayer.StopCommand.Execute(null);
+            seg.IsPlaying = false;
+        }
         _playCts?.Cancel();
-    }
-
-    private void CleanupPlayer()
-    {
-        _wavePlayer?.Stop();
-        _wavePlayer?.Dispose();
-        _wavePlayer = null;
-        _audioReader?.Dispose();
-        _audioReader = null;
     }
 
     private async Task PlayAudioFile(string filePath, CancellationToken ct)
@@ -576,31 +697,29 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             return;
 
+        var seg = FilteredSegments.FirstOrDefault(s => s.AudioFilePath == filePath);
+        if (seg == null) return;
+        var player = seg.AudioPlayer;
+
         try
         {
-            CleanupPlayer();
-            _audioReader = new AudioFileReader(filePath);
-            _wavePlayer = new WaveOutEvent();
-            _wavePlayer.Init(_audioReader);
-            _wavePlayer.Play();
+            player.LoadFile(filePath);
+            player.TogglePlayCommand.Execute(null);
 
-            // 轮询等待播放结束或取消
-            while (_wavePlayer.PlaybackState == PlaybackState.Playing)
+            while (player.IsPlaying)
             {
                 ct.ThrowIfCancellationRequested();
                 await Task.Delay(50, ct);
             }
-
-            CleanupPlayer();
         }
         catch (OperationCanceledException)
         {
-            CleanupPlayer();
+            player.StopCommand.Execute(null);
             throw;
         }
         catch
         {
-            CleanupPlayer();
+            player.StopCommand.Execute(null);
         }
     }
 
@@ -795,18 +914,55 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         LogText += $"[{DateTime.Now:HH:mm:ss}] {msg}\n";
     }
 
-    /// <summary>扫描输出目录，标记已有音频的片段。</summary>
+    /// <summary>扫描输出目录和缓存目录，标记已有音频的片段。</summary>
     private void RefreshAudioStatus()
     {
         if (!Directory.Exists(TtsOutputDir)) return;
-        var mp3Files = Directory.GetFiles(TtsOutputDir, "*.mp3");
-        if (mp3Files.Length == 0) return;
+
+        var mp3Files = Directory.Exists(TtsOutputDir)
+            ? Directory.GetFiles(TtsOutputDir, "*.mp3")
+            : [];
+        var cacheDir = Path.Combine(TtsOutputDir, "_tts_cache");
+
+        // 预计算章节前缀用于段级文件匹配
+        var chapterSafe = SelectedChapter != null
+            ? sanitized(SelectedChapter.Title) : "";
+        var chapterIdx = SelectedChapter?.Index ?? 0;
+        var chapterPrefix = $"{chapterSafe}_{chapterIdx:D2}";
 
         foreach (var seg in FilteredSegments)
         {
-            var chapterSafe = sanitized(seg.ChapterTitle);
-            var match = mp3Files.FirstOrDefault(f =>
-                Path.GetFileName(f).Contains(chapterSafe, StringComparison.OrdinalIgnoreCase));
+            string? match = null;
+
+            // 1. 优先匹配段级文件：{chapterPrefix}_{segIndex:D3}_*.mp3
+            var segPattern = $"{chapterPrefix}_{seg.Index:D3}_";
+            match = mp3Files.FirstOrDefault(f =>
+                Path.GetFileName(f).StartsWith(segPattern, StringComparison.OrdinalIgnoreCase));
+
+            // 2. 检查缓存目录（缓存命中的文件以哈希命名）
+            if (match == null && Directory.Exists(cacheDir))
+            {
+                var isDialog = seg.SegmentType != "旁白";
+                var voice = isDialog
+                    ? _voiceManager.GetVoiceForCharacter(seg.CharacterName, seg.Gender)
+                    : _voiceManager.GetNarratorVoice();
+                var sanitizedText = TextSanitizer.Sanitize(seg.NovelText);
+                if (!string.IsNullOrWhiteSpace(sanitizedText))
+                {
+                    var cacheKey = TtsCacheService.GetCacheKey(sanitizedText, voice);
+                    var cacheFile = Path.Combine(cacheDir, $"{cacheKey}.mp3");
+                    if (File.Exists(cacheFile))
+                        match = cacheFile;
+                }
+            }
+
+            // 3. 回退到章节级匹配（旧的合并 MP3）
+            if (match == null)
+            {
+                var chapterMatch = sanitized(seg.ChapterTitle);
+                match = mp3Files.FirstOrDefault(f =>
+                    Path.GetFileName(f).Contains(chapterMatch, StringComparison.OrdinalIgnoreCase));
+            }
 
             if (match != null)
             {
@@ -907,7 +1063,8 @@ public partial class TtsViewModel : ViewModelBase, IDisposable
         _generateCts?.Dispose();
         _playCts?.Cancel();
         _playCts?.Dispose();
-        CleanupPlayer();
+        foreach (var seg in FilteredSegments)
+            seg.Dispose();
         GC.SuppressFinalize(this);
     }
 }

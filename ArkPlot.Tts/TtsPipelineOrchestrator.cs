@@ -225,6 +225,104 @@ public class TtsPipeline : IDisposable
         }
     }
 
+    /// <summary>
+    /// 合成指定片段列表，每个片段输出为独立的 MP3 文件（不合并）。
+    /// 返回每个片段的输出文件路径列表。
+    /// </summary>
+    /// <param name="segments">待合成的片段列表。</param>
+    /// <param name="segmentIndices">每个片段对应的行号（1-based），用于文件命名。若为 null 则使用 1,2,3...。</param>
+    /// <param name="outputDir">输出目录。</param>
+    /// <param name="fileNamePrefix">文件名前缀（如 "孤星_01"），用于 RefreshAudioStatus 反向匹配。</param>
+    /// <param name="delayMs">请求间隔毫秒。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <param name="progress">进度回调。</param>
+    /// <param name="fileProgress">逐文件完成回调：(segmentIndex_0based, filePath)。缓存命中时 filePath 为缓存路径。</param>
+    public async Task<List<string>> SynthesizeSegmentsAsync(
+        List<TtsSegment> segments,
+        List<int>? segmentIndices,
+        string outputDir,
+        string fileNamePrefix = "",
+        int delayMs = 1000,
+        CancellationToken ct = default,
+        IProgress<string>? progress = null,
+        IProgress<(int Index, string FilePath)>? fileProgress = null)
+    {
+        Directory.CreateDirectory(outputDir);
+        var outputFiles = new List<string>();
+        bool isFirst = true;
+
+        for (int i = 0; i < segments.Count; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            var seg = segments[i];
+            var text = TextSanitizer.Sanitize(seg.Text);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                progress?.Report($"  [{i + 1}/{segments.Count}] 跳过（空文本）");
+                continue;
+            }
+
+            if (!isFirst && delayMs > 0)
+                await Task.Delay(delayMs, ct);
+            isFirst = false;
+
+            // 缓存查询
+            var cacheKey = TtsCacheService.GetCacheKey(text, seg.Voice, _rate, _volume);
+            var (hit, cachedPath) = _cache.TryGetCachedAudio(cacheKey);
+
+            var segIndex = segmentIndices != null && i < segmentIndices.Count
+                ? segmentIndices[i] : i + 1;
+            var safeName = SanitizeFileName(seg.Label).Replace(" ", "_");
+            var prefix = string.IsNullOrEmpty(fileNamePrefix) ? "" : $"{fileNamePrefix}_";
+            var outputPath = Path.Combine(outputDir, $"{prefix}{segIndex:D3}_{safeName}.mp3");
+
+            if (hit)
+            {
+                outputFiles.Add(cachedPath!);
+                fileProgress?.Report((i, cachedPath!));
+                progress?.Report($"  [{i + 1}/{segments.Count}] 📦 缓存命中 | {seg.Label}");
+                continue;
+            }
+
+            try
+            {
+                await _engine.SynthesizeAsync(text, seg.Voice, outputPath, _rate, _volume, ct);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                var msg = ex.Message.Length > 80 ? ex.Message[..80] : ex.Message;
+                progress?.Report($"  [{i + 1}/{segments.Count}] ⚠️ 失败（{ex.GetType().Name}: {msg}）");
+                continue;
+            }
+
+            if (!File.Exists(outputPath) || new FileInfo(outputPath).Length == 0)
+            {
+                progress?.Report($"  [{i + 1}/{segments.Count}] ⚠️ 跳过（空文件）");
+                continue;
+            }
+
+            try { _cache.SaveToCache(cacheKey, outputPath); } catch { }
+
+            outputFiles.Add(outputPath);
+            fileProgress?.Report((i, outputPath));
+            progress?.Report($"  [{i + 1}/{segments.Count}] 🎤 {seg.Voice.Replace("Neural", "")} | {seg.Label}");
+        }
+
+        return outputFiles;
+    }
+
+    /// <summary>
+    /// 根据角色名和性别解析音色。
+    /// </summary>
+    public string ResolveVoice(string? characterName, string? gender, bool isDialog)
+    {
+        if (!isDialog) return _voices.GetNarratorVoice();
+        if (!string.IsNullOrEmpty(characterName)) return _voices.GetVoiceForCharacter(characterName, gender);
+        if (!string.IsNullOrEmpty(gender)) return _voices.GetVoiceForGender(gender);
+        return _voices.GetFallbackVoice();
+    }
+
     #region 输入解析
 
     private async Task<List<TtsSegment>> LoadNovelChapterSegments(TtsRequest request, IProgress<string>? progress)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using ArkPlot.Avalonia.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -60,7 +61,7 @@ public partial class ChapterItem : ObservableObject
 }
 
 /// <summary>片段行（表格中的一行）。</summary>
-public partial class SegmentRow : ObservableObject
+public partial class SegmentRow : ObservableObject, IDisposable
 {
     public int Index { get; set; }
     public string CharacterName { get; set; } = "";
@@ -73,6 +74,18 @@ public partial class SegmentRow : ObservableObject
     /// <summary>对应的 FormattedTextEntry.Index，用于 Gallery 联动。</summary>
     public int EntryIndex { get; set; } = -1;
 
+    /// <summary>行级音频播放器（懒初始化，有音频时才创建）。</summary>
+    private AudioPlayerViewModel? _audioPlayer;
+    public AudioPlayerViewModel AudioPlayer => _audioPlayer ??= new AudioPlayerViewModel(
+        filePathProvider: () => AudioFilePath);
+
+    partial void OnAudioFilePathChanged(string value)
+    {
+        if (string.IsNullOrEmpty(value) || !System.IO.File.Exists(value)) return;
+        try { AudioPlayer.LoadFile(value); }
+        catch { /* 非音频文件或格式不支持，静默跳过 */ }
+    }
+
     [ObservableProperty] private bool _hasAudio;
     [ObservableProperty] private string _audioFilePath = "";
     [ObservableProperty] private string _durationText = "";
@@ -84,6 +97,12 @@ public partial class SegmentRow : ObservableObject
     public void PlaySingle()
     {
         // 单段播放由 ViewModel 处理
+    }
+
+    public void Dispose()
+    {
+        _audioPlayer?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

@@ -9,5 +9,6 @@ public partial class TestWindow : SukiWindow
     {
         InitializeComponent();
         PortraitTestTab.DataContext = new PortraitTestViewModel();
+        AudioTestTab.DataContext = new AudioTestViewModel();
     }
 }

@@ -87,7 +87,7 @@
         <!-- 按钮 -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
                     HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,8">
-          <Button Content="开始生成" Command="{Binding StartGenerateCommand}"
+          <Button Content="生成整章" Command="{Binding StartGenerateCommand}"
                   IsEnabled="{c:Binding !IsGenerating}"
                   Width="120" Classes="Rounded Accent"/>
           <Button Content="取消" Command="{Binding CancelCommand}"
@@ -133,19 +133,19 @@
       <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}"
                Watermark="搜索片段或角色名..." Margin="0,0,0,8"/>
 
-      <!-- 播放/暂停按钮 -->
+      <!-- 连播控制 -->
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
                   HorizontalAlignment="Center" Spacing="8" Margin="0,0,0,8">
         <Button Content="{Binding PlayButtonText}"
                 Command="{Binding PlayFromSelectedCommand}"
                 IsEnabled="{c:Binding !IsGenerating}"
                 HorizontalAlignment="Center"
-                Height="40" MinWidth="200" FontSize="16"
+                Height="36" MinWidth="180" FontSize="14"
                 Classes="Rounded Accent"/>
         <Button Content="■ 停止"
                 Command="{Binding StopPlayCommand}"
                 IsEnabled="{Binding IsPlaying}"
-                Height="40" Width="80" FontSize="16"
+                Height="36" Width="70" FontSize="14"
                 Classes="Rounded"/>
       </StackPanel>
 
@@ -162,14 +162,23 @@
       <Grid RowDefinitions="*,Auto">
         <!-- 片段表格 -->
         <DataGrid Grid.Row="0"
+                  x:Name="SegmentsDataGrid"
                   ItemsSource="{Binding FilteredSegments}"
                   SelectedItem="{Binding SelectedSegment}"
+                  SelectionMode="Extended"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   CanUserResizeColumns="True"
                   CanUserSortColumns="False"
                   GridLinesVisibility="Horizontal"
                   Margin="0,0,0,8">
+          <DataGrid.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="生成选中行"
+                        Command="{Binding $parent[DataGrid].((vm:TtsViewModel)DataContext).GenerateSelectedSegmentsCommand}"
+                        IsEnabled="{c:Binding !$parent[DataGrid].((vm:TtsViewModel)DataContext).IsGenerating}"/>
+            </ContextMenu>
+          </DataGrid.ContextMenu>
           <DataGrid.Columns>
             <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40"/>
             <DataGridTextColumn Header="角色" Binding="{Binding CharacterName}" Width="100"/>
@@ -193,18 +202,17 @@
             <DataGridTemplateColumn Header="音频" Width="*">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="4"
-                              VerticalAlignment="Center">
-                    <Button Content="▶" IsVisible="{Binding HasAudio}"
-                            Command="{Binding PlaySingleCommand}"
-                            Classes="Flat" Padding="4,0" FontSize="10"/>
-                    <TextBlock Text="{Binding AudioStatus}"
+                  <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" Margin="2,1">
+                    <Border Grid.Column="0" IsVisible="{Binding HasAudio}">
+                      <views:AudioPlayerControl DataContext="{Binding AudioPlayer}"
+                                                MinWidth="200"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" IsVisible="{c:Binding !HasAudio}"
+                               Text="{Binding AudioStatus}"
                                VerticalAlignment="Center"
-                               Opacity="{Binding AudioOpacity}"/>
-                    <TextBlock Text="{Binding DurationText}"
-                               VerticalAlignment="Center"
-                               Opacity="0.5" FontSize="11"/>
-                  </StackPanel>
+                               Opacity="{Binding AudioOpacity}"
+                               Margin="4,0"/>
+                  </Grid>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>

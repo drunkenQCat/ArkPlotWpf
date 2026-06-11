@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkPlot.Avalonia.ViewModels.Test"
+             xmlns:views="using:ArkPlot.Avalonia.Views"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="520"
+             x:Class="ArkPlot.Avalonia.Views.Test.AudioTestPanel"
+             x:DataType="vm:AudioTestViewModel">
+  <DockPanel Margin="16">
+
+    <!-- 顶部状态 -->
+    <TextBlock DockPanel.Dock="Top"
+               Text="{Binding StatusText}"
+               FontSize="12" Opacity="0.6"
+               Margin="0,0,0,8"/>
+
+    <!-- 底部播放器 -->
+    <views:AudioPlayerControl DockPanel.Dock="Bottom"
+                              DataContext="{Binding Player}"
+                              Margin="0,8,0,0"/>
+
+    <!-- MP3 文件列表 -->
+    <ListBox ItemsSource="{Binding Mp3Files}"
+             SelectedItem="{Binding SelectedFile}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="{Binding}"
+                     TextTrimming="CharacterEllipsis"
+                     Margin="4,6"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+  </DockPanel>
+</UserControl>

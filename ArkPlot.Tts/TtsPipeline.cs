@@ -37,7 +37,7 @@ public record TtsPipelineResult(
 );
 
 /// <summary>TTS 管线中的单个片段。</summary>
-internal record TtsSegment(
+public record TtsSegment(
     string Text,
     string Voice,
     string Label,
