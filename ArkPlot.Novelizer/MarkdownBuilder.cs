@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Model;
 
 namespace ArkPlot.Novelizer;

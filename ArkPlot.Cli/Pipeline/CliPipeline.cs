@@ -1,3 +1,4 @@
+using ArkPlot.Arknights.Workflow;
 using ArkPlot.Cli.Dump;
 
 namespace ArkPlot.Cli.Pipeline;
@@ -50,7 +51,7 @@ public class CliPipeline
         foreach (var pm in storyLoader.ContentTable)
         {
             Console.WriteLine($"[6/8] 正在解析：{pm.CurrentPlot.Title}");
-            var parser = new ArkPlot.Core.Utilities.WorkFlow.AkpParser(_tagsJsonPath);
+            var parser = new AkpParser(_tagsJsonPath);
             await pm.StartParseLines(parser);
 
             var entries = pm.CurrentPlot.TextVariants;

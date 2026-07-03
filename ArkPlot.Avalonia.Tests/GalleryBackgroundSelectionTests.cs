@@ -59,7 +59,7 @@ public class GalleryBackgroundSelectionTests : System.IDisposable
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(backgroundsField);
 
-        var entriesField = typeof(TtsViewModel).GetField("_allEntries",
+        var entriesField = typeof(TtsViewModel).GetField("_alignmentEntries",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(entriesField);
 

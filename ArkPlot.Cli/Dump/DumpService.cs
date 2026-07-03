@@ -1,3 +1,5 @@
+﻿using ArkPlot.Arknights;
+
 using ArkPlot.Core.Model;
 using ArkPlot.Cli.Infrastructure;
 using Newtonsoft.Json;
@@ -13,6 +15,7 @@ public static class DumpService
     {
         var picDescCount = plot.TextVariants.Count(e => !string.IsNullOrWhiteSpace(e.PicDesc));
 
+        var entries = plot.TextVariants.Cast<ArkPlot.Arknights.FormattedTextEntry>().ToList();
         var dump = new PlotDump
         {
             Meta = new DumpMeta
@@ -21,11 +24,11 @@ public static class DumpService
                 Chapter = chapterName,
                 Title = plot.Title,
                 DumpTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                TotalEntries = plot.TextVariants.Count,
-                ValidMdEntries = plot.TextVariants.Count(e => !string.IsNullOrWhiteSpace(e.MdText)),
-                ValidTypEntries = plot.TextVariants.Count(e => !string.IsNullOrWhiteSpace(e.TypText))
+                TotalEntries = entries.Count,
+                ValidMdEntries = entries.Count(e => !string.IsNullOrWhiteSpace(e.MdText)),
+                ValidTypEntries = entries.Count(e => !string.IsNullOrWhiteSpace(e.TypText))
             },
-            TextVariants = plot.TextVariants.Select(entry => new FormattedTextEntryDump
+            TextVariants = entries.Select(entry => new FormattedTextEntryDump
             {
                 Index = entry.Index,
                 OriginalText = entry.OriginalText,

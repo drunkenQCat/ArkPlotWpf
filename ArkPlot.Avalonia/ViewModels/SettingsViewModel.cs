@@ -1,3 +1,6 @@
+﻿using ArkPlot.Arknights;
+using ArkPlot.Arknights.Data;
+
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -10,7 +13,7 @@ using ArkPlot.Avalonia.Models;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
-using ArkPlot.Core.Utilities.PrtsComponents;
+using ArkPlot.Arknights.Parsing;
 using ArkPlot.Tts;
 using ArkPlot.Tts.Engines;
 using ArkPlot.Tts.Models;

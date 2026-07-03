@@ -32,7 +32,7 @@ public sealed class Phase35MergeTest : IDisposable
         var plotId = db.Queryable<ArkPlot.Core.Model.Plot>()
             .Where(p => p.Title.Contains("CW-ST-1")).Select(p => p.Id).First();
         Console.WriteLine($"═══ DB 原文 (CW-ST-1 idx 68-80) ═══");
-        var dbEntries = db.Queryable<ArkPlot.Core.Model.FormattedTextEntry>()
+        var dbEntries = db.Queryable<ArkPlot.Arknights.FormattedTextEntry>()
             .Where(e => e.PlotId == plotId && e.Index >= 68 && e.Index <= 80)
             .OrderBy(e => e.Index).ToList();
         foreach (var e in dbEntries)

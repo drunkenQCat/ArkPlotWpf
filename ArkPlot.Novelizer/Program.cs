@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
@@ -259,7 +260,7 @@ class Program
 
         // 5. Prompt 模式生成 MD
         var reconstructor = new StoryDocumentBuilder(
-            new List<FormattedTextEntry>(entries.Select(e => new FormattedTextEntry(e))),
+            entries.Cast<ArkPlot.Core.Model.ScriptLine>().ToList(),
             enableDescriptions: true,
             outputMode: OutputMode.PromptOptimized);
 

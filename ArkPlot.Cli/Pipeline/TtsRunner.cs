@@ -7,12 +7,12 @@ using ArkPlot.Tts.Engines;
 namespace ArkPlot.Cli.Pipeline;
 
 /// <summary>
-/// Step 9: TTS 音频生成（主管线，处理原始 FormattedTextEntry）。
+/// Step 9: TTS 音频生成（主管线，处理原始 ScriptLine）。
 /// </summary>
 public static class TtsRunner
 {
     public static async Task RunAsync(
-        List<FormattedTextEntry> processedEntries, string outputDir, string actName, string chapterName)
+        List<ScriptLine> processedEntries, string outputDir, string actName, string chapterName)
     {
         Console.WriteLine("[9/9] 正在生成 TTS 音频...");
         try

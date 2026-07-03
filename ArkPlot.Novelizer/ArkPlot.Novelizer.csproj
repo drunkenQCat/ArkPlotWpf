@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ArkPlot.Core\ArkPlot.Core.csproj" />
+    <ProjectReference Include="..\ArkPlot.Adapters\ArkPlot.Core\ArkPlot.Core.csproj" />
+    <ProjectReference Include="..\ArkPlot.Adapters\ArkPlot.Arknights\ArkPlot.Arknights.csproj" />
   </ItemGroup>
 
   <ItemGroup>

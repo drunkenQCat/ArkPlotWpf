@@ -1,6 +1,6 @@
+﻿using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
-using ArkPlot.Core.Utilities.WorkFlow;
 using ArkPlot.Core.Utilities.WorkFlow.StoryDocument;
 using Xunit;
 
@@ -59,7 +59,7 @@ public class MdReconstructorGoldenTests
         PopulatePicDescs(entries, db);
 
         // Readable 模式
-        var readableEntries = entries.Select(e => new FormattedTextEntry(e)).ToList();
+        var readableEntries = entries.Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
         var readableReconstructor = new StoryDocumentBuilder(
             readableEntries,
             enableDescriptions: true,
@@ -69,7 +69,7 @@ public class MdReconstructorGoldenTests
         readableReconstructor.AppendResultToBuilder(readableMd);
 
         // Prompt 模式
-        var promptEntries = entries.Select(e => new FormattedTextEntry(e)).ToList();
+        var promptEntries = entries.Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
         var promptReconstructor = new StoryDocumentBuilder(
             promptEntries,
             enableDescriptions: true,

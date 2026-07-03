@@ -1,18 +1,31 @@
 ﻿using Avalonia;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ArkPlot.Avalonia;
 
 sealed class Program
 {
-    // Initialization code. Don't use any Avalonia, third-party APIs or any
-    // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-    // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            var ex = e.ExceptionObject as Exception;
+            Console.Error.WriteLine($"[FATAL] {ex?.GetType().Name}: {ex?.Message}");
+            Console.Error.WriteLine(ex?.StackTrace);
+        };
+        TaskScheduler.UnobservedTaskException += (_, e) =>
+        {
+            Console.Error.WriteLine($"[FATAL UnobservedTask] {e.Exception.GetType().Name}: {e.Exception.Message}");
+            Console.Error.WriteLine(e.Exception.StackTrace);
+            e.SetObserved();
+        };
 
-    // Avalonia configuration, don't remove; also used by visual designer.
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
+
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()

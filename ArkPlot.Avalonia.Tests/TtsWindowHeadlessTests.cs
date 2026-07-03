@@ -128,7 +128,7 @@ public class TtsWindowHeadlessTests : IDisposable
         vm.SearchText = "阿米娅";
 
         // SearchText 变更会触发 LoadSegmentsForChapter
-        // 但由于 _allEntries 为空，FilteredSegments 会被清空
+        // 但由于 _alignmentEntries 为空，FilteredSegments 会被清空
         // 这里验证搜索文本设置正确
         Assert.Equal("阿米娅", vm.SearchText);
     }

@@ -1,3 +1,4 @@
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 
 namespace ArkPlot.Video;
@@ -21,7 +22,7 @@ public class NetworkImageCache
     /// 确保所有网络图片已缓存。返回 URL → Typst 相对路径 映射。
     /// </summary>
     public async Task<Dictionary<string, string>> EnsureAllCachedAsync(
-        IEnumerable<ArkPlot.Core.Model.FormattedTextEntry> entries,
+        IEnumerable<ArkPlot.Arknights.FormattedTextEntry> entries,
         CancellationToken ct = default)
     {
         var urlToRelativePath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

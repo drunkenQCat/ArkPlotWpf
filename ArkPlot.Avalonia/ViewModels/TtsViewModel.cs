@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ArkPlot.AudioNormalizer;
 using ArkPlot.Avalonia.Models;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Interfaces;
 using ArkPlot.Core.Model;

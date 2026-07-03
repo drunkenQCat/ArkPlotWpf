@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -13,8 +13,10 @@ using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities; // Added for AkpProcessor
-using ArkPlot.Core.Utilities.PrtsComponents;
-using ArkPlot.Core.Utilities.TagProcessingComponents;
+using ArkPlot.Arknights.Data;
+using ArkPlot.Arknights.Parsing;
+using ArkPlot.Arknights.TagProcessing;
+using ArkPlot.Arknights.Workflow;
 using ArkPlot.Core.Utilities.WorkFlow;
 using ArkPlot.Core.Utilities.WorkFlow.StoryDocument;
 using ArkPlot.Novelizer;
@@ -342,7 +344,12 @@ public partial class MainWindowViewModel : ViewModelBase
         activeTitle = CurrentAct.Name;
         var chapters = storySync.GetChaptersByActId(CurrentAct.Id);
 
-        var content = new AkpStoryLoader(CurrentAct, chapters);
+        var content = new AkpStoryLoader(CurrentAct, chapters,
+            onLog: msg =>
+            {
+                Console.WriteLine($"[LOG] {msg}");
+                noticeBlock.RaiseCommonEvent(msg);
+            });
 
         // 创建联动 CTS：命令的 CT 或 StopGeneration/OnGitHubConnectionFailed 都能触发取消
         _loadMdCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -846,7 +853,12 @@ public partial class MainWindowViewModel : ViewModelBase
             allPlots,
             picDescService,
             outputMode: outputMode,
-            ct: ct
+            ct: ct,
+            onLog: msg =>
+            {
+                Console.WriteLine($"[LOG] {msg}");
+                noticeBlock.RaiseCommonEvent(msg);
+            }
         );
     }
 

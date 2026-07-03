@@ -4,3 +4,6 @@
 [submodule "libs/MiniMax"]
 	path = libs/MiniMax
 	url = https://github.com/drunkenQCat/MiniMax.Net.git
+[submodule "ArkPlot.Adapters"]
+	path = ArkPlot.Adapters
+	url = https://github.com/drunkenQCat/ArkPlot.Adapters.git

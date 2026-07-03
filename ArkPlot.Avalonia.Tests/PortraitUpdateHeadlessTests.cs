@@ -109,8 +109,8 @@ public class PortraitUpdateHeadlessTests : IDisposable
     {
         var vm = new TtsViewModel(_tempDir);
 
-        // 模拟 _allEntries 有数据（通过反射设置 private field）
-        var entriesField = typeof(TtsViewModel).GetField("_allEntries",
+        // 模拟 _alignmentEntries 有数据（通过反射设置 private field）
+        var entriesField = typeof(TtsViewModel).GetField("_alignmentEntries",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(entriesField);
 
@@ -158,7 +158,7 @@ public class PortraitUpdateHeadlessTests : IDisposable
     {
         var vm = new TtsViewModel(_tempDir);
 
-        var entriesField = typeof(TtsViewModel).GetField("_allEntries",
+        var entriesField = typeof(TtsViewModel).GetField("_alignmentEntries",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(entriesField);
 

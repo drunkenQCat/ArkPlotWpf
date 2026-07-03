@@ -1,8 +1,10 @@
+using ArkPlot.Arknights;
+using ArkPlot.Arknights.Data;
+using ArkPlot.Arknights.Parsing;
+using ArkPlot.Arknights.Workflow;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
-using ArkPlot.Core.Utilities.PrtsComponents;
-using ArkPlot.Core.Utilities.WorkFlow;
 using SqlSugar;
 
 namespace ArkPlot.WebDemo.Services;
@@ -258,7 +260,7 @@ public class ChapterResult
 
 public class ImageEntry
 {
-    public FormattedTextEntry Entry { get; init; } = new();
+    public ArkPlot.Core.Model.ScriptLine Entry { get; init; } = null!;
     public List<string> Urls { get; init; } = [];
     public string Type { get; init; } = "";
     public string CharacterName { get; init; } = "";

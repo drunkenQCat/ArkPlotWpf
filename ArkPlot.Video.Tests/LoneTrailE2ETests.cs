@@ -1,3 +1,5 @@
+﻿using ArkPlot.Arknights;
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ArkPlot.AudioNormalizer;

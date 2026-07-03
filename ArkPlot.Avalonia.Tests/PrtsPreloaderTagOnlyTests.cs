@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Text;
-using ArkPlot.Core.Utilities.PrtsComponents;
-using ArkPlot.Core.Utilities.TagProcessingComponents;
+using ArkPlot.Arknights;
+using ArkPlot.Arknights.Parsing;
+using ArkPlot.Arknights.TagProcessing;
 using Xunit;
 
 namespace ArkPlot.Avalonia.Tests;
@@ -22,7 +24,7 @@ public class PrtsPreloaderTagOnlyTests
         var preloader = new PrtsPreloader(plotManager);
         preloader.ParseAndCollectAssets();
 
-        var entries = plotManager.CurrentPlot.TextVariants;
+        var entries = plotManager.CurrentPlot.TextVariants.Cast<FormattedTextEntry>().ToList();
         Assert.Equal("charslot", entries[0].Type);
         Assert.Contains("transparent.png", entries[1].Portraits[0]);
     }
@@ -42,7 +44,7 @@ public class PrtsPreloaderTagOnlyTests
         var preloader = new PrtsPreloader(plotManager);
         preloader.ParseAndCollectAssets();
 
-        var entries = plotManager.CurrentPlot.TextVariants;
+        var entries = plotManager.CurrentPlot.TextVariants.Cast<FormattedTextEntry>().ToList();
         Assert.Equal("character", entries[0].Type);
         Assert.Contains("transparent.png", entries[1].Portraits[0]);
     }

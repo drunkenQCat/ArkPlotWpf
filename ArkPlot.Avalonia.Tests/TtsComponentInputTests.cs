@@ -5,6 +5,7 @@ using ArkPlot.Avalonia.Models;
 using ArkPlot.Avalonia.ViewModels;
 using ArkPlot.Avalonia.ViewModels.Test;
 using ArkPlot.Avalonia.Views;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Tts.Alignment;

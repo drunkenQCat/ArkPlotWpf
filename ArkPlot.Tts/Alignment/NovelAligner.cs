@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using SqlSugar;

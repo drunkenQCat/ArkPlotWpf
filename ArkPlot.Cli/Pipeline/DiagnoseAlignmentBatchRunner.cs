@@ -1,3 +1,5 @@
+﻿using ArkPlot.Arknights;
+
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Tts.Alignment;
 
@@ -57,7 +59,7 @@ public static class DiagnoseAlignmentBatchRunner
             .ToListAsync();
 
         var plotIds = plots.Select(p => p.Id).ToList();
-        var allEntries = await db.Queryable<ArkPlot.Core.Model.FormattedTextEntry>()
+        var allEntries = await db.Queryable<ArkPlot.Arknights.FormattedTextEntry>()
             .Where(e => plotIds.Contains(e.PlotId))
             .ToListAsync();
 

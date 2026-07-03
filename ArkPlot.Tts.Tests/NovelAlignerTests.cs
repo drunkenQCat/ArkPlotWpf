@@ -1,3 +1,4 @@
+using ArkPlot.Arknights;
 using ArkPlot.Core.Model;
 using ArkPlot.Tts.Alignment;
 

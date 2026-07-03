@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ArkPlot.Arknights;
 using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 

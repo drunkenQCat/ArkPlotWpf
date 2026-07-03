@@ -1,6 +1,6 @@
+using ArkPlot.Arknights.TagProcessing;
+using ArkPlot.Arknights.Workflow;
 using ArkPlot.Core.Model;
-using ArkPlot.Core.Utilities.TagProcessingComponents;
-using ArkPlot.Core.Utilities.WorkFlow;
 
 namespace ArkPlot.Cli.Pipeline;
 
@@ -9,7 +9,7 @@ namespace ArkPlot.Cli.Pipeline;
 /// </summary>
 public static class DocumentParser
 {
-    public static async Task Parse(string tagsJsonPath, PlotManager plotManager, List<FormattedTextEntry> processedEntries)
+    public static async Task Parse(string tagsJsonPath, PlotManager plotManager, List<ScriptLine> processedEntries)
     {
         Console.WriteLine("[6/8] 正在解析文档（AkpParser → PlotManager.StartParseLines）...");
         var parser = new AkpParser(tagsJsonPath);
@@ -17,11 +17,10 @@ public static class DocumentParser
 
         Console.WriteLine($"    解析完成，共 {processedEntries.Count} 个条目");
         Console.WriteLine($"    有效 MdText 条目：{processedEntries.Count(e => !string.IsNullOrWhiteSpace(e.MdText))}");
-        Console.WriteLine($"    有效 TypText 条目：{processedEntries.Count(e => !string.IsNullOrWhiteSpace(e.TypText))}");
         Console.WriteLine($"    有 ResourceUrls 的条目：{processedEntries.Count(e => e.ResourceUrls.Count > 0)}");
     }
 
-    public static void InjectMockResourceUrls(List<FormattedTextEntry> processedEntries)
+    public static void InjectMockResourceUrls(List<ScriptLine> processedEntries)
     {
         var currentEntriesWithUrls = processedEntries.Count(e => e.ResourceUrls.Count > 0);
         if (currentEntriesWithUrls > 0) return;

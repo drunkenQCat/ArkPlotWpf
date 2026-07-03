@@ -1,3 +1,4 @@
+using ArkPlot.Arknights;
 using ArkPlot.Core.Model;
 
 namespace ArkPlot.Novelizer;
