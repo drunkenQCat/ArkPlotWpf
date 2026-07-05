@@ -136,35 +136,7 @@ public class FullPipelineHeadlessTests
         db.Insertable(new PrtsResource { ResourceType = "Image", ResourceKey = "bg_01", ResourceUrl = "https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" }).ExecuteCommand();
         db.Insertable(new PrtsPortraitLink { CharacterCode = "char_293_thorns_1", PortraitName = "char_293_thorns_1", SortOrder = 0 }).ExecuteCommand();
 
-        // 填充 PrtsAssets 到内存（跳过 DB 网络路径）
-        var assets = PrtsAssets.Instance;
-        var allRes = db.Queryable<PrtsResource>().ToList();
-        foreach (var r in allRes.Where(r => r.ResourceType == "Char")) assets.DataChar[r.ResourceKey] = r.ResourceUrl;
-        foreach (var r in allRes.Where(r => r.ResourceType == "Image")) assets.DataImage[r.ResourceKey] = r.ResourceUrl;
-        var allLinks = db.Queryable<PrtsPortraitLink>().ToList();
-        using var ms = new MemoryStream();
-        using (var writer = new System.Text.Json.Utf8JsonWriter(ms))
-        {
-            writer.WriteStartObject();
-            foreach (var g in allLinks.GroupBy(l => l.CharacterCode))
-            {
-                writer.WriteStartObject(g.Key);
-                writer.WriteStartArray("array");
-                foreach (var link in g.OrderBy(l => l.SortOrder))
-                {
-                    writer.WriteStartObject();
-                    writer.WriteString("name", link.PortraitName);
-                    if (!string.IsNullOrEmpty(link.Alias)) writer.WriteString("alias", link.Alias);
-                    writer.WriteEndObject();
-                }
-                writer.WriteEndArray();
-                writer.WriteEndObject();
-            }
-            writer.WriteEndObject();
-        }
-        ms.Position = 0;
-        assets.PortraitLinkDocument = System.Text.Json.JsonDocument.Parse(ms);
-        Assert.True(assets.DataChar.Count > 0);
+        // PrtsDataProcessor 走 ORM 懒加载，数据已在 DB 中无需额外加载到内存
 
         // 模拟 GitHub 下载的原始文本
         var rawTxt = """
@@ -220,10 +192,9 @@ public class FullPipelineHeadlessTests
     {
         var db = CreateMemoryDb();
 
-        var assets = PrtsAssets.Instance;
-        assets.DataChar["char_293_thorns_1"] = "https://media.prts.wiki/d/d0/Avg_char_293_thorns_1.png";
-        assets.PortraitLinkDocument = System.Text.Json.JsonDocument.Parse(
-            """{"char_293_thorns_1":{"array":[{"name":"char_293_thorns_1"}]}}""");
+        // 数据直接插入 DB，PrtsDataProcessor 走 ORM 懒加载查到
+        db.Insertable(new PrtsResource { ResourceType = "Char", ResourceKey = "char_293_thorns_1", ResourceUrl = "https://media.prts.wiki/d/d0/Avg_char_293_thorns_1.png" }).ExecuteCommand();
+        db.Insertable(new PrtsPortraitLink { CharacterCode = "char_293_thorns_1", PortraitName = "char_293_thorns_1", SortOrder = 0 }).ExecuteCommand();
 
         var storyText = """
 [HEADER(key="title_test")]
