@@ -13,6 +13,7 @@ using ArkPlot.Core.Infrastructure;
 using ArkPlot.Core.Model;
 using ArkPlot.Core.Services;
 using ArkPlot.Core.Utilities; // Added for AkpProcessor
+using ArkPlot.Arknights;
 using ArkPlot.Arknights.Data;
 using ArkPlot.Arknights.Parsing;
 using ArkPlot.Arknights.TagProcessing;
@@ -41,7 +42,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly StorySyncService storySync = new();
 
     private readonly NotificationBlock noticeBlock = NotificationBlock.Instance;
-    private readonly PrtsDataProcessor prts = new();
 
     private CancellationTokenSource? _loadMdCts;
     private int _connectionFailedHandled;
@@ -196,28 +196,33 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SubscribeAll();
         await Task.Yield();
-        Status = $"正在加载Prts资源索引...";
-        ToastManager
-            .CreateToast()
+
+        // PRTS 数据检查：建表 + SHA 门控 + 首次下载
+        ArknightsDbInitializer.Init();
+        Status = $"正在检查 PRTS 资源索引...";
+        ToastManager.CreateToast()
             .WithTitle("初始化中")
             .WithContent(Status)
             .WithLoadingState(true)
-            .Dismiss()
-            .After(TimeSpan.FromSeconds(7))
+            .Dismiss().After(TimeSpan.FromSeconds(7))
             .Queue();
-
-        var sw = Stopwatch.StartNew();
-        await LoadResourceTable();
-        sw.Stop();
-        Status = $"Prts资源索引加载完成，耗时：{sw.ElapsedMilliseconds / 1000} s";
-        ToastManager
-            .CreateToast()
-            .WithTitle("初始化中")
-            .OfType(NotificationType.Success)
-            .WithContent(Status)
-            .Dismiss()
-            .After(TimeSpan.FromSeconds(1))
-            .Queue();
+        try
+        {
+            var prts = new PrtsDataProcessor();
+            await prts.EnsureSyncedAsync();
+            noticeBlock.RaiseCommonEvent("【PRTS 资源索引就绪】\n");
+        }
+        catch (Exception)
+        {
+            var s = "\n网络错误，无法加载 PRTS 资源文件。\n请到设置页面手动刷新。\n";
+            noticeBlock.RaiseCommonEvent(s);
+            ToastManager.CreateToast()
+                .WithTitle("网络异常")
+                .OfType(NotificationType.Warning)
+                .WithContent("PRTS 资源索引加载失败，请到设置页面刷新")
+                .Dismiss().After(TimeSpan.FromSeconds(5))
+                .Queue();
+        }
 
         Status = $"正在加载活动列表...";
         ToastManager
@@ -247,27 +252,6 @@ public partial class MainWindowViewModel : ViewModelBase
         SubscribeChapterLoadedNotification();
         SubscribeNetErrorNotification();
         SubscribeLineNoMatchNotification();
-    }
-
-    private async Task LoadResourceTable()
-    {
-        try
-        {
-            await prts.EnsureSyncedAsync();
-            noticeBlock.RaiseCommonEvent("【prts资源索引文件加载完成】\n");
-        }
-        catch (Exception)
-        {
-            var s = "\n网络错误，无法加载资源文件。\n";
-            noticeBlock.RaiseCommonEvent(s);
-            // Removed MessageBox.Show(s);
-            MessageBoxManager.GetMessageBoxStandard(
-                title: "网络异常",
-                text: s,
-                @enum: ButtonEnum.Ok,
-                icon: Icon.Error
-            );
-        }
     }
 
     [RelayCommand]
