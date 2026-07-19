@@ -43,7 +43,7 @@ public class BailianClient
     /// <summary>
     /// 调用百炼 Chat Completions API（单轮，system + user）。
     /// </summary>
-    public async Task<ChatResult> ChatAsync(string model, string systemPrompt, string userContent)
+    public virtual async Task<ChatResult> ChatAsync(string model, string systemPrompt, string userContent)
     {
         Log($"[DIAG] ChatAsync 开始。model={model}, userContent长度={userContent.Length}, max_tokens={_config.MaxTokens}");
 
@@ -90,7 +90,7 @@ public class BailianClient
         }
         else if (_config.Provider == ApiProvider.Bailian)
         {
-            requestBody["extra_body"] = new { enable_thinking = _config.EnableThinking };
+            requestBody["enable_thinking"] = _config.EnableThinking;
         }
 
         return requestBody;

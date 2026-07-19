@@ -662,7 +662,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 systemPrompt: systemPrompt,
                 enableMultiTurn: novelizer.EnableMultiTurn,
                 chunkSize: novelizer.ChunkSize,
-                compressInterval: novelizer.CompressInterval
+                compressInterval: novelizer.CompressInterval,
+                enableSectionSplitter: novelizer.EnableSectionSplitter,
+                sectionSplitterModel: model
             );
             LogDiag("[RunNovelizer] 对象创建完成，即将调用 BatchProcessAsync");
 

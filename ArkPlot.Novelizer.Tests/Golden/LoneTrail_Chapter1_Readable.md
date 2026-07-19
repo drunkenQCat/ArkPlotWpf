@@ -1,11 +1,11 @@
 ## CW-ST-1 阴云密布 幕间
 
 
-<img  src="" alt="29_i10" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/00/Avg_29_i10.png" alt="29_i10" loading="lazy" style="max-height:350px"/>
 
 `图像`i10
 
-<p class="scene-desc">【此处为对场景图片Avg_29_i10的描述，请结合上下文将其融入文中】夜色如墨，星子稀疏地缀在天幕上，像被遗忘的碎钻。她立于废墟之巅，银发垂落至腰际，风掀动衣摆，仿佛整座城市都在低语。身后是断壁残垣与半倾的摩天楼，玻璃幕墙映着微光，却照不亮她凝望的方向——那片深蓝里，有光点缓缓飘移，似未熄灭的希望，又似即将消散的回响。她静默伫立，肩头微颤，仿佛正将整片星空轻轻捧入掌心。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】夜色如墨，星子稀疏地缀在天幕上，像被遗忘的碎钻。她立于废墟之巅，银发垂落至腰际，风掀动衣摆，仿佛整座城市都在低语。身后是断壁残垣与半倾的摩天楼，玻璃幕墙映着微光，却照不亮她凝望的方向——那片深蓝里，有光点缓缓飘移，似未熄灭的希望，又似即将消散的回响。她静默伫立，肩头微颤，仿佛正将整片星空轻轻捧入掌心。</p>
 
 `场景流转`
 
@@ -15,7 +15,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_reedmarshes.mp3" type="audio/mpeg"></audio>
 
 `音效`：reedmarshes
 
@@ -27,11 +27,11 @@
 
 `音量调整`
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
-<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_factory_low_drone.mp3" type="audio/mpeg"></audio>
 
 `音效`：factory
 
@@ -39,7 +39,7 @@
 
 戴好护目镜，绑上安全带，伴随着引擎的轰鸣声，飞行器开始在跑道上滑行。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
@@ -49,7 +49,7 @@
 
 `音量调整`
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_plane.mp3" type="audio/mpeg"></audio>
 
 `音效`：plane
 
@@ -88,7 +88,7 @@
 
 ---
 
-<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
@@ -98,21 +98,21 @@
 
 
 
-<img  src="" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/08/Avg_bg_bg_prison_corridor.png" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_bg_prison_corridor的描述，请结合上下文将其融入文中】铁栏与混凝土的冷硬在昏光里凝成一片沉默，双层牢房沿走廊对称排开，门上编号如伤疤般刻着018、021、024……金属栅栏后空无一人，只有墙角积尘与地面水渍的反光，映出天花板几盏惨白灯管的微颤。中央楼梯斜切过空间，踏板锈迹斑驳，通向二楼铁门紧闭的监区；远处通道尽头，一扇门半敞着，透出暖黄光晕，像这钢铁牢笼里唯一未被冻结的呼吸。地面湿滑如镜，倒映着顶灯与栏杆的扭曲轮廓，仿佛整座监狱正浸在某种无声的寒潮里，连风都绕道而行。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】铁栏与混凝土的冷硬在昏光里凝成一片沉默，双层牢房沿走廊对称排开，门上编号如伤疤般刻着018、021、024……金属栅栏后空无一人，只有墙角积尘与地面水渍的反光，映出天花板几盏惨白灯管的微颤。中央楼梯斜切过空间，踏板锈迹斑驳，通向二楼铁门紧闭的监区；远处通道尽头，一扇门半敞着，透出暖黄光晕，像这钢铁牢笼里唯一未被冻结的呼吸。地面湿滑如镜，倒映着顶灯与栏杆的扭曲轮廓，仿佛整座监狱正浸在某种无声的寒潮里，连风都绕道而行。</p>
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="https://torappu.prts.wiki/assets/audio/music/beta3_181101/m_dia_street_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：street
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -214,11 +214,11 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_phonevibration.mp3" type="audio/mpeg"></audio>
 
 `音效`：phonevibration
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_transmissionget.mp3" type="audio/mpeg"></audio>
 
 `音效`：transmissionget
 
@@ -254,7 +254,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_doorknockquite.mp3" type="audio/mpeg"></audio>
 
 `音效`：doorknockquite
 
@@ -273,7 +273,7 @@
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$loneliness_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$loneliness_loop"><source src="https://torappu.prts.wiki/assets/audio/music/static/m_avg/m_avg_loneliness_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：loneliness
 
@@ -300,15 +300,15 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
 
-<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_38_g5_rhinelab_indoor的描述，请结合上下文将其融入文中】宽敞的实验室里，灰白瓷砖地面映着穹顶天窗透下的冷光，空气里浮动着细微尘埃。左侧一排老式机柜沉默矗立，金属面板上旋钮与指示灯已蒙尘；一张黑色转椅孤零零悬在中央，轮子歪斜，仿佛刚被匆忙推离操作台。远处舱门半开，门内幽暗深处，一只机械眼正凝视前方，瞳孔微缩，像在等待指令。右侧玻璃隔间内，几把办公椅空荡荡排列，墙上的无限符号与波浪徽标在光影中若隐若现——这地方曾喧闹过，如今只剩设备低鸣与时间的回响。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】宽敞的实验室里，灰白瓷砖地面映着穹顶天窗透下的冷光，空气里浮动着细微尘埃。左侧一排老式机柜沉默矗立，金属面板上旋钮与指示灯已蒙尘；一张黑色转椅孤零零悬在中央，轮子歪斜，仿佛刚被匆忙推离操作台。远处舱门半开，门内幽暗深处，一只机械眼正凝视前方，瞳孔微缩，像在等待指令。右侧玻璃隔间内，几把办公椅空荡荡排列，墙上的无限符号与波浪徽标在光影中若隐若现——这地方曾喧闹过，如今只剩设备低鸣与时间的回响。</p>
 
 `背景平移`
 
@@ -322,7 +322,7 @@
 
 ---
 
-<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
@@ -330,11 +330,11 @@
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="https://torappu.prts.wiki/assets/audio/music/beta3_181101/m_dia_street_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：street
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -413,19 +413,19 @@
 
 ---
 
-<img  src="" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/4/4d/Avg_bg_29_g6_mainstreet.png" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
 
 `背景`：mainstreet
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_29_g6_mainstreet的描述，请结合上下文将其融入文中】灰蒙蒙的天光垂落，城市在薄雾中显出冷峻轮廓。玻璃幕墙的摩天楼如沉默的巨人，倒映着铅灰色的云层；一座白色褶皱建筑突兀地立于街角，像被风撕开的巨幅布幔，在钢筋水泥的森林里倔强呼吸。地面铺着浅灰大理石，几块圆润的卵石静卧其上，仿佛大地遗落的旧梦。街灯细长如枯枝，投下稀疏的影子；远处阶梯旁，几株低矮灌木在微风中轻颤。整座城市没有行人，只有风掠过楼宇缝隙的呜咽，仿佛时间在此处屏住了呼吸。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】灰蒙蒙的天光垂落，城市在薄雾中显出冷峻轮廓。玻璃幕墙的摩天楼如沉默的巨人，倒映着铅灰色的云层；一座白色褶皱建筑突兀地立于街角，像被风撕开的巨幅布幔，在钢筋水泥的森林里倔强呼吸。地面铺着浅灰大理石，几块圆润的卵石静卧其上，仿佛大地遗落的旧梦。街灯细长如枯枝，投下稀疏的影子；远处阶梯旁，几株低矮灌木在微风中轻颤。整座城市没有行人，只有风掠过楼宇缝隙的呜咽，仿佛时间在此处屏住了呼吸。</p>
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$loading_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$loading_loop"><source src="https://torappu.prts.wiki/assets/audio/music/beta1_180603/m_sys_loading_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：loading
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -447,7 +447,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -484,19 +484,19 @@
 
 ---
 
-<img  src="" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/5/58/Avg_bg_bg_desert_1.png" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
 
 `背景`：desert
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_bg_desert_1的描述，请结合上下文将其融入文中】黄沙漫卷，风在荒原上低吼，卷起细碎的尘雾，在淡蓝的天幕下浮游如灰白的魂灵。远处山峦隐没于薄雾之中，轮廓模糊，似被时光蚀刻得残缺而沉默。近处，赭红岩块嶙峋突兀，裂痕里钻出几丛枯褐的灌木，枝条倔强地刺向天空，仿佛在无声控诉着干旱的漫长。大地干裂如龟甲，零星水洼映着微光，却不敢久留——连倒影也怕被风揉碎。整片旷野静默无言，唯有风声在耳际盘旋，像一曲无人应和的挽歌。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】黄沙漫卷，风在荒原上低吼，卷起细碎的尘雾，在淡蓝的天幕下浮游如灰白的魂灵。远处山峦隐没于薄雾之中，轮廓模糊，似被时光蚀刻得残缺而沉默。近处，赭红岩块嶙峋突兀，裂痕里钻出几丛枯褐的灌木，枝条倔强地刺向天空，仿佛在无声控诉着干旱的漫长。大地干裂如龟甲，零星水洼映着微光，却不敢久留——连倒影也怕被风揉碎。整片旷野静默无言，唯有风声在耳际盘旋，像一曲无人应和的挽歌。</p>
 
 ---
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_899_1#5$1" loading="lazy" style="max-height:300px" title="军士模样的人"></div></td>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_890_1#6$1" loading="lazy" style="max-height:300px" title="斐尔迪南"></div></td>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_899_1#1$1" loading="lazy" style="max-height:300px" title="布莱克"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fa/Avg_avg_npc_899_1-6$1.png" alt="avg_npc_899_1#5$1" loading="lazy" style="max-height:300px" title="军士模样的人"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/9/9a/Avg_avg_npc_890_1-7$1.png" alt="avg_npc_890_1#6$1" loading="lazy" style="max-height:300px" title="斐尔迪南"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/0/0e/Avg_avg_npc_899_1-2$1.png" alt="avg_npc_899_1#1$1" loading="lazy" style="max-height:300px" title="布莱克"></div></td>
 </tr>
 <tr>
     <td>【此处为对军士模样的人的形象描述，请结合上下文将其融入文中，不要生搬硬套】：他站在空旷的白幕前，像一尊被遗忘在时间夹缝里的旧日哨兵。墨镜遮住双眼，只余下嘴角一丝冷硬的弧度，耳畔的通讯器线缆垂落如蛇。米褐相间的作战服裹着结实的身躯，肩甲上那枚星芒徽记在光线下泛着微光，仿佛曾见证过无数硝烟弥漫的黄昏。腰间战术背心缀满黑匣与弹药袋，右臂护具磨损处露出底下暗红的旧伤痕。他左手轻搭在枪柄上，指节微曲，似随时准备扣动扳机——可脚边那双厚底靴却踏得极稳，像一株扎根于废墟的枯树，静默中蓄势待发。</td>
@@ -505,7 +505,7 @@
 </tr>
 </table>
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$mist_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$mist_loop"><source src="https://torappu.prts.wiki/assets/audio/music/beta1_180603/m_dia_mist_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：mist
 
@@ -563,11 +563,11 @@
 
 ---
 
-<img  src="" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/b1/Avg_bg_29_g4_corridor.png" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_29_g4_corridor的描述，请结合上下文将其融入文中】金属门帘垂落如凝固的浪，半掩着通道尽头那扇被强光刺穿的出口。地面是深灰防滑漆面，映着顶灯惨白的光，几道水痕蜿蜒如蛇，暗示刚经历一场无声的倾泻。左侧玻璃墙后，隐约可见带螺旋纹路的设备，弹簧线缆垂悬，像垂死生物的触须；右侧墙上嵌着老式通讯盒，铜线裸露，锈迹在冷光下泛着暗红。空气里弥漫着消毒水与金属尘埃混合的气味，寂静中，唯有远处通风口低沉的嗡鸣，仿佛整座建筑正屏息等待——门帘微动，风从缝隙渗入，卷起地上一张被踩皱的黄色警示贴纸。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】金属门帘垂落如凝固的浪，半掩着通道尽头那扇被强光刺穿的出口。地面是深灰防滑漆面，映着顶灯惨白的光，几道水痕蜿蜒如蛇，暗示刚经历一场无声的倾泻。左侧玻璃墙后，隐约可见带螺旋纹路的设备，弹簧线缆垂悬，像垂死生物的触须；右侧墙上嵌着老式通讯盒，铜线裸露，锈迹在冷光下泛着暗红。空气里弥漫着消毒水与金属尘埃混合的气味，寂静中，唯有远处通风口低沉的嗡鸣，仿佛整座建筑正屏息等待——门帘微动，风从缝隙渗入，卷起地上一张被踩皱的黄色警示贴纸。</p>
 
 `音量调整`
 
@@ -591,13 +591,13 @@
 
 ---
 
-<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_29_g10_senioroffice的描述，请结合上下文将其融入文中】米白色光洁的地面映着顶灯的方格，像铺了一层凝固的月光。中央空地上，两组低矮沙发围成半圈，中间摆着几座几何造型的茶几，线条干净得近乎冷峻。远处墙后，一幅巨大的抽象壁画悬于暗处，灰白卷曲的纹路如潮汐退去后的滩涂。两侧玻璃门上印着模糊的∞符号，门内隐约透出仪器的轮廓。天花板垂下投影仪与数个微型探头，静默俯视着这片空旷空间——这里没有人的踪迹，却处处是等待被激活的秩序。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】米白色光洁的地面映着顶灯的方格，像铺了一层凝固的月光。中央空地上，两组低矮沙发围成半圈，中间摆着几座几何造型的茶几，线条干净得近乎冷峻。远处墙后，一幅巨大的抽象壁画悬于暗处，灰白卷曲的纹路如潮汐退去后的滩涂。两侧玻璃门上印着模糊的∞符号，门内隐约透出仪器的轮廓。天花板垂下投影仪与数个微型探头，静默俯视着这片空旷空间——这里没有人的踪迹，却处处是等待被激活的秩序。</p>
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
 
@@ -630,21 +630,21 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_blooddrop.mp3" type="audio/mpeg"></audio>
 
 `音效`：blooddrop
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
@@ -652,45 +652,45 @@
 
 `音效停止`
 
-<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$act19side_01_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$act19side_01_loop"><source src="https://torappu.prts.wiki/assets/audio/music/act19side/m_bat_act19side_01_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：act19side
 
 ---
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
-<p class="scene-desc">【此处为对场景图片Avg_38_i07的描述，请结合上下文将其融入文中】暗流翻涌的废墟中央，金发少女高举法杖，指尖迸裂出刺目的白光，与对面黑发战士的青蓝能量刃激烈相撞——火花如星雨炸开，将两人身影切割成明暗交错的剪影。她长发飞扬，耳尖微颤，眼底映着对方冷峻侧颜；他肩甲嵌满符文，机械臂在能量乱流中嗡鸣震颤，青蓝电流沿着装甲蜿蜒爬行。碎屑悬浮半空，像被时间凝固的尘埃；远处残破的金属结构在幽光中若隐若现，仿佛整座城市正屏息等待这一击的终局。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】暗流翻涌的废墟中央，金发少女高举法杖，指尖迸裂出刺目的白光，与对面黑发战士的青蓝能量刃激烈相撞——火花如星雨炸开，将两人身影切割成明暗交错的剪影。她长发飞扬，耳尖微颤，眼底映着对方冷峻侧颜；他肩甲嵌满符文，机械臂在能量乱流中嗡鸣震颤，青蓝电流沿着装甲蜿蜒爬行。碎屑悬浮半空，像被时间凝固的尘埃；远处残破的金属结构在幽光中若隐若现，仿佛整座城市正屏息等待这一击的终局。</p>
 
 `震惊`
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
 `场景流转`
 
-<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="https://torappu.prts.wiki/assets/audio/player/p_imp/p_imp_waterbubble_h.mp3" type="audio/mpeg"></audio>
 
 `音效`：waterbubble
 
-<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="https://torappu.prts.wiki/assets/audio/enemy/e_atk/e_atk_magic_m.mp3" type="audio/mpeg"></audio>
 
 `音效`：magic
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
-<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="https://torappu.prts.wiki/assets/audio/player/p_skill/p_skill_blacktimewand_shot.mp3" type="audio/mpeg"></audio>
 
 `音效`：blacktimewand
 
@@ -712,7 +712,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
@@ -720,7 +720,7 @@
 
 `场景流转`
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -748,7 +748,7 @@
 
 ---
 
-<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
@@ -758,19 +758,28 @@
 
 `震惊`
 
-<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="https://torappu.prts.wiki/assets/audio/battle/b_char/b_char_tactfulboost.mp3" type="audio/mpeg"></audio>
 
 `音效`：tactfulboost
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/4/4b/Avg_avg_npc_536_1-11$1.png" alt="avg_npc_536_1#10$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+</tr>
+<tr>
+    <td>霍尔海雅</td>
+</tr>
+</table>
+
 `特效动画:`muesys
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_watersubbreak.mp3" type="audio/mpeg"></audio>
 
 `音效`：watersubbreak
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_runstop.mp3" type="audio/mpeg"></audio>
 
 `音效`：runstop
 
@@ -780,7 +789,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
 
@@ -793,14 +802,14 @@
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_249_mlyss_1#2$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/3/34/Avg_avg_249_mlyss_1-3$1.png" alt="avg_249_mlyss_1#2$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
 </tr>
 <tr>
     <td>缪尔赛思</td>
 </tr>
 </table>
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
 
@@ -820,7 +829,7 @@
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$drift_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$drift_loop"><source src="https://torappu.prts.wiki/assets/audio/music/act9d0d0/m_avg_drift_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：drift
 
@@ -859,15 +868,15 @@
 
 ---
 
-<img  src="" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/c/c4/Avg_bg_27_g26_dusk_wild.png" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
 
 `背景`：dusk
 
-<p class="scene-desc">【此处为对场景图片Avg_bg_27_g26_dusk_wild的描述，请结合上下文将其融入文中】风在枯黄的草浪间低吼，卷起细碎的尘屑，拂过山脊的褶皱。远处山峦层叠，灰褐与暗赭交织，像被岁月磨蚀的旧书页，沉默地伏在天际线之下。一道微弱的溪流在谷底蜿蜒，银亮的水痕在土黄的坡地上划出柔韧的曲线。几株孤松立于半山腰，枝干虬曲如老人的手指，指向阴云密布的天空。云层低垂，灰白相间，仿佛随时会倾泻而下——可风已先一步吹散了雨意，只留下空气里浮动的凉意，和草尖上未干的微光。</p>
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】风在枯黄的草浪间低吼，卷起细碎的尘屑，拂过山脊的褶皱。远处山峦层叠，灰褐与暗赭交织，像被岁月磨蚀的旧书页，沉默地伏在天际线之下。一道微弱的溪流在谷底蜿蜒，银亮的水痕在土黄的坡地上划出柔韧的曲线。几株孤松立于半山腰，枝干虬曲如老人的手指，指向阴云密布的天空。云层低垂，灰白相间，仿佛随时会倾泻而下——可风已先一步吹散了雨意，只留下空气里浮动的凉意，和草尖上未干的微光。</p>
 
 ---
 
-<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="" type="audio/mpeg"></audio>
+<audio class="music" controls class="lazy-audio" width="300" alt="$m_dia_street_loop"><source src="https://torappu.prts.wiki/assets/audio/music/beta3_181101/m_dia_street_loop.mp3" type="audio/mpeg"></audio>
 
 `音乐`：street
 
@@ -877,14 +886,14 @@
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
 </tr>
 <tr>
     <td>【此处为对？？？的形象描述，请结合上下文将其融入文中，不要生搬硬套】：雨丝斜织，街灯昏黄的光晕在湿漉漉的柏油路上晕开一片暖色。他立于檐下，宽大的卡其色风衣垂落至膝，衣摆被微风轻轻撩起，露出内里深灰西裤与黑皮鞋上未干的水痕。头戴同色系软呢帽，帽檐压低，遮住半张脸——那张脸是金属与旧皮相融的轮廓，眼窝深陷，嘴角却似噙着一丝难以捉摸的笑意。右手夹着烟斗，指节修长，银质烟嘴映着灯光；左手插在风衣口袋里，腕间银表泛着冷光。白衬衫领口别着一枚铜质徽章，红棕条纹领带歪斜垂落，像一道未解的谜题。他静默如雕塑，仿佛刚从某个悬疑故事的扉页中走出，正等待下一个转折的叩响。</td>
 </tr>
 </table>
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -916,8 +925,8 @@
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_523_1#1$1" loading="lazy" style="max-height:300px" title="街边摊贩"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b0/Avg_avg_npc_523_1$1.png" alt="avg_npc_523_1#1$1" loading="lazy" style="max-height:300px" title="街边摊贩"></div></td>
 </tr>
 <tr>
     <td>？？？</td>
@@ -925,7 +934,7 @@
 </tr>
 </table>
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_lighter.mp3" type="audio/mpeg"></audio>
 
 `音效`：lighter
 
@@ -939,7 +948,7 @@
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -955,9 +964,9 @@
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-    <td><div class="crop"><img class="portrait" src="" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="锡人"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fc/Avg_char_003_kalts_2.png" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="锡人"></div></td>
 </tr>
 <tr>
     <td>【此处为对凯尔希的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银发少女立于空茫背景中央，猫耳轻颤，绿眸沉静如深秋湖面。她身着米白长风衣，内搭灰绿短裙，肩头斜挎黑布包，上面印着褪色的医疗十字徽记。左手腕上金表微闪，右手垂落，指间捏着一支墨水笔，笔尖悬在半空，仿佛刚从某份病历上抬起。脚踝处束着皮质护具，棕褐高跟靴底嵌着金属纹路，踏在无形的地面之上。颈间细链坠着一枚青玉吊坠，随呼吸微微晃动——她像一株在废墟边缘悄然生长的植物，既带着战后余韵的疲惫，又透出不容忽视的清醒与克制。</td>
@@ -966,7 +975,7 @@
 </tr>
 </table>
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 

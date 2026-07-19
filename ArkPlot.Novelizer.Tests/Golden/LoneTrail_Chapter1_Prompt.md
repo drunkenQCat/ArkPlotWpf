@@ -1,7 +1,7 @@
 ## CW-ST-1 阴云密布 幕间
 
 
-<img  src="" alt="29_i10" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/00/Avg_29_i10.png" alt="29_i10" loading="lazy" style="max-height:350px"/>
 
 `图像`i10
 
@@ -29,7 +29,7 @@ colors: [银色, 黑色, 深蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_reedmarshes.mp3" type="audio/mpeg"></audio>
 
 `音效`：reedmarshes
 
@@ -37,23 +37,23 @@ colors: [银色, 黑色, 深蓝]
 
 即将进行的低空飞行对于父母来说已经是轻车熟路，不然也不会带上她。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
-<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_factory_low_drone.mp3" type="audio/mpeg"></audio>
 
 `音效`：factory
 
 戴好护目镜，绑上安全带，伴随着引擎的轰鸣声，飞行器开始在跑道上滑行。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
 刮过脸庞的风越来越强烈，她有些害怕地闭上双眼。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_plane.mp3" type="audio/mpeg"></audio>
 
 `音效`：plane
 
@@ -85,7 +85,7 @@ colors: [银色, 黑色, 深蓝]
 
 ---
 
-<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
@@ -95,11 +95,11 @@ colors: [银色, 黑色, 深蓝]
 
 
 
-<img  src="" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/08/Avg_bg_bg_prison_corridor.png" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
-<aside class="scene-facts" data-bg="Avg_bg_bg_prison_corridor">
+<aside class="scene-facts" data-bg="">
 lighting: [昏光, 残弱, 冷色]  
 materials: [铁栏, 混凝土, 金属]  
 objects: [双层牢房, 门编号, 金属栅栏]  
@@ -116,7 +116,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -242,11 +242,11 @@ colors: [灰, 红, 蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_phonevibration.mp3" type="audio/mpeg"></audio>
 
 `音效`：phonevibration
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_transmissionget.mp3" type="audio/mpeg"></audio>
 
 `音效`：transmissionget
 
@@ -282,7 +282,7 @@ colors: [灰, 红, 蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_doorknockquite.mp3" type="audio/mpeg"></audio>
 
 `音效`：doorknockquite
 
@@ -314,15 +314,15 @@ colors: [灰, 红, 蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
 
-<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
-<aside class="scene-facts" data-bg="Avg_bg_38_g5_rhinelab_indoor">
+<aside class="scene-facts" data-bg="">
 lighting: [天窗, 冷光, 明暗]  
 materials: [瓷砖, 金属, 玻璃]  
 objects: [机柜, 转椅, 机械眼]  
@@ -350,11 +350,11 @@ colors: []
 
 ---
 
-<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
-<aside class="scene-facts" data-bg="Avg_bg_38_g5_rhinelab_indoor">
+<aside class="scene-facts" data-bg="">
 lighting: [天窗, 冷光, 明暗]  
 materials: [瓷砖, 金属, 玻璃]  
 objects: [机柜, 转椅, 机械眼]  
@@ -374,7 +374,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -464,11 +464,11 @@ colors: [灰白, 深黑, 黄铜]
 
 ---
 
-<img  src="" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/4/4d/Avg_bg_29_g6_mainstreet.png" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
 
 `背景`：mainstreet
 
-<aside class="scene-facts" data-bg="Avg_bg_29_g6_mainstreet">
+<aside class="scene-facts" data-bg="">
 lighting: [天光, 灰蒙蒙, 冷调]  
 materials: [玻璃, 水泥, 大理石]  
 objects: [摩天楼, 白色建筑, 卵石]  
@@ -486,7 +486,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -508,7 +508,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -540,11 +540,11 @@ colors: []
 
 ---
 
-<img  src="" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/5/58/Avg_bg_bg_desert_1.png" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
 
 `背景`：desert
 
-<aside class="scene-facts" data-bg="Avg_bg_bg_desert_1">
+<aside class="scene-facts" data-bg="">
 lighting: [淡蓝天幕, 明暗交织, 柔和]  
 materials: [尘雾, 岩块, 灌木]  
 objects: [荒原, 山峦, 地面裂痕]  
@@ -646,11 +646,11 @@ colors: [米白, 暗色, 棕褐色]
 
 ---
 
-<img  src="" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/b/b1/Avg_bg_29_g4_corridor.png" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
-<aside class="scene-facts" data-bg="Avg_bg_29_g4_corridor">
+<aside class="scene-facts" data-bg="">
 lighting: [顶灯, 惨白, 冷光]  
 materials: [金属, 玻璃, 金属尘埃]  
 objects: [门帘, 通道, 通风口]  
@@ -702,11 +702,11 @@ mood: [静默, 神秘, 蓄势]
 
 ---
 
-<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
-<aside class="scene-facts" data-bg="Avg_bg_29_g10_senioroffice">
+<aside class="scene-facts" data-bg="">
 lighting: [顶灯, 方格光, 冷白]  
 materials: [地面, 沙发, 茶几]  
 objects: [沙发, 茶几, 壁画]  
@@ -715,7 +715,7 @@ colors: [米白, 灰白, 黑]
 mood: [冷峻, 静谧, 等待]
 </aside>
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
 
@@ -760,21 +760,21 @@ mood: [冷光, 冷漠, 暗藏]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_blooddrop.mp3" type="audio/mpeg"></audio>
 
 `音效`：blooddrop
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
@@ -782,13 +782,13 @@ mood: [冷光, 冷漠, 暗藏]
 
 `音效停止`
 
-<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
 ---
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -810,7 +810,7 @@ colors: [金色, 青蓝, 金属色]
 
 `震惊`
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -832,19 +832,19 @@ colors: [金色, 青蓝, 金属色]
 
 `场景流转`
 
-<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="https://torappu.prts.wiki/assets/audio/player/p_imp/p_imp_waterbubble_h.mp3" type="audio/mpeg"></audio>
 
 `音效`：waterbubble
 
-<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="https://torappu.prts.wiki/assets/audio/enemy/e_atk/e_atk_magic_m.mp3" type="audio/mpeg"></audio>
 
 `音效`：magic
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
-<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="https://torappu.prts.wiki/assets/audio/player/p_skill/p_skill_blacktimewand_shot.mp3" type="audio/mpeg"></audio>
 
 `音效`：blacktimewand
 
@@ -866,7 +866,7 @@ colors: [金色, 青蓝, 金属色]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
@@ -874,7 +874,7 @@ colors: [金色, 青蓝, 金属色]
 
 `场景流转`
 
-<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -918,11 +918,11 @@ colors: [金色, 青蓝, 金属色]
 
 ---
 
-<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
-<aside class="scene-facts" data-bg="Avg_bg_29_g10_senioroffice">
+<aside class="scene-facts" data-bg="">
 lighting: [顶灯, 方格光, 冷白]  
 materials: [地面, 沙发, 茶几]  
 objects: [沙发, 茶几, 壁画]  
@@ -937,19 +937,28 @@ mood: [冷峻, 静谧, 等待]
 
 `震惊`
 
-<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="https://torappu.prts.wiki/assets/audio/battle/b_char/b_char_tactfulboost.mp3" type="audio/mpeg"></audio>
 
 `音效`：tactfulboost
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/4/4b/Avg_avg_npc_536_1-11$1.png" alt="avg_npc_536_1#10$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+</tr>
+<tr>
+    <td>霍尔海雅</td>
+</tr>
+</table>
+
 `特效动画:`muesys
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_watersubbreak.mp3" type="audio/mpeg"></audio>
 
 `音效`：watersubbreak
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_runstop.mp3" type="audio/mpeg"></audio>
 
 `音效`：runstop
 
@@ -959,13 +968,22 @@ mood: [冷峻, 静谧, 等待]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/3/34/Avg_avg_249_mlyss_1-3$1.png" alt="avg_249_mlyss_1#2$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
 
@@ -1015,11 +1033,11 @@ mood: [冷峻, 静谧, 等待]
 
 ---
 
-<img  src="" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
+<img  src="https://media.prts.wiki/c/c4/Avg_bg_27_g26_dusk_wild.png" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
 
 `背景`：dusk
 
-<aside class="scene-facts" data-bg="Avg_bg_27_g26_dusk_wild">
+<aside class="scene-facts" data-bg="">
 lighting: [自然光, 明暗交替, 冷色]  
 materials: [泥土, 树木, 石头]  
 objects: [山峦, 溪流, 孤松]  
@@ -1041,7 +1059,16 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+</tr>
+<tr>
+    <td>【此处为对？？？的形象描述，请结合上下文将其融入文中，不要生搬硬套】：雨丝斜织，街灯昏黄的光晕在湿漉漉的柏油路上晕开一片暖色。他立于檐下，宽大的卡其色风衣垂落至膝，衣摆被微风轻轻撩起，露出内里深灰西裤与黑皮鞋上未干的水痕。头戴同色系软呢帽，帽檐压低，遮住半张脸——那张脸是金属与旧皮相融的轮廓，眼窝深陷，嘴角却似噙着一丝难以捉摸的笑意。右手夹着烟斗，指节修长，银质烟嘴映着灯光；左手插在风衣口袋里，腕间银表泛着冷光。白衬衫领口别着一枚铜质徽章，红棕条纹领带歪斜垂落，像一道未解的谜题。他静默如雕塑，仿佛刚从某个悬疑故事的扉页中走出，正等待下一个转折的叩响。</td>
+</tr>
+</table>
+
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -1103,7 +1130,18 @@ colors: [深褐, 墨绿, 白]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="" type="audio/mpeg"></audio>
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b0/Avg_avg_npc_523_1$1.png" alt="avg_npc_523_1#1$1" loading="lazy" style="max-height:300px" title="街边摊贩"></div></td>
+</tr>
+<tr>
+    <td>？？？</td>
+    <td>街边摊贩</td>
+</tr>
+</table>
+
+<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_lighter.mp3" type="audio/mpeg"></audio>
 
 `音效`：lighter
 
@@ -1117,7 +1155,7 @@ colors: [深褐, 墨绿, 白]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -1131,7 +1169,20 @@ colors: [深褐, 墨绿, 白]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fc/Avg_char_003_kalts_2.png" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="锡人"></div></td>
+</tr>
+<tr>
+    <td>【此处为对凯尔希的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银发少女立于空茫背景中央，猫耳轻颤，绿眸沉静如深秋湖面。她身着米白长风衣，内搭灰绿短裙，肩头斜挎黑布包，上面印着褪色的医疗十字徽记。左手腕上金表微闪，右手垂落，指间捏着一支墨水笔，笔尖悬在半空，仿佛刚从某份病历上抬起。脚踝处束着皮质护具，棕褐高跟靴底嵌着金属纹路，踏在无形的地面之上。颈间细链坠着一枚青玉吊坠，随呼吸微微晃动——她像一株在废墟边缘悄然生长的植物，既带着战后余韵的疲惫，又透出不容忽视的清醒与克制。</td>
+    <td>？？？</td>
+    <td>锡人</td>
+</tr>
+</table>
+
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
 

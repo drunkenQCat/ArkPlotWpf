@@ -148,6 +148,24 @@
 
                             <Separator Margin="0,5"/>
 
+                            <!-- TTS 分节设置 -->
+                            <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" BorderThickness="1" CornerRadius="4" Padding="12">
+                                <StackPanel Spacing="8">
+                                    <CheckBox IsChecked="{Binding EnableSectionSplitter}"
+                                              Content="启用 TTS 分节（Pass 2）"
+                                              FontWeight="Bold"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray"
+                                               IsVisible="{Binding EnableSectionSplitter}">
+                                        <Run Text="小说化生成后自动对每章执行 Pass 2 分节，利用 DB 中的背景变化点识别场景切换并插入节标题与过渡句。"/>
+                                        <LineBreak/>
+                                        <Run Text="分节结果覆盖原 novel md，TTS 直接消费分节后文本，无需额外操作。"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <Separator Margin="0,5"/>
+
                             <!-- 自定义平台管理 -->
                             <Expander Header="自定义平台管理" IsExpanded="False">
                                 <StackPanel Spacing="6" Margin="4">

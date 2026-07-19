@@ -140,7 +140,8 @@ public record NovelizerSettings(
     ProviderConfig[]? CustomProviders = null,
     bool EnableMultiTurn = false,
     int ChunkSize = 5_000,
-    int CompressInterval = 2
+    int CompressInterval = 2,
+    bool EnableSectionSplitter = true
 )
 {
     public const string DefaultSystemPrompt = """
@@ -264,7 +265,8 @@ public record NovelizerSettings(
             ApiKeys: new Dictionary<string, string> { ["DeepSeek"] = "", ["百炼"] = "" },
             EnableMultiTurn: false,
             ChunkSize: 5_000,
-            CompressInterval: 2
+            CompressInterval: 2,
+            EnableSectionSplitter: true
         );
     }
 }

@@ -25,15 +25,116 @@ class Program
         return command switch
         {
             "run" => await RunAsync(args[1..]),
+            "split" => await SplitAsync(args[1..]),
+            "run-and-split" => await RunAndSplitAsync(args[1..]),
             "test" => await TestAsync(args[1..]),
             "verify" => VerifyAsync(args[1..]),
             _ => PrintUsageWithError($"未知命令: {command}")
         };
     }
 
+    static async Task<int> SplitAsync(string[] args)
+    {
+        var (input, _, _, model, provider, _, _, _, _, _, plotId) = ParseSplitArgs(args);
+
+        if (string.IsNullOrEmpty(input) || !File.Exists(input))
+        {
+            Console.Error.WriteLine("❌ 用法: Novelizer split -i novel.md --plot <id> [--model flash|pro] [--provider bailian|deepseek]");
+            return 1;
+        }
+
+        if (plotId <= 0)
+        {
+            Console.Error.WriteLine("❌ 必须指定 --plot <plotId> 以查询 DB 中的 Bg 变化点");
+            return 1;
+        }
+
+        var config = LoadConfig(provider);
+        if (string.IsNullOrEmpty(config.ApiKey))
+        {
+            Console.Error.WriteLine("❌ 未配置 API Key");
+            return 1;
+        }
+
+        var resolvedModel = ResolveModel(config, model);
+
+        var novelText = File.ReadAllText(input);
+        Console.WriteLine($"📝 已加载: {Path.GetFileName(input)} ({novelText.Length} 字符)");
+
+        var dbPath = FindAvaloniaDbPath();
+        DbFactory.Reset();
+        DbFactory.ConfigureForTesting($"Data Source={dbPath}");
+
+        using var http = new HttpClient();
+        var client = new BailianClient(http, config);
+        var splitter = new SectionSplitter(client);
+
+        var result = await splitter.SplitAsync(novelText, plotId, resolvedModel, onLog: Console.WriteLine);
+
+        var outputPath = Path.Combine(
+            Path.GetDirectoryName(input) ?? ".",
+            Path.GetFileNameWithoutExtension(input) + "_sectioned.md");
+        File.WriteAllText(outputPath, result);
+
+        Console.WriteLine($"✅ 已保存: {outputPath} ({result.Length} 字符)");
+        return 0;
+    }
+
+    static async Task<int> RunAndSplitAsync(string[] args)
+    {
+        var runCode = await RunAsync(args);
+        if (runCode != 0) return runCode;
+
+        var (input, _, _, model, provider, _, _, _, _, _, plotId) = ParseSplitArgs(args);
+        if (plotId <= 0)
+        {
+            Console.Error.WriteLine("❌ run-and-split 必须指定 --plot <plotId>");
+            return 1;
+        }
+
+        if (!File.Exists(input))
+        {
+            Console.Error.WriteLine($"❌ 找不到输入文件: {input}");
+            return 1;
+        }
+
+        var config = LoadConfig(provider);
+        var resolvedModel = ResolveModel(config, model);
+        var novelPath = Path.Combine(
+            Path.GetDirectoryName(input) ?? ".",
+            Path.GetFileNameWithoutExtension(input) + $"_novel_{resolvedModel}.md");
+
+        if (!File.Exists(novelPath))
+        {
+            Console.Error.WriteLine($"❌ 找不到 Pass 1 输出: {novelPath}");
+            return 1;
+        }
+
+        using var http = new HttpClient();
+        var client = new BailianClient(http, config);
+        var splitter = new SectionSplitter(client);
+
+        var result = await splitter.SplitAsync(File.ReadAllText(novelPath), plotId, resolvedModel);
+        var outputPath = Path.Combine(
+            Path.GetDirectoryName(input) ?? ".",
+            Path.GetFileNameWithoutExtension(input) + $"_novel_{resolvedModel}_sectioned.md");
+        File.WriteAllText(outputPath, result);
+
+        Console.WriteLine($"✅ 已保存: {outputPath} ({result.Length} 字符)");
+        return 0;
+    }
+
+    static string ResolveModel(ApiConfig config, string? model)
+    {
+        if (model is null) return config.Models[0];
+        return model.Contains("flash")
+            ? config.Models.Last(m => m.Contains("flash"))
+            : config.Models.First(m => !m.Contains("flash"));
+    }
+
     static async Task<int> RunAsync(string[] args)
     {
-        var (input, compare, force, model, provider, promptFile, tag, multiTurn, chunkSize, compressInterval) = ParseRunArgs(args);
+        var (input, compare, force, model, provider, promptFile, tag, multiTurn, chunkSize, compressInterval, split) = ParseRunArgs(args);
         var config = LoadConfig(provider);
 
         if (string.IsNullOrEmpty(config.ApiKey))
@@ -81,12 +182,19 @@ class Program
             Console.WriteLine($"🔄 多轮对话模式: chunkSize={chunkSize}{compressInfo}");
         }
 
+        if (split)
+        {
+            Console.WriteLine("✂️ TTS 分节已启用（Pass 2）");
+        }
+
         var pipeline = new NovelizerPipeline(
             client, config,
             systemPrompt: customPrompt,
             enableMultiTurn: multiTurn,
             chunkSize: chunkSize,
-            compressInterval: compressInterval);
+            compressInterval: compressInterval,
+            enableSectionSplitter: split,
+            sectionSplitterModel: models[0]);
 
         if (Directory.Exists(input))
         {
@@ -148,7 +256,7 @@ class Program
 
     static async Task<int> TestAsync(string[] args)
     {
-        var (input, _, _, model, provider, _, _, _, _, _) = ParseRunArgs(args);
+        var (input, _, _, model, provider, _, _, _, _, _, _) = ParseRunArgs(args);
         if (string.IsNullOrEmpty(input))
         {
             Console.Error.WriteLine("用法: Novelizer test <example_data.json> [--model flash|pro] [--provider deepseek|bailian]");
@@ -455,7 +563,7 @@ class Program
         };
     }
 
-    static (string input, bool compare, bool force, string? model, string? provider, string? prompt, string? tag, bool multiTurn, int chunkSize, int compressInterval) ParseRunArgs(string[] args)
+    static (string input, bool compare, bool force, string? model, string? provider, string? prompt, string? tag, bool multiTurn, int chunkSize, int compressInterval, bool split) ParseRunArgs(string[] args)
     {
         var input = "";
         var compare = false;
@@ -467,6 +575,7 @@ class Program
         var multiTurn = false;
         var chunkSize = 5_000;
         var compressInterval = 0;
+        var split = false;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -504,6 +613,9 @@ class Program
                     if (int.TryParse(args[++i], out var ci) && ci > 0)
                         compressInterval = ci;
                     break;
+                case "--split":
+                    split = true;
+                    break;
                 default:
                     if (!args[i].StartsWith("-") && string.IsNullOrEmpty(input))
                         input = args[i];
@@ -511,7 +623,24 @@ class Program
             }
         }
 
-        return (input, compare, force, model, provider, prompt, tag, multiTurn, chunkSize, compressInterval);
+        return (input, compare, force, model, provider, prompt, tag, multiTurn, chunkSize, compressInterval, split);
+    }
+
+    static (string input, bool compare, bool force, string? model, string? provider, string? prompt, string? tag, bool multiTurn, int chunkSize, int compressInterval, long plotId) ParseSplitArgs(string[] args)
+    {
+        var baseArgs = ParseRunArgs(args);
+        var plotId = 0L;
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i].Equals("--plot", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+            {
+                if (long.TryParse(args[++i], out var pid) && pid > 0)
+                    plotId = pid;
+            }
+        }
+
+        return (baseArgs.input, baseArgs.compare, baseArgs.force, baseArgs.model, baseArgs.provider, baseArgs.prompt, baseArgs.tag, baseArgs.multiTurn, baseArgs.chunkSize, baseArgs.compressInterval, plotId);
     }
 
     /// <summary>
@@ -551,15 +680,20 @@ class Program
         Console.WriteLine();
         Console.WriteLine("用法:");
         Console.WriteLine("  Novelizer run --input <path> [--compare] [--force] [--model flash|pro] [--provider deepseek|bailian]");
+        Console.WriteLine("  Novelizer split -i novel.md --plot <id> [--model flash|pro] [--provider deepseek|bailian]");
+        Console.WriteLine("  Novelizer run-and-split -i input.md --plot <id> [--model flash|pro] [--provider deepseek|bailian]");
         Console.WriteLine("  Novelizer test <example_data.json> [--model flash|pro] [--provider deepseek|bailian]");
         Console.WriteLine();
         Console.WriteLine("命令:");
-        Console.WriteLine("  run     从 .md 文件或 .json (FormattedTextEntry[]) 生成小说");
-        Console.WriteLine("  test    用 example_data.json 测试");
-        Console.WriteLine("  verify  反照抄端到端验证：孤星第一章 DB → 双模式 MD → 小说对比");
+        Console.WriteLine("  run            从 .md 文件或 .json (FormattedTextEntry[]) 生成小说");
+        Console.WriteLine("  split          对已有小说化文本做 TTS 分节（Pass 2）");
+        Console.WriteLine("  run-and-split  先 run 再 split，两阶段一次完成");
+        Console.WriteLine("  test           用 example_data.json 测试");
+        Console.WriteLine("  verify         反照抄端到端验证：孤星第一章 DB → 双模式 MD → 小说对比");
         Console.WriteLine();
         Console.WriteLine("选项:");
         Console.WriteLine("  --input, -i        输入文件(.md/.json) 或目录");
+        Console.WriteLine("  --plot             DB 中的 PlotId（split / run-and-split 必需）");
         Console.WriteLine("  --compare, -c      并行调用 pro 和 flash 两个模型进行对比");
         Console.WriteLine("  --force, -f        忽略缓存，强制重新生成");
         Console.WriteLine("  --model, -m        指定模型 (flash / pro)");
@@ -569,6 +703,7 @@ class Program
         Console.WriteLine("  --multi-turn, -mt        启用多轮对话模式（长章自动拆分为多轮调用）");
         Console.WriteLine("  --chunk-size, -cs        多轮模式下每 chunk 目标字符数（默认 5000）");
         Console.WriteLine("  --compress-interval, -ci 每 N 轮压缩一次上下文（默认 0 = 不压缩）");
+        Console.WriteLine("  --split                  启用 Pass 2 TTS 分节（小说生成后自动分节）");
         Console.WriteLine();
         Console.WriteLine("verify 专用选项:");
         Console.WriteLine("  --db <path>    arkplot.db 路径（默认自动查找 Avalonia 输出目录）");

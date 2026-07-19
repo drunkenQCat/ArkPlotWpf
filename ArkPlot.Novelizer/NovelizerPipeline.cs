@@ -9,11 +9,14 @@ namespace ArkPlot.Novelizer;
 public class NovelizerPipeline
 {
     private readonly BailianClient _client;
+    private readonly ApiConfig _config;
     private readonly Action<string>? _onLog;
     private readonly string _systemPrompt;
     private readonly bool _enableMultiTurn;
     private readonly int _chunkSize;
     private readonly int _compressInterval;
+    private readonly bool _enableSectionSplitter;
+    private readonly string _sectionSplitterModel;
 
     private const string DefaultSystemPrompt = """
 ## 明日方舟剧情小说化转换协议
@@ -94,6 +97,8 @@ public class NovelizerPipeline
     /// <param name="enableMultiTurn">启用多轮对话模式（长章拆分为 ~chunkSize 的多轮调用）</param>
     /// <param name="chunkSize">多轮模式下每 chunk 的目标字符数</param>
     /// <param name="compressInterval">每 N 轮压缩一次上下文（0 = 不压缩）</param>
+    /// <param name="enableSectionSplitter">启用 Pass 2 TTS 分节（每章生成后自动调用 SectionSplitter）</param>
+    /// <param name="sectionSplitterModel">Pass 2 使用的模型，未指定时复用调用方传入的 model</param>
     public NovelizerPipeline(
         BailianClient client,
         ApiConfig config,
@@ -101,10 +106,13 @@ public class NovelizerPipeline
         string? systemPrompt = null,
         bool enableMultiTurn = false,
         int chunkSize = 5_000,
-        int compressInterval = 0
+        int compressInterval = 0,
+        bool enableSectionSplitter = false,
+        string? sectionSplitterModel = null
     )
     {
         _client = client;
+        _config = config;
         _onLog = onLog;
         _systemPrompt = string.IsNullOrWhiteSpace(systemPrompt)
             ? DefaultSystemPrompt
@@ -112,6 +120,8 @@ public class NovelizerPipeline
         _enableMultiTurn = enableMultiTurn;
         _chunkSize = chunkSize;
         _compressInterval = compressInterval;
+        _enableSectionSplitter = enableSectionSplitter;
+        _sectionSplitterModel = sectionSplitterModel ?? "";
     }
 
     private void Log(string msg)
@@ -167,6 +177,44 @@ public class NovelizerPipeline
             chunkSize: _chunkSize,
             compressInterval: _compressInterval);
         var results = await processor.ProcessAllAsync(chapters, model, ct);
+
+        // Pass 2: TTS 分节（每章独立调用 SectionSplitter）
+        if (_enableSectionSplitter)
+        {
+            Log($"[SectionSplitter] Pass 2 开始，共 {results.Count} 章");
+            var splitterModel = !string.IsNullOrEmpty(_sectionSplitterModel) ? _sectionSplitterModel : model;
+            var noThinkingConfig = new ApiConfig
+            {
+                Provider = _config.Provider,
+                ApiKey = _config.ApiKey,
+                BaseUrl = _config.BaseUrl,
+                Models = _config.Models,
+                EnableThinking = false,
+                MaxRetries = _config.MaxRetries,
+                TimeoutSeconds = _config.TimeoutSeconds,
+                MaxTokens = _config.MaxTokens,
+            };
+            var splitterClient = new BailianClient(new HttpClient(), noThinkingConfig, onLog: Log);
+            var splitter = new SectionSplitter(splitterClient, onLog: Log);
+            var sectionedResults = new List<ChapterResult>(results.Count);
+            for (int i = 0; i < results.Count; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                var r = results[i];
+                if (!r.IsSuccess || string.IsNullOrEmpty(r.Content))
+                {
+                    sectionedResults.Add(r);
+                    continue;
+                }
+
+                Log($"[SectionSplitter] 第 {i + 1}/{results.Count} 章「{r.Title}」开始分节");
+                var sectioned = await splitter.SplitByTitleAsync(
+                    r.Content, r.Title, splitterModel, onLog: Log, ct);
+                sectionedResults.Add(r with { Content = sectioned });
+            }
+            results = sectionedResults;
+            Log($"[SectionSplitter] Pass 2 完成");
+        }
 
         // 组装并写入
         var novelPath = NovelComposer.ComposeAndWrite(results, mdPath, tag, Log);
