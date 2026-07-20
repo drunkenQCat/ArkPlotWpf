@@ -7,7 +7,7 @@
 
 <div align="center">
 
-<img src="./ArkPlotWpf/assets/Donkey.png" alt="驴头" width="120" />
+<img src="./ArkPlot.Avalonia/Assets/donkey.ico" alt="驴头" width="120" />
 
 ### ✨ 明日方舟剧情文本转换器 · 话剧剧本 · AI小说化 · 多角色TTS有声书 ✨
 
