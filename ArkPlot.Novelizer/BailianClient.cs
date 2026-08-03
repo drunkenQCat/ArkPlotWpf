@@ -61,7 +61,7 @@ public class BailianClient
     /// 多轮对话调用：接受预构建的 messages 列表（含 system / user / assistant 多轮）。
     /// 其余逻辑（平台字段、重试、token 统计）与 ChatAsync 一致。
     /// </summary>
-    public async Task<ChatResult> ChatWithHistoryAsync(
+    public virtual async Task<ChatResult> ChatWithHistoryAsync(
         string model,
         IReadOnlyList<ChatMessage> messages)
     {
@@ -85,8 +85,13 @@ public class BailianClient
 
         if (_config.Provider == ApiProvider.DeepSeek)
         {
-            requestBody["reasoning_effort"] = "high";
-            requestBody["extra_body"] = new { thinking = new { type = "enabled" } };
+            // DeepSeek 推理模型默认开启思考，会显著增加 token 消耗。
+            // 分节等轻量任务应显式关闭思考（EnableThinking=false），此时不携带 thinking/reasoning_effort 字段。
+            if (_config.EnableThinking)
+            {
+                requestBody["reasoning_effort"] = "high";
+                requestBody["extra_body"] = new { thinking = new { type = "enabled" } };
+            }
         }
         else if (_config.Provider == ApiProvider.Bailian)
         {

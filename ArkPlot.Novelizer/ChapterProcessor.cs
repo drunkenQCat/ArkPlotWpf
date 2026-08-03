@@ -203,7 +203,13 @@ public class ChapterProcessor
                 try
                 {
                     var compressSw = System.Diagnostics.Stopwatch.StartNew();
-                    var compressResult = await _client.ChatWithHistoryAsync(model, history);
+
+                    // 构造压缩请求：保留已有对话历史，并追加压缩指令作为最后一条 user 消息
+                    var compressMessages = new List<ChatMessage>(history)
+                    {
+                        new ChatMessage("user", CompressPrompt)
+                    };
+                    var compressResult = await _client.ChatWithHistoryAsync(model, compressMessages);
                     compressSw.Stop();
 
                     var compressed = ChapterSplitter.StripHeadings(compressResult.AnswerContent);
