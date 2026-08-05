@@ -17,6 +17,7 @@ public class NovelizerPipeline
     private readonly int _compressInterval;
     private readonly bool _enableSectionSplitter;
     private readonly string _sectionSplitterModel;
+    private readonly bool _useMock;
 
     private const string DefaultSystemPrompt = """
 ## 明日方舟剧情小说化转换协议
@@ -99,6 +100,7 @@ public class NovelizerPipeline
     /// <param name="compressInterval">每 N 轮压缩一次上下文（0 = 不压缩）</param>
     /// <param name="enableSectionSplitter">启用 Pass 2 TTS 分节（每章生成后自动调用 SectionSplitter）</param>
     /// <param name="sectionSplitterModel">Pass 2 使用的模型，未指定时复用调用方传入的 model</param>
+    /// <param name="useMock">启用 Mock 客户端（不调真实 API，返回占位文本，用于开发调试）</param>
     public NovelizerPipeline(
         BailianClient client,
         ApiConfig config,
@@ -108,7 +110,8 @@ public class NovelizerPipeline
         int chunkSize = 5_000,
         int compressInterval = 0,
         bool enableSectionSplitter = false,
-        string? sectionSplitterModel = null
+        string? sectionSplitterModel = null,
+        bool useMock = false
     )
     {
         _client = client;
@@ -122,6 +125,7 @@ public class NovelizerPipeline
         _compressInterval = compressInterval;
         _enableSectionSplitter = enableSectionSplitter;
         _sectionSplitterModel = sectionSplitterModel ?? "";
+        _useMock = useMock;
     }
 
     private void Log(string msg)
@@ -194,7 +198,9 @@ public class NovelizerPipeline
                 TimeoutSeconds = _config.TimeoutSeconds,
                 MaxTokens = _config.MaxTokens,
             };
-            var splitterClient = new BailianClient(new HttpClient(), noThinkingConfig, onLog: Log);
+            var splitterClient = _useMock
+                ? new MockBailianClient(new HttpClient(), noThinkingConfig, onLog: Log)
+                : new BailianClient(new HttpClient(), noThinkingConfig, onLog: Log);
             var splitter = new SectionSplitter(splitterClient, onLog: Log);
             var sectionedResults = new List<ChapterResult>(results.Count);
             for (int i = 0; i < results.Count; i++)
