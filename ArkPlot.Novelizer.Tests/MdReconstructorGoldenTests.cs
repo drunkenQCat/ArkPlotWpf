@@ -10,6 +10,7 @@ namespace ArkPlot.Novelizer.Tests;
 /// MdReconstructor 回归测试 — 孤星第一章 Golden 验证。
 /// 确保重构过程中 Markdown 输出、分组、立绘位置、描述插入位置保持一致。
 /// </summary>
+[Collection("SharedDb")]
 public class MdReconstructorGoldenTests
 {
     private static readonly string ProjectRoot = FindProjectRoot();
@@ -58,8 +59,8 @@ public class MdReconstructorGoldenTests
         // 从 PicDescription 表填充 PicDesc 和 PicFacts
         PopulatePicDescs(entries, db);
 
-        // Readable 模式
-        var readableEntries = entries.Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
+        // Readable 模式（深拷贝，避免 StoryDocumentBuilder 修改 MdText 影响 Prompt 模式）
+        var readableEntries = entries.Select(e => new FormattedTextEntry(e)).Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
         var readableReconstructor = new StoryDocumentBuilder(
             readableEntries,
             enableDescriptions: true,
@@ -69,7 +70,7 @@ public class MdReconstructorGoldenTests
         readableReconstructor.AppendResultToBuilder(readableMd);
 
         // Prompt 模式
-        var promptEntries = entries.Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
+        var promptEntries = entries.Select(e => new FormattedTextEntry(e)).Cast<ArkPlot.Core.Model.ScriptLine>().ToList();
         var promptReconstructor = new StoryDocumentBuilder(
             promptEntries,
             enableDescriptions: true,

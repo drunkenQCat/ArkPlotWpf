@@ -112,6 +112,21 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/1/15/Avg_avg_npc_134.png" alt="avg_npc_134" loading="lazy" style="max-height:300px" title="监狱负责人"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b5/Avg_avg_npc_892_1-10$1.png" alt="avg_npc_892_1#9$1" loading="lazy" style="max-height:300px" title="精英打扮的男性"></div></td>
+</tr>
+<tr>
+    <td>【此处为对监狱负责人的形象描述，请结合上下文将其融入文中，不要生搬硬套】：铁栅栏的阴影斜斜压在地面，他静立如一座沉默的堡垒。头盔下露出半张被金属与裂纹覆盖的脸，尖刺状的护颈延伸至肩头，像某种机械兽的残骸。胸前红底白字的“Prison Police”徽章在灰暗战甲上灼灼发亮，仿佛一道未愈的伤疤。左手紧握一柄长棍，末端嵌着细密齿痕；右手垂落，却稳稳托着一面厚重的黑色防暴盾——盾面竖条如牢笼，底部网格透出幽蓝微光。靴尖微翘，足踝处缠绕着磨损的皮带与铜环，仿佛刚从一场混乱中脱身，又准备踏入下一场风暴。</td>
+    <td>【此处为对精英打扮的男性的形象描述，请结合上下文将其融入文中，不要生搬硬套】：他站在空旷的光晕里，耳尖竖着细密的棕毛，眼镜片后目光沉静。米色风衣随意搭在臂弯，内衬白衬衫与芥末黄马甲衬出几分旧日绅士的余韵，腰间黑皮带扣泛着冷光。左手插在裤袋，指尖轻捏一叠薄薄纸币，右肩垂落的尾巴尖儿微微卷曲，尾尖泛着银灰光泽。胸前工牌边缘已磨得发亮，仿佛无声诉说无数个奔波的日夜。他没笑，可那微垂的眼睫下，藏着一种看透世事却仍愿前行的从容。</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】铁栅栏的阴影斜斜压在地面，他静立如一座沉默的堡垒。头盔下露出半张被金属与裂纹覆盖的脸，尖刺状的护颈延伸至肩头，像某种机械兽的残骸。胸前红底白字的“Prison Police”徽章在灰暗战甲上灼灼发亮，仿佛一道未愈的伤疤。左手紧握一柄长棍，末端嵌着细密齿痕；右手垂落，却稳稳托着一面厚重的黑色防暴盾——盾面竖条如牢笼，底部网格透出幽蓝微光。靴尖微翘，足踝处缠绕着磨损的皮带与铜环，仿佛刚从一场混乱中脱身，又准备踏入下一场风暴。</p>
+
 <audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
 
 `音效`：walk
@@ -214,6 +229,19 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/1/15/Avg_avg_npc_134.png" alt="avg_npc_134" loading="lazy" style="max-height:300px" title="监狱负责人"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/82/Avg_avg_npc_892_1-2$1.png" alt="avg_npc_892_1#1$1" loading="lazy" style="max-height:300px" title="精英打扮的男性"></div></td>
+</tr>
+<tr>
+    <td>监狱负责人</td>
+    <td>精英打扮的男性</td>
+</tr>
+</table>
+
+
+
 <audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_phonevibration.mp3" type="audio/mpeg"></audio>
 
 `音效`：phonevibration
@@ -261,6 +289,19 @@
 **狱警**`讲道：`准备好了，先生，请吧。
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b5/Avg_avg_npc_892_1-10$1.png" alt="avg_npc_892_1#9$1" loading="lazy" style="max-height:300px" title="精英打扮的男性"></div></td>
+</tr>
+<tr>
+    <td>精英打扮的男性</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】他站在空旷的光晕里，耳尖竖着细密的棕毛，眼镜片后目光沉静。米色风衣随意搭在臂弯，内衬白衬衫与芥末黄马甲衬出几分旧日绅士的余韵，腰间黑皮带扣泛着冷光。左手插在裤袋，指尖轻捏一叠薄薄纸币，右肩垂落的尾巴尖儿微微卷曲，尾尖泛着银灰光泽。胸前工牌边缘已磨得发亮，仿佛无声诉说无数个奔波的日夜。他没笑，可那微垂的眼睫下，藏着一种看透世事却仍愿前行的从容。</p>
 
 **小贾斯汀**`讲道：`好好好，让我费了这么大功夫，总算能见到这位大名鼎鼎的怪胎了。
 
@@ -346,6 +387,19 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/7/72/Avg_avg_npc_892_1-3$1.png" alt="avg_npc_892_1#2$1" loading="lazy" style="max-height:300px" title="精英打扮的男性"></div></td>
+</tr>
+<tr>
+    <td>精英打扮的男性</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】他站在空旷的光晕里，耳尖竖着细密的棕毛，眼镜片后目光沉静。米色风衣随意搭在臂弯，内衬白衬衫与芥末黄马甲衬出几分旧日绅士的余韵，腰间黑皮带扣泛着冷光。左手插在裤袋，指尖轻捏一叠薄薄纸币，右肩垂落的尾巴尖儿微微卷曲，尾尖泛着银灰光泽。胸前工牌边缘已磨得发亮，仿佛无声诉说无数个奔波的日夜。他没笑，可那微垂的眼睫下，藏着一种看透世事却仍愿前行的从容。</p>
+
 **小贾斯汀**`讲道：`......哈哈。这里是监狱？你管这叫监狱？
 
 **小贾斯汀**`讲道：`*哥伦比亚俚语*，克丽斯腾为了你，在这里单独复制了一座实验室吗？
@@ -353,6 +407,34 @@
 **小贾斯汀**`讲道：`你还真是备受器重啊，三十号犯人。
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/f6/Avg_avg_npc_894_1-2$1.png" alt="avg_npc_894_1#1$1" loading="lazy" style="max-height:300px" title="三十号"></div></td>
+</tr>
+<tr>
+    <td>【此处为对三十号的形象描述，请结合上下文将其融入文中，不要生搬硬套】：灰白风衣垂落至踝，衣摆边缘磨出细碎毛边，内里深色衬衫领口微敞，露出锁骨处一道旧伤疤。银发凌乱如被风吹散的枯草，黑框眼镜后是低垂的眼睑，目光沉静地投向地面。左肩斜挎着一具金属外壳的装置，管线蜿蜒垂落，末端系着枚黄铜小锁；右臂肘侧嵌着半透明圆筒，隐约可见内部齿轮咬合的暗影。他右手插在风衣口袋里，指节微微蜷起，仿佛正攥着什么无形之物。整幅画面静默无声，唯有那件风衣下摆的褶皱里，藏着未说出口的倦意与执拗。</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】灰白风衣垂落至踝，衣摆边缘磨出细碎毛边，内里深色衬衫领口微敞，露出锁骨处一道旧伤疤。银发凌乱如被风吹散的枯草，黑框眼镜后是低垂的眼睑，目光沉静地投向地面。左肩斜挎着一具金属外壳的装置，管线蜿蜒垂落，末端系着枚黄铜小锁；右臂肘侧嵌着半透明圆筒，隐约可见内部齿轮咬合的暗影。他右手插在风衣口袋里，指节微微蜷起，仿佛正攥着什么无形之物。整幅画面静默无声，唯有那件风衣下摆的褶皱里，藏着未说出口的倦意与执拗。</p>
+
+---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/f6/Avg_avg_npc_894_1-2$1.png" alt="avg_npc_894_1#1$1" loading="lazy" style="max-height:300px" title="三十号"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b5/Avg_avg_npc_892_1-10$1.png" alt="avg_npc_892_1#9$1" loading="lazy" style="max-height:300px" title="精英打扮的男性"></div></td>
+</tr>
+<tr>
+    <td>三十号</td>
+    <td>精英打扮的男性</td>
+</tr>
+</table>
+
+
 
 **三十号**`讲道：`你不是那个定期联络员，但我见过你的脸。
 
@@ -494,14 +576,12 @@
 
 <table class="portrait-table">
 <tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fa/Avg_avg_npc_899_1-6$1.png" alt="avg_npc_899_1#5$1" loading="lazy" style="max-height:300px" title="军士模样的人"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/0/0e/Avg_avg_npc_899_1-2$1.png" alt="avg_npc_899_1#1$1" loading="lazy" style="max-height:300px" title="军士模样的人"></div></td>
     <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/9/9a/Avg_avg_npc_890_1-7$1.png" alt="avg_npc_890_1#6$1" loading="lazy" style="max-height:300px" title="斐尔迪南"></div></td>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/0/0e/Avg_avg_npc_899_1-2$1.png" alt="avg_npc_899_1#1$1" loading="lazy" style="max-height:300px" title="布莱克"></div></td>
 </tr>
 <tr>
     <td>【此处为对军士模样的人的形象描述，请结合上下文将其融入文中，不要生搬硬套】：他站在空旷的白幕前，像一尊被遗忘在时间夹缝里的旧日哨兵。墨镜遮住双眼，只余下嘴角一丝冷硬的弧度，耳畔的通讯器线缆垂落如蛇。米褐相间的作战服裹着结实的身躯，肩甲上那枚星芒徽记在光线下泛着微光，仿佛曾见证过无数硝烟弥漫的黄昏。腰间战术背心缀满黑匣与弹药袋，右臂护具磨损处露出底下暗红的旧伤痕。他左手轻搭在枪柄上，指节微曲，似随时准备扣动扳机——可脚边那双厚底靴却踏得极稳，像一株扎根于废墟的枯树，静默中蓄势待发。</td>
     <td>【此处为对斐尔迪南的形象描述，请结合上下文将其融入文中，不要生搬硬套】：他站在空旷的白色背景里，像一尊被抽离了世界的雕像。棕褐色虎斑纹的猫耳伏在额前，尾尖垂落至脚踝，卷曲着扫过地面——那不是装饰，是某种无声的警觉。米白衬衫袖口微卷，领带歪斜，肩头挂着通讯器与小型无人机，腰间战术背心上嵌着格子状的模块与泛着冷光的仪器。右手夹着半截烟，指节微曲，左手腕上金属表带勒进皮肤，仿佛刚结束一场无声的对峙。靴筒沾着干涸的泥痕，裤腿侧边缝着暗色补丁，像一道未愈的旧伤。他闭着眼，嘴角却噙着一丝难以察觉的笑意——像是在回味某个早已散场的黄昏。</td>
-    <td>布莱克</td>
 </tr>
 </table>
 
@@ -575,6 +655,19 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/d/d8/Avg_avg_249_mlyss_1-5$1.png" alt="avg_249_mlyss_1#4$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>【此处为对缪尔赛思的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银灰长发垂落肩头，几缕金黄穗饰在光下闪烁，耳尖微翘如初生鹿角。她抬手轻抚额前发丝，指尖停驻片刻，眼底漾着暖意笑意。身披浅灰风衣，内衬深褐长裙，腰间斜挎的工具包垂着绿绳与金属挂件，一枚透明水珠悬于细链末端，轻轻晃动。右手握着一柄古旧的机械弩，弩身缠绕铜线与皮革，顶端浮起两枚气泡状装置，仿佛正蓄势待发。靴筒系着同色系绑带，侧边别着短刃，整幅姿态既似学者巡游，又像隐秘猎手悄然现身——风未起，人已立于静默边缘。</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】银灰长发垂落肩头，几缕金黄穗饰在光下闪烁，耳尖微翘如初生鹿角。她抬手轻抚额前发丝，指尖停驻片刻，眼底漾着暖意笑意。身披浅灰风衣，内衬深褐长裙，腰间斜挎的工具包垂着绿绳与金属挂件，一枚透明水珠悬于细链末端，轻轻晃动。右手握着一柄古旧的机械弩，弩身缠绕铜线与皮革，顶端浮起两枚气泡状装置，仿佛正蓄势待发。靴筒系着同色系绑带，侧边别着短刃，整幅姿态既似学者巡游，又像隐秘猎手悄然现身——风未起，人已立于静默边缘。</p>
+
 **缪尔赛思**`讲道：`其实我很不喜欢现在的感觉。
 
 **缪尔赛思**`讲道：`太安静了......空气冰凉又干燥，灯光的色调冷得过分，前面也不知道会有什么。
@@ -590,6 +683,19 @@
 **缪尔赛思**`讲道：`......克丽斯腾。
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/3/34/Avg_avg_249_mlyss_1-3$1.png" alt="avg_249_mlyss_1#2$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】银灰长发垂落肩头，几缕金黄穗饰在光下闪烁，耳尖微翘如初生鹿角。她抬手轻抚额前发丝，指尖停驻片刻，眼底漾着暖意笑意。身披浅灰风衣，内衬深褐长裙，腰间斜挎的工具包垂着绿绳与金属挂件，一枚透明水珠悬于细链末端，轻轻晃动。右手握着一柄古旧的机械弩，弩身缠绕铜线与皮革，顶端浮起两枚气泡状装置，仿佛正蓄势待发。靴筒系着同色系绑带，侧边别着短刃，整幅姿态既似学者巡游，又像隐秘猎手悄然现身——风未起，人已立于静默边缘。</p>
 
 <img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
@@ -608,6 +714,21 @@
 **缪尔赛思**`讲道：`霍尔海雅。
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/2/27/Avg_avg_npc_536_1-4$1.png" alt="avg_npc_536_1#3$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/d/d8/Avg_avg_249_mlyss_1-5$1.png" alt="avg_249_mlyss_1#4$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>【此处为对霍尔海雅的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银灰长发垂落肩头，几缕青苔色挑染在风中轻颤。她倚着那柄巨大机械长枪，枪身缠绕着荧光蓝的管线，像活物般蜿蜒攀附。白裙下黑丝勾勒出修长腿线，脚尖轻点地面，足尖处暗藏金属踏板，与身后盘绕的鳞甲巨尾相接——那尾尖正悄然卷起一截废弃的战术背包。宽大斗篷上黑白漩涡纹路密布，仿佛将整片风暴裹入其中。她指尖捏着一枚深褐色药剂瓶，瓶身印着模糊的“E-7”字样，唇角微扬，绿眸里映着未熄的冷光。</td>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】银灰长发垂落肩头，几缕青苔色挑染在风中轻颤。她倚着那柄巨大机械长枪，枪身缠绕着荧光蓝的管线，像活物般蜿蜒攀附。白裙下黑丝勾勒出修长腿线，脚尖轻点地面，足尖处暗藏金属踏板，与身后盘绕的鳞甲巨尾相接——那尾尖正悄然卷起一截废弃的战术背包。宽大斗篷上黑白漩涡纹路密布，仿佛将整片风暴裹入其中。她指尖捏着一枚深褐色药剂瓶，瓶身印着模糊的“E-7”字样，唇角微扬，绿眸里映着未熄的冷光。</p>
 
 **霍尔海雅**`讲道：`呀，看来你经常躲在这里哭鼻子，我应该再藏一会儿的。
 
@@ -630,6 +751,15 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b6/Avg_avg_249_mlyss_1-11$1.png" alt="avg_249_mlyss_1#11$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
 <audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_blooddrop.mp3" type="audio/mpeg"></audio>
 
 `音效`：blooddrop
@@ -639,6 +769,21 @@
 `音效`：clothmovement
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/1/1e/Avg_avg_npc_536_1-3$1.png" alt="avg_npc_536_1#2$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b6/Avg_avg_249_mlyss_1-11$1.png" alt="avg_249_mlyss_1#11$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>霍尔海雅</td>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】银灰长发垂落肩头，几缕青苔色挑染在风中轻颤。她倚着那柄巨大机械长枪，枪身缠绕着荧光蓝的管线，像活物般蜿蜒攀附。白裙下黑丝勾勒出修长腿线，脚尖轻点地面，足尖处暗藏金属踏板，与身后盘绕的鳞甲巨尾相接——那尾尖正悄然卷起一截废弃的战术背包。宽大斗篷上黑白漩涡纹路密布，仿佛将整片风暴裹入其中。她指尖捏着一枚深褐色药剂瓶，瓶身印着模糊的“E-7”字样，唇角微扬，绿眸里映着未熄的冷光。</p>
 
 <audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
 
@@ -754,6 +899,17 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b6/Avg_avg_249_mlyss_1-11$1.png" alt="avg_249_mlyss_1#11$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/2/27/Avg_avg_npc_536_1-4$1.png" alt="avg_npc_536_1#3$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+</tr>
+<tr>
+    <td>缪尔赛思</td>
+    <td>霍尔海雅</td>
+</tr>
+</table>
+
 `场景流转`
 
 `震惊`
@@ -766,9 +922,11 @@
 
 <table class="portrait-table">
 <tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b6/Avg_avg_249_mlyss_1-11$1.png" alt="avg_249_mlyss_1#11$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
     <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/4/4b/Avg_avg_npc_536_1-11$1.png" alt="avg_npc_536_1#10$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
 </tr>
 <tr>
+    <td>缪尔赛思</td>
     <td>霍尔海雅</td>
 </tr>
 </table>
@@ -788,6 +946,19 @@
 **霍尔海雅**`讲道：`...下一次我真的会杀了你。
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/4/4b/Avg_avg_npc_536_1-11$1.png" alt="avg_npc_536_1#10$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
+</tr>
+<tr>
+    <td>霍尔海雅</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】银灰长发垂落肩头，几缕青苔色挑染在风中轻颤。她倚着那柄巨大机械长枪，枪身缠绕着荧光蓝的管线，像活物般蜿蜒攀附。白裙下黑丝勾勒出修长腿线，脚尖轻点地面，足尖处暗藏金属踏板，与身后盘绕的鳞甲巨尾相接——那尾尖正悄然卷起一截废弃的战术背包。宽大斗篷上黑白漩涡纹路密布，仿佛将整片风暴裹入其中。她指尖捏着一枚深褐色药剂瓶，瓶身印着模糊的“E-7”字样，唇角微扬，绿眸里映着未熄的冷光。</p>
 
 <audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
 
@@ -816,6 +987,17 @@
 **缪尔赛思**`陷入了沉默`
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/d/d8/Avg_avg_249_mlyss_1-5$1.png" alt="avg_249_mlyss_1#4$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
+</tr>
+<tr>
+    <td>缪尔赛思</td>
+</tr>
+</table>
+
+
 
 讨厌的黎博利已经消失，除了沙发上的点滴水渍，刚才的战斗像是没有发生过。
 
@@ -903,6 +1085,21 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b0/Avg_avg_npc_523_1$1.png" alt="avg_npc_523_1#1$1" loading="lazy" style="max-height:300px" title="街边摊贩"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+</tr>
+<tr>
+    <td>【此处为对街边摊贩的形象描述，请结合上下文将其融入文中，不要生搬硬套】：他站在灰白的背景里，像一帧被抽离了世界的定格画面。尖耳微翘，发丝被风轻轻撩起，眼神沉静，仿佛刚从某个喧嚣的街角踱步而来。深褐夹克敞着领口，内搭墨绿毛衣与白衬衫领子相映，下身是洗得泛白的卡其长裤，脚蹬一双磨旧的黑皮鞋，踏在无形的地面之上。左手插在口袋里，右手垂落，指间夹着一叠报纸，纸页边缘微微卷曲，露出一角模糊的“NS”字样。整幅画面没有风，没有光，只有他伫立如碑，像一句未写完的伏笔，悬在故事开场前的寂静里。</td>
+    <td>？？？</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】他站在灰白的背景里，像一帧被抽离了世界的定格画面。尖耳微翘，发丝被风轻轻撩起，眼神沉静，仿佛刚从某个喧嚣的街角踱步而来。深褐夹克敞着领口，内搭墨绿毛衣与白衬衫领子相映，下身是洗得泛白的卡其长裤，脚蹬一双磨旧的黑皮鞋，踏在无形的地面之上。左手插在口袋里，右手垂落，指间夹着一叠报纸，纸页边缘微微卷曲，露出一角模糊的“NS”字样。整幅画面没有风，没有光，只有他伫立如碑，像一句未写完的伏笔，悬在故事开场前的寂静里。</p>
+
 `震惊`
 
 **街边摊贩**`讲道：`*哥伦比亚粗口*，老兄，你什么情况？
@@ -954,6 +1151,19 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+</tr>
+<tr>
+    <td>？？？</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】雨丝斜织，街灯昏黄的光晕在湿漉漉的柏油路上晕开一片暖色。他立于檐下，宽大的卡其色风衣垂落至膝，衣摆被微风轻轻撩起，露出内里深灰西裤与黑皮鞋上未干的水痕。头戴同色系软呢帽，帽檐压低，遮住半张脸——那张脸是金属与旧皮相融的轮廓，眼窝深陷，嘴角却似噙着一丝难以捉摸的笑意。右手夹着烟斗，指节修长，银质烟嘴映着灯光；左手插在风衣口袋里，腕间银表泛着冷光。白衬衫领口别着一枚铜质徽章，红棕条纹领带歪斜垂落，像一道未解的谜题。他静默如雕塑，仿佛刚从某个悬疑故事的扉页中走出，正等待下一个转折的叩响。</p>
+
 **神秘人士**`讲道：`“热狗”啊......哥伦比亚的快餐还真是日新月异。
 
 **神秘人士**`讲道：`......对我来说都一样就是了。
@@ -966,12 +1176,10 @@
 <tr>
     <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fc/Avg_char_003_kalts_2.png" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
     <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="锡人"></div></td>
 </tr>
 <tr>
     <td>【此处为对凯尔希的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银发少女立于空茫背景中央，猫耳轻颤，绿眸沉静如深秋湖面。她身着米白长风衣，内搭灰绿短裙，肩头斜挎黑布包，上面印着褪色的医疗十字徽记。左手腕上金表微闪，右手垂落，指间捏着一支墨水笔，笔尖悬在半空，仿佛刚从某份病历上抬起。脚踝处束着皮质护具，棕褐高跟靴底嵌着金属纹路，踏在无形的地面之上。颈间细链坠着一枚青玉吊坠，随呼吸微微晃动——她像一株在废墟边缘悄然生长的植物，既带着战后余韵的疲惫，又透出不容忽视的清醒与克制。</td>
     <td>？？？</td>
-    <td>锡人</td>
 </tr>
 </table>
 
@@ -1053,6 +1261,21 @@
 
 ---
 
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/e/ec/Avg_avg_npc_895_1-3$1.png" alt="avg_npc_895_1#2$1" loading="lazy" style="max-height:300px" title="伊芙利特"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/3/34/Avg_avg_391_rosmon_1-2$1.png" alt="avg_391_rosmon_1#1$1" loading="lazy" style="max-height:300px" title="迷迭香"></div></td>
+</tr>
+<tr>
+    <td>【此处为对伊芙利特的形象描述，请结合上下文将其融入文中，不要生搬硬套】：她站在空无一物的背景里，金发垂落肩头，猫耳在风中微微颤动。橙黑相间的夹克敞开着，露出内搭的黑色短上衣，腰间别着两枚银色弹匣，腿侧挂着战术刀鞘。右手握着一盆枯黄小植株，叶片蜷缩如旧信纸；左肩斜挎的长枪枪托压在臂弯，枪身缠绕着暗红纹路，仿佛凝固的火焰。她眯起眼，嘴角扬起笑意，像刚完成一场轻巧的猎捕，正准备转身离去——靴子踏地时，鞋带松散地垂在脚踝，随步伐轻轻晃动。</td>
+    <td>【此处为对迷迭香的形象描述，请结合上下文将其融入文中，不要生搬硬套】：她静立于无垠的虚白之中，银发垂落如霜雪，耳尖微翘，尾尖轻卷，似在无声地感知着周遭的寂静。深蓝斗篷自肩头倾泻而下，边缘泛着幽光，仿佛凝固的海潮；内衬的格纹短裙与绑带长袜勾勒出纤细却坚韧的轮廓。背后背负的装置沉甸甸的——金属框架里悬着几枚圆润的球体，黄铜管道蜿蜒缠绕，像一具被驯服的机械兽。她低垂眼睫，指尖轻搭在腰间那柄细长的短剑上，风未起，衣摆已悄然扬起一角，仿佛下一秒便要踏入风暴中心。</td>
+</tr>
+</table>
+
+
+
+<p class="scene-desc">【此处为对场景图片的描述，请结合上下文将其融入文中】她站在空无一物的背景里，金发垂落肩头，猫耳在风中微微颤动。橙黑相间的夹克敞开着，露出内搭的黑色短上衣，腰间别着两枚银色弹匣，腿侧挂着战术刀鞘。右手握着一盆枯黄小植株，叶片蜷缩如旧信纸；左肩斜挎的长枪枪托压在臂弯，枪身缠绕着暗红纹路，仿佛凝固的火焰。她眯起眼，嘴角扬起笑意，像刚完成一场轻巧的猎捕，正准备转身离去——靴子踏地时，鞋带松散地垂在脚踝，随步伐轻轻晃动。</p>
+
 **迷迭香**`讲道：`......嗯。我应该记得这里。但是......好像我没有记下。
 
 **迷迭香**`讲道：`我为什么没有记下？
@@ -1070,6 +1293,19 @@
 **伊芙利特**`讲道：`这里是哥伦比亚！以前我来过这里，我听说你也是！
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fc/Avg_char_003_kalts_2.png" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
+</tr>
+<tr>
+    <td>？？？</td>
+    <td>凯尔希</td>
+</tr>
+</table>
+
+
 
 **锡人**`讲道：`啊......我记得她们......原来如此。
 
@@ -1112,6 +1348,17 @@
 `居中字幕`：王后也因此郁郁寡欢，在夜晚向星星祈祷爱人能如愿以偿。最终，在她虔诚的祈祷下，一颗星星来到了人间——
 
 ---
+
+<table class="portrait-table">
+<tr>
+    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/5/5e/Avg_avg_npc_895_1-2$1.png" alt="avg_npc_895_1#1$1" loading="lazy" style="max-height:300px" title="伊芙利特"></div></td>
+</tr>
+<tr>
+    <td>伊芙利特</td>
+</tr>
+</table>
+
+
 
 伊芙利特呆呆地看着火红的尾焰划过天空。
 

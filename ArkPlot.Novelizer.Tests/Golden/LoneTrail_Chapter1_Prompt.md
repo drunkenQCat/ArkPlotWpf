@@ -1,7 +1,7 @@
 ## CW-ST-1 阴云密布 幕间
 
 
-<img  src="https://media.prts.wiki/0/00/Avg_29_i10.png" alt="29_i10" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="29_i10" loading="lazy" style="max-height:350px"/>
 
 `图像`i10
 
@@ -29,7 +29,7 @@ colors: [银色, 黑色, 深蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_reedmarshes.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_reedmarshes"><source src="" type="audio/mpeg"></audio>
 
 `音效`：reedmarshes
 
@@ -37,23 +37,23 @@ colors: [银色, 黑色, 深蓝]
 
 即将进行的低空飞行对于父母来说已经是轻车熟路，不然也不会带上她。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
-<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_factory_low_drone.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$factory_low_drone"><source src="" type="audio/mpeg"></audio>
 
 `音效`：factory
 
 戴好护目镜，绑上安全带，伴随着引擎的轰鸣声，飞行器开始在跑道上滑行。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
 刮过脸庞的风越来越强烈，她有些害怕地闭上双眼。
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_plane.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_plane"><source src="" type="audio/mpeg"></audio>
 
 `音效`：plane
 
@@ -85,7 +85,7 @@ colors: [银色, 黑色, 深蓝]
 
 ---
 
-<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
@@ -95,7 +95,7 @@ colors: [银色, 黑色, 深蓝]
 
 
 
-<img  src="https://media.prts.wiki/0/08/Avg_bg_bg_prison_corridor.png" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="bg_prison_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
@@ -116,9 +116,37 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
+
+
+<aside class="portrait-facts" data-character="监狱负责人">
+lighting: [阴影, 斜射, 昏暗]  
+materials: [金属, 皮革, 铜]  
+objects: [铁栅栏, 头盔, 护颈]  
+space: [地面, 空旷, 小]  
+colors: [灰, 红, 白]  
+mood: [压抑, 警惕]  
+hair: [无, 无, 无]  
+clothing: [战甲, 无, 靴]  
+equipment: [长棍, 防暴盾, 徽章]  
+posture: [静立, 手垂, 脚翘]  
+features: [裂纹, 金属脸, 护颈]  
+colors: [灰, 红, 蓝]
+</aside>
+
+<aside class="portrait-facts" data-character="精英打扮的男性">
+hair: [棕色, 细密, 竖起]  
+clothing: [米色风衣, 白衬衫, 芥末黄马甲]  
+equipment: [工牌, 纸币]  
+posture: [站立, 左手插袋, 右肩垂尾]  
+features: [眼镜, 微垂眼睫]  
+colors: [米色, 白色, 银灰]
+</aside>
+
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
 
 `音效`：walk
+
+
 
 <aside class="portrait-facts" data-character="精英打扮的男性">
 hair: [棕色, 细密, 竖起]  
@@ -130,6 +158,8 @@ colors: [米色, 白色, 银灰]
 </aside>
 
 **精英打扮的男性**`讲道：`先生，您生病了。
+
+
 
 <aside class="portrait-facts" data-character="监狱负责人">
 lighting: [阴影, 斜射, 昏暗]  
@@ -148,109 +178,205 @@ colors: [灰, 红, 蓝]
 
 **监狱负责人**`讲道：`什么？我好得很。
 
+
+
 **精英打扮的男性**`讲道：`不。我看得出。酗酒，暴饮暴食，夜不能寐。在这座压抑的移动监狱里，您又能过上什么好日子呢？
+
+
 
 **监狱负责人**`讲道：`......呵。您说的是。
 
+
+
 **精英打扮的男性**`讲道：`哈哈，无意冒犯。
+
+
 
 **精英打扮的男性**`讲道：`我想，也许您需要一次疗养。您去过汐斯塔吗？米诺斯呢？
 
+
+
 **监狱负责人**`讲道：`别笑话我了，先生。
+
+
 
 **精英打扮的男性**`讲道：`不。我这是在邀请您。请选一个吧，就当是在这无聊的等待中打发时间。
 
+
+
 **监狱负责人**`讲道：`......米诺斯。
+
+
 
 **精英打扮的男性**`讲道：`米诺斯啊......街道上特有的果香会顺着清风划过白墙，更重要的是，留在米诺斯丽人们骨子里的典雅一定能让您流连忘返......
 
+
+
 **监狱负责人**`讲道：`好的，好的，先生，能想象出您过着怎样奢靡的生活，我真羡慕——
+
+
 
 **精英打扮的男性**`讲道：`不。我是说，我为您准备好了。“为您准备好了。”
 
+
+
 **监狱负责人**`讲道：`......您什么意思？
+
+
 
 **精英打扮的男性**`讲道：`我相信您的疾病一定需要这样的环境才能治愈。而您，又是为我做了这么多事的好帮手，我当然会善待您这样的人。
 
+
+
 **精英打扮的男性**`讲道：`只要待上几个月，您的阴霾就会一扫而空，您会像米诺斯的工匠那样健全强壮，还有可能收获一段美妙的艳遇——
+
+
 
 **监狱负责人**`讲道：`——贾斯汀·菲茨罗伊先生，我再说一遍，我没病。别拿我寻开心了。
 
+
+
 **小贾斯汀**`讲道：`您可以喊我小贾斯汀。
+
+
 
 **监狱负责人**`讲道：`唉......好吧，小贾斯汀先生，莱茵生命就连商务科的要员都是精通医术的？
 
+
+
 **小贾斯汀**`讲道：`不不不，我完全不懂。谁会对那么复杂还没办法立刻变现的东西感兴趣呢？
+
+
 
 **监狱负责人**`讲道：`那您还说什么——
 
+
+
 **小贾斯汀**`讲道：`我想您一定很想知道自己得了什么病，以及，是谁把这种疾病传染给了您。
+
+
 
 **小贾斯汀**`讲道：`看看您的周围，然后回想一下——
 
 **小贾斯汀**`讲道：`您的上司，或是那个尖酸刻薄、一无是处的法官大人，还有那个退休了都不愿给您好脸色看的前任典狱长......
 
+
+
 **小贾斯汀**`讲道：`您本该在退伍之后成为一名备受瞩目的拓荒英雄，再不济也该是舒舒服服享受着政府津贴，在移动城市的小别墅里品味生活才是。
+
+
 
 **小贾斯汀**`讲道：`可现在呢？
 
+
+
 **监狱负责人**`讲道：`你、你调查过我？
+
+
 
 **小贾斯汀**`讲道：`这叫作对症下药，先生，依我看——
 
+
+
 **小贾斯汀**`讲道：`——您病入膏肓了啊。
+
+
 
 **监狱负责人**`陷入了沉默`
 
+
+
 **小贾斯汀**`讲道：`而我为您开出的良方是，一段假期，一栋别墅，数不清的美酒美人，还有绝对安全的保全服务。
+
+
 
 **监狱负责人**`讲道：`我......我不明白。我知道您今天是来干什么的，您是来带那个人离开的。
 
+
+
 **监狱负责人**`讲道：`您既然已经一路畅通无阻来到了这里，那莱茵生命一定早就和上头的人打好招呼了，是吧？
+
+
 
 **监狱负责人**`讲道：`那您现在还来贿赂我，又有什么好处？
 
+
+
 **小贾斯汀**`讲道：`先回答我，先生。您愿意把握住自己的命运吗？
+
+
 
 **监狱负责人**`讲道：`呵。您这话说的，谁不愿意？
 
+
+
 **小贾斯汀**`讲道：`对，所以您很不幸，但也很幸运，起码您知道自己眼前的障碍和困境是什么。比如您始终是某些人的附庸，您被刻意忽视，扔到这里。
+
+
 
 **小贾斯汀**`讲道：`还有您渴求的，比如您正在谋划一场求婚，却被这次行程耽搁了，对吧？哦~米诺斯的平原到底能为您的求婚计划赢得多大胜算呀。
 
+
+
 **监狱负责人**`讲道：`啊......是的......我......哈哈。
+
+
 
 **监狱负责人**`讲道：`您需要我做什么？小贾斯汀先生。
 
+
+
 **小贾斯汀**`讲道：`很简单。把监狱里所有“特殊流程”的信息卖给莱茵生命。我会开出一个足够让您神魂颠倒的价格。
+
+
 
 **监狱负责人**`讲道：`这......这不难，可是......
 
+
+
 **小贾斯汀**`讲道：`可是有人会问您的罪？哈哈，我们先下手为强啊。
+
+
 
 **小贾斯汀**`讲道：`说真的，您背后那些老家伙的胃口太大了，为了办成今天这件事，可花了我足足两倍的预算......这些年他们越发嚣张了，这可不行。
 
+
+
 **小贾斯汀**`讲道：`而且那些贪得无厌的蠢货从来不肯正视自己的处境，他们以为自己是乌萨斯或者是莱塔尼亚的贵族吗？哈哈。
+
+
 
 **小贾斯汀**`讲道：`我更喜欢您这样务实的人。莱茵生命更喜欢您。
 
+
+
 **小贾斯汀**`讲道：`所以，您能从这件事里捞到一笔相当可观的财富，然后，您与我一起把那些老顽固全部送进监狱，让他们可怜兮兮的余生再也不得翻身。
 
+
+
 **小贾斯汀**`讲道：`多美好的事情。
+
+
 
 **监狱负责人**`讲道：`您是要我反水——？！
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_phonevibration.mp3" type="audio/mpeg"></audio>
+
+
+<audio controls class="lazy-audio" width="300" alt="$phonevibration"><source src="" type="audio/mpeg"></audio>
 
 `音效`：phonevibration
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_transmissionget.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_transmissionget"><source src="" type="audio/mpeg"></audio>
 
 `音效`：transmissionget
 
+
+
 **监狱负责人**`讲道：`我......哦。稍等。
+
+
 
 **监狱负责人**`讲道：`谁这么会挑时间，唔，银行的邮件，我不是还清了吗...
 
@@ -258,31 +384,53 @@ colors: [灰, 红, 蓝]
 
 **监狱负责人**`讲道：`...呃！
 
+
+
 **监狱负责人**`讲道：`......小贾斯汀先生，这笔钱？
+
+
 
 **小贾斯汀**`讲道：`我忘了和您说吗？哈哈，抱歉，看来我确实不是个当医生的料，这是您的第一个疗程。
 
+
+
 **监狱负责人**`讲道：`这么多......
+
+
 
 **小贾斯汀**`讲道：`而关于您疾病的特效药则是——“权与利”。
 
+
+
 **小贾斯汀**`讲道：`保证药到病除......以莱茵生命的名义。
+
+
 
 **监狱负责人**`讲道：`......我明白了。
 
+
+
 **监狱负责人**`讲道：`小贾斯汀先生，合作愉快。
+
+
 
 **小贾斯汀**`讲道：`当然了，合作愉快。
 
+
+
 **监狱负责人**`讲道：`多问一句，莱茵生命都是您这样的人吗？
 
+
+
 **小贾斯汀**`讲道：`嗯？不不不不......他们都是怪胎，千奇百怪。不过我不讨厌怪胎。
+
+
 
 **小贾斯汀**`讲道：`比如我们今天要找的这位。
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_doorknockquite.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$doorknockquite"><source src="" type="audio/mpeg"></audio>
 
 `音效`：doorknockquite
 
@@ -290,7 +438,11 @@ colors: [灰, 红, 蓝]
 
 ---
 
+
+
 **小贾斯汀**`讲道：`好好好，让我费了这么大功夫，总算能见到这位大名鼎鼎的怪胎了。
+
+
 
 **小贾斯汀**`讲道：`可别忘了我们说的事啊，下个月我在特里蒙举办酒会的时候，希望您务必赏脸......您是我的贵客，不需要邀请函的。
 
@@ -314,11 +466,11 @@ colors: [灰, 红, 蓝]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
 
-<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
@@ -350,7 +502,7 @@ colors: []
 
 ---
 
-<img  src="https://media.prts.wiki/b/bc/Avg_bg_38_g5_rhinelab_indoor.png" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="38_g5_rhinelab_indoor" loading="lazy" style="max-height:350px"/>
 
 `背景`：rhinelab
 
@@ -374,7 +526,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
 
 `音效`：walk
 
@@ -386,13 +538,45 @@ colors: []
 
 ---
 
+
+
 **小贾斯汀**`讲道：`......哈哈。这里是监狱？你管这叫监狱？
 
+
+
 **小贾斯汀**`讲道：`*哥伦比亚俚语*，克丽斯腾为了你，在这里单独复制了一座实验室吗？
+
+
 
 **小贾斯汀**`讲道：`你还真是备受器重啊，三十号犯人。
 
 ---
+
+
+
+---
+
+
+
+
+
+
+
+<aside class="portrait-facts" data-character="三十号">
+lighting: [柔和, 明暗适中, 中性色温]  
+materials: [织物, 金属, 玻璃]  
+objects: [风衣, 装置, 锁链]  
+space: [室内, 简洁布局, 中等规模]  
+colors: [灰白, 深黑, 黄铜]  
+mood: [静默, 倦意]  
+
+hair: [银白, 长发, 乱]  
+clothing: [风衣, 衬衫, 无鞋]  
+equipment: [装置, 圆筒]  
+posture: [站立, 低垂目光]  
+features: [伤疤, 眼镜]  
+colors: [灰白, 深黑, 黄铜]
+</aside>
 
 <aside class="portrait-facts" data-character="三十号">
 lighting: [柔和, 明暗适中, 中性色温]  
@@ -412,59 +596,109 @@ colors: [灰白, 深黑, 黄铜]
 
 **三十号**`讲道：`你不是那个定期联络员，但我见过你的脸。
 
+
+
 **三十号**`讲道：`你是莱茵生命的主任？
+
+
 
 **小贾斯汀**`讲道：`真伤人心。公司能在这么短的时间内做大做强，我可没少出力吧。克丽斯腾都不和你好好介绍我的吗？
 
+
+
 **三十号**`讲道：`我对你这种人没兴趣，何况，我也只是病入膏肓的废人，你来找我做什么？
+
+
 
 **小贾斯汀**`讲道：`......别这么说。
 
+
+
 **小贾斯汀**`讲道：`我翻阅过你的档案，你本来是个很了不起的人，如果不是被——
+
+
 
 **三十号**`讲道：`咳咳——咳咳咳——
 
+
+
 **三十号**`讲道：`抱歉。我对过去的事情过敏。
+
+
 
 **小贾斯汀**`讲道：`哦——好吧。
 
+
+
 **小贾斯汀**`讲道：`但我真的很好奇，克丽斯腾想要你做什么，值得她这么大费周章？
+
+
 
 **三十号**`讲道：`她没让你知道......咳咳......就是你没必要知道，孩子。
 
+
+
 **小贾斯汀**`讲道：`得了吧。我也不是第一次被你们这些科学怪人这么讽刺了。
+
+
 
 **小贾斯汀**`讲道：`无所谓，我的任务只是把你带走。看来你们的事情已经进入了下一个阶段啦，她需要你莅临现场。
 
+
+
 **小贾斯汀**`讲道：`关于她的“保命计划”。
+
+
 
 **三十号**`讲道：`......你明明知道，小滑头。
 
+
+
 **小贾斯汀**`讲道：`我只知道克丽斯腾一直在让你研究一些关于源石和人体方面的事情。
+
+
 
 **小贾斯汀**`讲道：`我不是专业的，但起码我明白一件事，莱茵生命的总辖绝不是一个贪生怕死的懦夫，她更没有什么疾病需要治愈——
 
+
+
 **小贾斯汀**`讲道：`那么就是有别的什么事情，让她迫切地需要延长自身生命的手段......在某种极端情境下。
+
+
 
 **三十号**`讲道：`你很聪明......难怪克丽斯腾选了你带我离开。
 
+
+
 **三十号**`讲道：`但先等等吧，马上就是副总统的演讲时间了。
+
+
 
 **小贾斯汀**`讲道：`演讲？那种政客玩意有什么好在乎的？
 
+
+
 **三十号**`讲道：`不，今天会是有趣的一天。心急吃不了热豆腐。
+
+
 
 **三十号**`讲道：`还没自我介绍吧。我是......
 
+
+
 **小贾斯汀**`讲道：`洛肯·威廉姆斯。
 
+
+
 **小贾斯汀**`讲道：`久仰大名。我是莱茵生命商务科主任贾斯汀·菲茨罗伊，对科学技术一窍不通的门外汉。
+
+
 
 **小贾斯汀**`讲道：`我只是来见证历史的，先生。
 
 ---
 
-<img  src="https://media.prts.wiki/4/4d/Avg_bg_29_g6_mainstreet.png" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="29_g6_mainstreet" loading="lazy" style="max-height:350px"/>
 
 `背景`：mainstreet
 
@@ -486,7 +720,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -508,7 +742,7 @@ colors: []
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_crwddiscuss_inside.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_crwddiscuss_inside"><source src="" type="audio/mpeg"></audio>
 
 `音效`：crwddiscuss
 
@@ -540,7 +774,7 @@ colors: []
 
 ---
 
-<img  src="https://media.prts.wiki/5/58/Avg_bg_bg_desert_1.png" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="bg_desert_1" loading="lazy" style="max-height:350px"/>
 
 `背景`：desert
 
@@ -562,6 +796,12 @@ colors: []
 
 ---
 
+
+
+
+
+
+
 <aside class="portrait-facts" data-character="军士模样的人">
 lighting: [自然光, 明亮, 中性]  
 materials: [金属, 布料, 皮革]  
@@ -578,11 +818,49 @@ features: [墨镜, 旧伤痕]
 colors: [米褐, 黑, 红]
 </aside>
 
+<aside class="portrait-facts" data-character="军士模样的人">
+lighting: [自然光, 明亮, 中性]  
+materials: [金属, 布料, 皮革]  
+objects: [哨兵, 通讯器, 枪]  
+space: [空旷空间, 简洁布局, 中等规模]  
+colors: [米褐, 黑, 红]  
+mood: [冷硬, 蓄势]  
+
+hair: [无, 无, 无]  
+clothing: [作战服, 无, 无]  
+equipment: [通讯器, 枪, 护具]  
+posture: [站立, 手搭枪柄, 脚稳]  
+features: [墨镜, 旧伤痕]  
+colors: [米褐, 黑, 红]
+</aside>
+
+<aside class="portrait-facts" data-character="斐尔迪南">
+lighting: [均匀, 中等, 中性]  
+materials: [光滑, 无纹理, 纯色]  
+objects: [人物, 猫耳, 通讯器]  
+space: [空旷, 单一背景, 小]  
+colors: [白色, 米白, 棕褐色]  
+mood: [静止, 警惕, 遗憾]  
+
+hair: [棕褐色, 长, 伏贴]  
+clothing: [米白衬衫, 裤子, 靴子]  
+equipment: [通讯器, 无人机]  
+posture: [站立, 手微曲, 身体放松]  
+features: [猫耳, 金属表带]  
+colors: [米白, 暗色, 棕褐色]
+</aside>
+
 **军士模样的人**`讲道：`......跨入新时代的第一步。
+
+
 
 **军士模样的人**`讲道：`听说杰克逊在大学期间便是有名的演说家和活动家......呵。
 
+
+
 **军士模样的人**`讲道：`这次他选择在特里蒙市开发布会，你知道这意味着什么，对吧？
+
+
 
 <aside class="portrait-facts" data-character="斐尔迪南">
 lighting: [均匀, 中等, 中性]  
@@ -602,51 +880,93 @@ colors: [米白, 暗色, 棕褐色]
 
 **斐尔迪南**`讲道：`就开门见山吧，布莱克上校。
 
+
+
 **斐尔迪南**`讲道：`你们需要我的帮助，我也需要你们的，这很合理。
+
+
 
 **布莱克**`讲道：`帮助......嗯......的确。
 
+
+
 **布莱克**`讲道：`那本该是为掣肘伦蒂尼姆那座该死的塔而准备的超级武器，天知道军方砸进去多少钱。
+
+
 
 **布莱克**`讲道：`可现在，克丽斯腾本人和相关技术人员全都消失了，一夜之间，杳无音讯。
 
+
+
 **布莱克**`讲道：`还有那座——技术手册里是怎么称呼那个大圆环来着，“聚焦发生器”？该死，克丽斯腾到底是怎么把那一整个大家伙藏起来的？
+
+
 
 **布莱克**`讲道：`军方没有让高速军舰包围特里蒙，已经是很温和的选择了。
 
+
+
 **斐尔迪南**`讲道：`这就是我来找你的原因。
+
+
 
 **布莱克**`讲道：`......克丽斯腾把我耍得团团转，我承认。可我又凭什么相信你这样一个失败者能帮我们解决问题？
 
+
+
 **布莱克**`讲道：`哥伦比亚能够比肩莱茵生命的公司不胜枚举，我们完全可以靠武力解决问题，然后把这一切交给某个下家来兜底——
+
+
 
 **斐尔迪南**`讲道：`——你说得没错，布莱克上校，我确实失败了，但我并不蠢。
 
+
+
 **斐尔迪南**`讲道：`如果军方能这么强硬，你们早就这么做了。你们可从来都不是什么温顺的人道主义者。
 
+
+
 **布莱克**`陷入了沉默`
+
+
 
 **斐尔迪南**`讲道：`而我，能量科的......“前主任”，我熟悉莱茵生命，有我帮助，你们的行动才能更有效率。
 
+
+
 **斐尔迪南**`讲道：`特别是，如果你真的想“迅速”“安静”地解决问题的话。
+
+
 
 **布莱克**`讲道：`我凭什么再相信你一次？
 
+
+
 **斐尔迪南**`讲道：`难道还有什么比一个一无所有的失败者更好控制的吗？
+
+
 
 **布莱克**`陷入了沉默`
 
+
+
 **布莱克**`讲道：`我确实从未想过有一天，会听你自称“失败者”，斐尔迪南。为什么你这么执着？
+
+
 
 **斐尔迪南**`讲道：`高高在上，秘不示人，将所有人的努力与成果都弃之不顾，让整个莱茵生命都成为牺牲品......
 
+
+
 **斐尔迪南**`讲道：`克丽斯腾没有这个资格。没有人有这个资格。
+
+
 
 **布莱克**`讲道：`......好吧，这是你今天最具说服力的台词，斐尔迪南。
 
 ---
 
-<img  src="https://media.prts.wiki/b/b1/Avg_bg_29_g4_corridor.png" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="29_g4_corridor" loading="lazy" style="max-height:350px"/>
 
 `背景`：corridor
 
@@ -670,6 +990,24 @@ colors: []
 
 ---
 
+
+
+<aside class="portrait-facts" data-character="缪尔赛思">
+hair: [银灰, 长发, 垂落]  
+clothing: [风衣, 长裙, 深褐]  
+equipment: [机械弩, 工具包, 绿绳]  
+posture: [抬手, 轻抚, 停驻]  
+features: [金黄穗饰, 耳尖鹿角, 透明水珠]  
+colors: [浅灰, 深褐, 绿]  
+
+lighting: [自然光, 明亮, 中性]  
+materials: [皮革, 金属, 玻璃]  
+objects: [机械弩, 工具包, 水珠]  
+space: [户外, 开阔, 中等]  
+colors: [浅灰, 深褐, 绿]  
+mood: [静默, 神秘, 蓄势]
+</aside>
+
 <aside class="portrait-facts" data-character="缪尔赛思">
 hair: [银灰, 长发, 垂落]  
 clothing: [风衣, 长裙, 深褐]  
@@ -688,21 +1026,35 @@ mood: [静默, 神秘, 蓄势]
 
 **缪尔赛思**`讲道：`其实我很不喜欢现在的感觉。
 
+
+
 **缪尔赛思**`讲道：`太安静了......空气冰凉又干燥，灯光的色调冷得过分，前面也不知道会有什么。
+
+
 
 **缪尔赛思**`讲道：`其实以前也没多热闹......通常大家都是各忙各的科研项目。
 
+
+
 **缪尔赛思**`讲道：`互相之间很少碰面，开完会后聚餐，喝酒，手忙脚乱地拿刚刚完成的结项书垫桌脚。
+
+
 
 **缪尔赛思**`讲道：`我怀念那种感觉......被接纳的感觉，能够有所作为的感觉，能够改变什么的感觉。
 
+
+
 **缪尔赛思**`讲道：`你应该也会怀念吧？
+
+
 
 **缪尔赛思**`讲道：`......克丽斯腾。
 
 ---
 
-<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+
+
+<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
@@ -715,9 +1067,11 @@ colors: [米白, 灰白, 黑]
 mood: [冷峻, 静谧, 等待]
 </aside>
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdooropen.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdooropen"><source src="" type="audio/mpeg"></audio>
 
 `音效`：glassdooropen
+
+
 
 **缪尔赛思**`陷入了沉默`
 
@@ -726,6 +1080,23 @@ mood: [冷峻, 静谧, 等待]
 **缪尔赛思**`讲道：`霍尔海雅。
 
 ---
+
+
+
+<aside class="portrait-facts" data-character="霍尔海雅">
+hair: [银灰, 长发, 垂落]  
+clothing: [白裙, 黑丝, 上装]  
+equipment: [机械长枪, 荧光蓝管线, 战术背包]  
+posture: [倚着, 脚尖轻点, 金属踏板]  
+features: [青苔色挑染, 绿眸, 鳞甲巨尾]  
+colors: [主色, 辅色, 点缀色]  
+lighting: [冷光, 明暗程度, 色温]  
+materials: [金属, 管线, 斗篷]  
+objects: [机械长枪, 战术背包, 药剂瓶]  
+space: [空间类型, 布局特征, 规模]  
+colors: [白, 黑, 深褐]  
+mood: [冷光, 冷漠, 暗藏]
+</aside>
 
 <aside class="portrait-facts" data-character="霍尔海雅">
 hair: [银灰, 长发, 垂落]  
@@ -744,37 +1115,57 @@ mood: [冷光, 冷漠, 暗藏]
 
 **霍尔海雅**`讲道：`呀，看来你经常躲在这里哭鼻子，我应该再藏一会儿的。
 
+
+
 **缪尔赛思**`陷入了沉默`
 
 **缪尔赛思**`讲道：`你在，等我？
 
+
+
 **霍尔海雅**`讲道：`嗯哼。
+
+
 
 **缪尔赛思**`讲道：`那为什么站得离我那么远？
 
+
+
 **霍尔海雅**`讲道：`当然要小心点，找不到家长的孩子可是脾气很大的。
 
+
+
 **霍尔海雅**`讲道：`况且，你不是从一进门就开始布置水分身了吗？
+
+
 
 **缪尔赛思**`讲道：`——
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_blooddrop.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$blooddrop"><source src="" type="audio/mpeg"></audio>
 
 `音效`：blooddrop
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
+
+
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
+
+
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_snowstormlp.mp3" type="audio/mpeg"></audio>
+
+
+
+
+<audio controls class="lazy-audio" width="300" alt="$d_avg_snowstormlp"><source src="" type="audio/mpeg"></audio>
 
 `音效`：snowstormlp
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_clothmovement.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_clothmovement"><source src="" type="audio/mpeg"></audio>
 
 `音效`：clothmovement
 
@@ -782,13 +1173,13 @@ mood: [冷光, 冷漠, 暗藏]
 
 `音效停止`
 
-<img  src="https://media.prts.wiki/8/8a/Avg_bg_bg_black.png" alt="bg_black" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="bg_black" loading="lazy" style="max-height:350px"/>
 
 `背景`：black
 
 ---
 
-<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -810,7 +1201,7 @@ colors: [金色, 青蓝, 金属色]
 
 `震惊`
 
-<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -832,19 +1223,19 @@ colors: [金色, 青蓝, 金属色]
 
 `场景流转`
 
-<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="https://torappu.prts.wiki/assets/audio/player/p_imp/p_imp_waterbubble_h.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$waterbubble_h"><source src="" type="audio/mpeg"></audio>
 
 `音效`：waterbubble
 
-<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="https://torappu.prts.wiki/assets/audio/enemy/e_atk/e_atk_magic_m.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$e_atk_magic_m"><source src="" type="audio/mpeg"></audio>
 
 `音效`：magic
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
-<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="https://torappu.prts.wiki/assets/audio/player/p_skill/p_skill_blacktimewand_shot.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$p_skill_blacktimewand_shot"><source src="" type="audio/mpeg"></audio>
 
 `音效`：blacktimewand
 
@@ -866,7 +1257,7 @@ colors: [金色, 青蓝, 金属色]
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_windmagic.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_windmagic"><source src="" type="audio/mpeg"></audio>
 
 `音效`：windmagic
 
@@ -874,7 +1265,7 @@ colors: [金色, 青蓝, 金属色]
 
 `场景流转`
 
-<img  src="https://media.prts.wiki/0/0a/Avg_38_i07.png" alt="38_i07" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="38_i07" loading="lazy" style="max-height:350px"/>
 
 `图像`i07
 
@@ -918,7 +1309,7 @@ colors: [金色, 青蓝, 金属色]
 
 ---
 
-<img  src="https://media.prts.wiki/9/9f/Avg_bg_29_g10_senioroffice.png" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="29_g10_senioroffice" loading="lazy" style="max-height:350px"/>
 
 `背景`：senioroffice
 
@@ -937,59 +1328,57 @@ mood: [冷峻, 静谧, 等待]
 
 `震惊`
 
-<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="https://torappu.prts.wiki/assets/audio/battle/b_char/b_char_tactfulboost.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$tactfulboost"><source src="" type="audio/mpeg"></audio>
 
 `音效`：tactfulboost
 
----
 
-<table class="portrait-table">
-<tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/4/4b/Avg_avg_npc_536_1-11$1.png" alt="avg_npc_536_1#10$1" loading="lazy" style="max-height:300px" title="霍尔海雅"></div></td>
-</tr>
-<tr>
-    <td>霍尔海雅</td>
-</tr>
-</table>
+
+
+
+---
 
 `特效动画:`muesys
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_watersubbreak.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_watersubbreak"><source src="" type="audio/mpeg"></audio>
 
 `音效`：watersubbreak
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_runstop.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_runstop"><source src="" type="audio/mpeg"></audio>
 
 `音效`：runstop
 
+
+
+
+
 **霍尔海雅**`讲道：`太着急的家伙容易病急乱投医，如果你碍了事...
+
+
 
 **霍尔海雅**`讲道：`...下一次我真的会杀了你。
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
+
+
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
 
 ---
 
-<table class="portrait-table">
-<tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/3/34/Avg_avg_249_mlyss_1-3$1.png" alt="avg_249_mlyss_1#2$1" loading="lazy" style="max-height:300px" title="缪尔赛思"></div></td>
-</tr>
-<tr>
-    <td>缪尔赛思</td>
-</tr>
-</table>
-
-<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_glassdoorclose.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_glassdoorclose"><source src="" type="audio/mpeg"></audio>
 
 `音效`：glassdoorclose
+
+
 
 **缪尔赛思**`陷入了沉默`
 
 ---
+
+
 
 讨厌的黎博利已经消失，除了沙发上的点滴水渍，刚才的战斗像是没有发生过。
 
@@ -998,6 +1387,8 @@ mood: [冷峻, 静谧, 等待]
 霍尔海雅的话真真假假，但她出现在了这里，本身便已经能说明很多问题。
 
 她应该直接问克丽斯腾。这也是自己今天来到这里的目的，她还有好多别的问题。
+
+
 
 **缪尔赛思**`讲道：`......克丽斯腾。
 
@@ -1033,7 +1424,7 @@ mood: [冷峻, 静谧, 等待]
 
 ---
 
-<img  src="https://media.prts.wiki/c/c4/Avg_bg_27_g26_dusk_wild.png" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
+<img  src="" alt="27_g26_dusk_wild" loading="lazy" style="max-height:350px"/>
 
 `背景`：dusk
 
@@ -1059,18 +1450,27 @@ colors: []
 
 ---
 
-<table class="portrait-table">
-<tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-</tr>
-<tr>
-    <td>【此处为对？？？的形象描述，请结合上下文将其融入文中，不要生搬硬套】：雨丝斜织，街灯昏黄的光晕在湿漉漉的柏油路上晕开一片暖色。他立于檐下，宽大的卡其色风衣垂落至膝，衣摆被微风轻轻撩起，露出内里深灰西裤与黑皮鞋上未干的水痕。头戴同色系软呢帽，帽檐压低，遮住半张脸——那张脸是金属与旧皮相融的轮廓，眼窝深陷，嘴角却似噙着一丝难以捉摸的笑意。右手夹着烟斗，指节修长，银质烟嘴映着灯光；左手插在风衣口袋里，腕间银表泛着冷光。白衬衫领口别着一枚铜质徽章，红棕条纹领带歪斜垂落，像一道未解的谜题。他静默如雕塑，仿佛刚从某个悬疑故事的扉页中走出，正等待下一个转折的叩响。</td>
-</tr>
-</table>
+<aside class="portrait-facts" data-character="？？？">
+lighting: [街灯, 昏黄, 暖色]  
+materials: [柏油路, 风衣, 皮鞋]  
+objects: [风衣, 烟斗, 银表]  
+space: [檐下, 开阔, 中等]  
+colors: [卡其色, 深灰, 黑]  
+mood: [静默, 悬疑]  
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
+hair: [无, 无, 无]  
+clothing: [风衣, 西裤, 皮鞋]  
+equipment: [烟斗, 银表]  
+posture: [立, 垂落]  
+features: [金属轮廓, 深陷眼窝]  
+colors: [铜质, 红棕, 无]
+</aside>
+
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
 
 `音效`：walk
+
+
 
 <aside class="portrait-facts" data-character="？？？">
 lighting: [街灯, 昏黄, 暖色]  
@@ -1094,6 +1494,24 @@ colors: [铜质, 红棕, 无]
 
 ---
 
+
+
+<aside class="portrait-facts" data-character="街边摊贩">
+lighting: [无光源, 无明暗, 无色温]  
+materials: [灰白背景, 无形地面, 报纸]  
+objects: [人物, 报纸, 模糊字样]  
+space: [封闭空间, 定格画面, 无规模]  
+colors: [灰白, 深褐, 墨绿]  
+mood: [寂静, 悬浮]  
+
+hair: [发丝, 轻撩起, 无特征]  
+clothing: [夹克, 毛衣, 长裤]  
+equipment: [报纸, 无武器]  
+posture: [站立, 左手插袋, 右手垂落]  
+features: [尖耳, 沉静眼神]  
+colors: [深褐, 墨绿, 白]
+</aside>
+
 `震惊`
 
 <aside class="portrait-facts" data-character="街边摊贩">
@@ -1114,77 +1532,103 @@ colors: [深褐, 墨绿, 白]
 
 **街边摊贩**`讲道：`*哥伦比亚粗口*，老兄，你什么情况？
 
+
+
 **神秘人士**`讲道：`小时候得了某种疾病，后来靠着这具外骨骼身体才能生活，抱歉吓到你了。
+
+
 
 **街边摊贩**`讲道：`吓到？才不会，这也太酷了好吧？
 
+
+
 **街边摊贩**`讲道：`啊......是与特里蒙的科技公司有关的？那也不奇怪了，他们折腾出的怪玩意可真是日新月异！
+
+
 
 **神秘人士**`讲道：`......差不多吧。
 
+
+
 **街边摊贩**`讲道：`呃，对不住，这么大惊小怪是不是有点不礼貌？
+
+
 
 **神秘人士**`讲道：`习惯啦。这儿可以抽烟吗？
 
+
+
 **街边摊贩**`讲道：`您这样还能抽烟呢？这么厉害？
+
+
 
 ---
 
-<table class="portrait-table">
-<tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/b/b0/Avg_avg_npc_523_1$1.png" alt="avg_npc_523_1#1$1" loading="lazy" style="max-height:300px" title="街边摊贩"></div></td>
-</tr>
-<tr>
-    <td>？？？</td>
-    <td>街边摊贩</td>
-</tr>
-</table>
-
-<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="https://torappu.prts.wiki/assets/audio/avg/d_avg_lighter.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_avg_lighter"><source src="" type="audio/mpeg"></audio>
 
 `音效`：lighter
 
+
+
 **神秘人士**`讲道：`——呼。真冷清。这条路平时没啥人吗？
+
+
 
 **街边摊贩**`讲道：`只有今天。前些日子副总统光临的时候，堵车都能堵几千米啦。
 
+
+
 **街边摊贩**`讲道：`可能是天气原因吧——给，热狗。好胃口啊老兄。这附近的椅子随便坐，反正今天没啥客人。
+
+
 
 **神秘人士**`讲道：`谢了。
 
 ---
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
 
 `音效`：walk
 
 ---
 
+
+
 **神秘人士**`讲道：`“热狗”啊......哥伦比亚的快餐还真是日新月异。
 
+
+
 **神秘人士**`讲道：`......对我来说都一样就是了。
+
+
 
 **神秘人士**`讲道：`你说为什么要叫“热狗”呢？和佩洛有关系吗？
 
 ---
 
-<table class="portrait-table">
-<tr>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/f/fc/Avg_char_003_kalts_2.png" alt="char_003_kalts_1#1" loading="lazy" style="max-height:300px" title="凯尔希"></div></td>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="？？？"></div></td>
-    <td><div class="crop"><img class="portrait" src="https://media.prts.wiki/8/87/Avg_avg_npc_900_1$1.png" alt="avg_npc_900_1#1$1" loading="lazy" style="max-height:300px" title="锡人"></div></td>
-</tr>
-<tr>
-    <td>【此处为对凯尔希的形象描述，请结合上下文将其融入文中，不要生搬硬套】：银发少女立于空茫背景中央，猫耳轻颤，绿眸沉静如深秋湖面。她身着米白长风衣，内搭灰绿短裙，肩头斜挎黑布包，上面印着褪色的医疗十字徽记。左手腕上金表微闪，右手垂落，指间捏着一支墨水笔，笔尖悬在半空，仿佛刚从某份病历上抬起。脚踝处束着皮质护具，棕褐高跟靴底嵌着金属纹路，踏在无形的地面之上。颈间细链坠着一枚青玉吊坠，随呼吸微微晃动——她像一株在废墟边缘悄然生长的植物，既带着战后余韵的疲惫，又透出不容忽视的清醒与克制。</td>
-    <td>？？？</td>
-    <td>锡人</td>
-</tr>
-</table>
+<aside class="portrait-facts" data-character="凯尔希">
+scene:  
+lighting: [均匀光, 明亮, 中性色]  
+materials: [空茫背景, 无形地面, 废墟边缘]  
+objects: [银发少女, 墨水笔, 医疗十字徽记]  
+space: [空旷空间, 中央位置, 小规模]  
+colors: [米白, 灰绿, 黑]  
+mood: [疲惫, 清醒]  
 
-<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="https://torappu.prts.wiki/assets/audio/avg/d_gen_walk_n.mp3" type="audio/mpeg"></audio>
+character:  
+hair: [银色, 长, 轻颤]  
+clothing: [长风衣, 灰绿短裙, 黑布包]  
+equipment: [金表, 墨水笔, 皮质护具]  
+posture: [站立, 右手垂落, 笔尖悬空]  
+features: [猫耳, 绿眸]  
+colors: [米白, 灰绿, 青玉]
+</aside>
+
+<audio controls class="lazy-audio" width="300" alt="$d_gen_walk_n"><source src="" type="audio/mpeg"></audio>
 
 `音效`：walk
+
+
 
 <aside class="portrait-facts" data-character="凯尔希">
 scene:  
@@ -1206,61 +1650,119 @@ colors: [米白, 灰绿, 青玉]
 
 **凯尔希**`讲道：`最早一批玻利瓦尔移民为了推销这种快餐，会让一些穿着清凉的佩洛女性或是身体健壮的佩洛男性推车进入骑士竞技赛场。
 
+
+
 **凯尔希**`讲道：`久而久之，“热狗”就成了哥伦比亚语里这种快餐的俗称。
+
+
 
 **神秘人士**`讲道：`久而久之，好一个久而久之啊。
 
+
+
 **神秘人士**`讲道：`吃了吗，女士？我请？
+
+
 
 **凯尔希**`讲道：`免了。
 
+
+
 **神秘人士**`讲道：`唉，岁月不饶人啊。记得还有味觉的时候，我的食量可比现在大几十倍呢。这也是一种“久而久之”吗？
+
+
 
 **神秘人士**`讲道：`像你这样年轻的女士，可真让我羡慕。
 
+
+
 **凯尔希**`陷入了沉默`
+
+
 
 **神秘人士**`讲道：`现在的泰拉有多少东西建立在这种“久而久之”上呢。
 
+
+
 **凯尔希**`讲道：`所有事情。
+
+
 
 **神秘人士**`讲道：`......说的也是。
 
+
+
 **神秘人士**`讲道：`很久没见了，凯尔希勋爵。上次见面是什么时候？
+
+
 
 **凯尔希**`讲道：`战争结束后，特蕾西娅举办登基典礼的那一天。大部分还对卡兹戴尔留有念想的萨卡兹都投来了目光，你也不例外。
 
+
+
 **凯尔希**`讲道：`怎么称呼现在的你？
+
+
 
 **锡人**`讲道：`锡人吧，同事都这么喊，人如其名。毕竟名字对我来说没什么意义了。
 
+
+
 **凯尔希**`讲道：`你代表梅兰德基金会。
+
+
 
 **锡人**`讲道：`是的。
 
+
+
 **凯尔希**`讲道：`一个强大的死魂灵。
+
+
 
 **锡人**`讲道：`是“曾经强大的死魂灵”。况且您也知道的，提卡兹与这片大地的任何角落都息息相关，哥伦比亚平原也不例外。
 
+
+
 **锡人**`讲道：`还是说，我告诉您仇恨的低语至今让我不得安眠，我巴不得变成一座会飞的要塞回到卡兹戴尔，会让您好受些吗？
+
+
 
 **凯尔希**`讲道：`......不会。所以梅兰德基金会早就注意到罗德岛了。
 
+
+
 **锡人**`讲道：`你们可不是第一次出现在哥伦比亚的视野里喔，哪怕上一次只是小小的法律纠纷......在提卡伦多还是哪儿来着？
+
+
 
 **锡人**`讲道：`罗德岛是个很年轻的组织。
 
+
+
 **凯尔希**`讲道：`你知道它曾属于谁，又行在怎样的道上。
+
+
 
 **锡人**`讲道：`唉。所以我也不是来劝您收手的，根据特工们的情报，这件事牵扯到了不少熟人，其中一些也与勋爵您不无关系。
 
+
+
 **锡人**`讲道：`罗德岛参与这件事，我没意见，前提是您得听听梅兰德基金会的想法。
+
+
 
 **凯尔希**`讲道：`罗德岛将要聆听的，是“想法”，还是“命令”？
 
+
+
 **锡人**`讲道：`无论如何，就我个人而言......真希望这次我们是同一阵线的，凯尔希勋爵。
 
+
+
 **凯尔希**`讲道：`我明白了。
+
+
 
 **锡人**`讲道：`那边是您的同行人吗？
 
@@ -1277,6 +1779,41 @@ colors: [米白, 灰绿, 青玉]
 她只是觉得，有些事情迟早需要面对而已。
 
 ---
+
+
+
+
+
+<aside class="portrait-facts" data-character="迷迭香">
+lighting: [均匀, 柔和, 中性]  
+materials: [织物, 金属, 塑料]  
+objects: [银发, 斗篷, 装置]  
+space: [空旷, 单一, 无限]  
+colors: [银白, 深蓝, 金黄]  
+mood: [静谧, 神秘]  
+
+hair: [银白, 长, 垂落]  
+clothing: [斗篷, 短裙, 长袜]  
+equipment: [装置, 短剑]  
+posture: [静立, 低垂]  
+features: [耳尖微翘, 尾尖轻卷]  
+colors: [深蓝, 金黄, 银白]
+</aside>
+
+<aside class="portrait-facts" data-character="伊芙利特">
+hair: [金发, 垂落, 肩头]  
+clothing: [橙黑夹克, 黑色短上衣, 敞开]  
+equipment: [银色弹匣, 战术刀鞘, 长枪]  
+posture: [站立, 右手握植物, 左肩扛枪]  
+features: [猫耳, 眯眼, 微笑]  
+colors: [橙黑, 黑色, 暗红]  
+objects: [枯黄小植株, 弹匣, 刀鞘]  
+space: [空无一物, 无背景, 无布局]  
+lighting: [自然光, 明亮, 中性]  
+mood: [从容, 轻巧, 自信]  
+materials: [金属, 布料, 木材]  
+colors: [橙黑, 黑色, 暗红]
+</aside>
 
 <aside class="portrait-facts" data-character="迷迭香">
 lighting: [均匀, 柔和, 中性]  
@@ -1296,9 +1833,15 @@ colors: [深蓝, 金黄, 银白]
 
 **迷迭香**`讲道：`......嗯。我应该记得这里。但是......好像我没有记下。
 
+
+
 **迷迭香**`讲道：`我为什么没有记下？
 
+
+
 **迷迭香**`讲道：`我......需要记起来吗？
+
+
 
 <aside class="portrait-facts" data-character="伊芙利特">
 hair: [金发, 垂落, 肩头]  
@@ -1317,21 +1860,37 @@ colors: [橙黑, 黑色, 暗红]
 
 **伊芙利特**`讲道：`当然了，问你什么都不知道，这怎么行啊。
 
+
+
 **迷迭香**`讲道：`伊芙利特，记得？
+
+
 
 **伊芙利特**`讲道：`我？我......当然记得！
 
+
+
 **迷迭香**`讲道：`嗯？
+
+
 
 **伊芙利特**`讲道：`这里是哥伦比亚！以前我来过这里，我听说你也是！
 
 ---
 
+
+
 **锡人**`讲道：`啊......我记得她们......原来如此。
+
+
 
 **锡人**`讲道：`真是造化弄人，凯尔希，可您要让这么小的孩子去直面自己的命运吗？
 
+
+
 **凯尔希**`陷入了沉默`
+
+
 
 **凯尔希**`讲道：`那是她们自己的选择，我无权置喙。
 
@@ -1368,6 +1927,8 @@ colors: [橙黑, 黑色, 暗红]
 王后也因此郁郁寡欢，在夜晚向星星祈祷爱人能如愿以偿。最终，在她虔诚的祈祷下，一颗星星来到了人间——
 
 ---
+
+
 
 伊芙利特呆呆地看着火红的尾焰划过天空。
 

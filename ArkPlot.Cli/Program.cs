@@ -177,10 +177,20 @@ if (args.Length > 0 && args[0].Equals("diagnose-charslot", StringComparison.Ordi
 {
     if (args.Length < 2)
     {
-        Console.Error.WriteLine("用法: ArkPlot.Cli diagnose-charslot <novel_file.md>");
+        Console.Error.WriteLine("用法: ArkPlot.Cli diagnose-charslot <章节标题关键字> [--db <db_path>]");
+        Console.Error.WriteLine("  诊断 charslot 立绘分配与图片描述填充，追踪 pendingCode 演变");
         return;
     }
-    await DiagnoseCharSlotRunner.RunAsync(args[1]);
+    string? cbDbPath = null;
+    for (int i = 2; i < args.Length; i++)
+    {
+        if (args[i] == "--db" && i + 1 < args.Length)
+        {
+            cbDbPath = args[i + 1];
+            i++;
+        }
+    }
+    await DiagnoseCharSlotRunner.RunAsync(args[1], cbDbPath);
     return;
 }
 
