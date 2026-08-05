@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ArkPlot.Avalonia.ViewModels.Test"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="520"
+             x:Class="ArkPlot.Avalonia.Views.Test.DevOptionsPanel"
+             x:DataType="vm:DevOptionsViewModel">
+  <StackPanel Margin="16" Spacing="8">
+    <CheckBox Content="Mock小说化"
+              IsChecked="{Binding UseMockNovelizer}"
+              FontWeight="Bold"/>
+    <TextBlock Text="开启后，小说化管线不调用真实 API，返回占位文本，用于开发调试流程。"
+               FontSize="12" Opacity="0.6" TextWrapping="Wrap"/>
+  </StackPanel>
+</UserControl>

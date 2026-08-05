@@ -607,6 +607,7 @@ public partial class MainWindowViewModel : ViewModelBase
         // 从 AppSettings 读取小说化配置
         var settings = AppSettings.Load();
         var novelizer = settings.Novelizer;
+        var useMock = novelizer.UseMock;
 
         var selectedProviderName = novelizer.SelectedProvider;
         var apiKey = novelizer.GetApiKeyForProvider(selectedProviderName);
@@ -618,13 +619,14 @@ public partial class MainWindowViewModel : ViewModelBase
             _ => ApiProvider.Custom,
         };
         LogDiag(
-            "[RunNovelizer] provider={0}, baseUrl={1}, apiKey长度={2}",
+            "[RunNovelizer] provider={0}, baseUrl={1}, apiKey长度={2}, useMock={3}",
             selectedProviderName,
             baseUrl,
-            apiKey.Length
+            apiKey.Length,
+            useMock
         );
 
-        if (string.IsNullOrEmpty(apiKey))
+        if (!useMock && string.IsNullOrEmpty(apiKey))
         {
             noticeBlock.RaiseCommonEvent(
                 $"❌ 未配置 {selectedProviderName} API Key，跳过小说生成。"
@@ -635,8 +637,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var model = novelizer.SelectedModel;
         var systemPrompt = novelizer.SystemPrompt;
-        LogDiag("[RunNovelizer] model={0}，outputDir={1}", model, outputPathOfCurrentStory);
-        noticeBlock.RaiseCommonEvent($"正在使用 {model} 生成小说...");
+        LogDiag("[RunNovelizer] model={0}，useMock={1}，outputDir={2}", model, useMock, outputPathOfCurrentStory);
+        noticeBlock.RaiseCommonEvent(
+            useMock ? $"正在使用 {model} 生成小说（Mock 模式，不调用真实 API）..." : $"正在使用 {model} 生成小说...");
 
         try
         {
@@ -654,7 +657,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     noticeBlock.RaiseCommonEvent(msg)
                 );
             };
-            var client = new BailianClient(http, config, onLog: log);
+            var client = useMock
+                ? new MockBailianClient(http, config, onLog: log)
+                : new BailianClient(http, config, onLog: log);
             var pipeline = new NovelizerPipeline(
                 client,
                 config,
@@ -664,7 +669,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 chunkSize: novelizer.ChunkSize,
                 compressInterval: novelizer.CompressInterval,
                 enableSectionSplitter: novelizer.EnableSectionSplitter,
-                sectionSplitterModel: model
+                sectionSplitterModel: model,
+                useMock: useMock
             );
             LogDiag("[RunNovelizer] 对象创建完成，即将调用 BatchProcessAsync");
 

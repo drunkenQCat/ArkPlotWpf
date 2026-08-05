@@ -141,7 +141,8 @@ public record NovelizerSettings(
     bool EnableMultiTurn = false,
     int ChunkSize = 5_000,
     int CompressInterval = 2,
-    bool EnableSectionSplitter = true
+    bool EnableSectionSplitter = true,
+    bool UseMock = false
 )
 {
     public const string DefaultSystemPrompt = """

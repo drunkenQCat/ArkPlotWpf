@@ -10,6 +10,11 @@
     Width="800" Height="600">
 
   <TabControl Margin="16">
+    <!-- 开发选项 -->
+    <TabItem Header="开发选项">
+      <testViews:DevOptionsPanel x:Name="DevOptionsTab"/>
+    </TabItem>
+
     <!-- PortraitPanel 测试 -->
     <TabItem Header="立绘组件">
       <testViews:PortraitTestPanel x:Name="PortraitTestTab"/>

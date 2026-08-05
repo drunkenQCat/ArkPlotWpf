@@ -8,6 +8,7 @@ public partial class TestWindow : SukiWindow
     public TestWindow()
     {
         InitializeComponent();
+        DevOptionsTab.DataContext = new DevOptionsViewModel();
         PortraitTestTab.DataContext = new PortraitTestViewModel();
         AudioTestTab.DataContext = new AudioTestViewModel();
         NetworkFailureTab.DataContext = new NetworkFailureTestViewModel();
