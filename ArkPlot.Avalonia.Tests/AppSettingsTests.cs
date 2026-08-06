@@ -37,7 +37,8 @@ public class NovelizerSettingsTests
         Assert.Contains("MiniMax-M2.5", models);
         Assert.Contains("kimi-k2.5", models);
         Assert.Contains("deepseek-v4-flash", models);
-        Assert.Equal(4, models.Length);
+        Assert.Contains("deepseek-v4-flash-0731", models);
+        Assert.Equal(5, models.Length);
     }
 
     // B3

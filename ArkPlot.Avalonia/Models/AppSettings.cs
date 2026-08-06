@@ -205,7 +205,7 @@ public record NovelizerSettings(
     {
         ["DeepSeek"] = ("https://api.deepseek.com", ["deepseek-v4-pro", "deepseek-v4-flash"]),
         ["百炼"] = ("https://dashscope.aliyuncs.com/compatible-mode/v1",
-                     ["deepseek-v4-flash", "glm-5", "MiniMax-M2.5", "kimi-k2.5"]),
+                     ["deepseek-v4-flash", "deepseek-v4-flash-0731", "glm-5", "MiniMax-M2.5", "kimi-k2.5"]),
     };
 
     /// <summary>所有可选平台名（预设 + 自定义），去重</summary>
