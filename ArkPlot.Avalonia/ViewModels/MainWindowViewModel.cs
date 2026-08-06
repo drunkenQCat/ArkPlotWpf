@@ -524,7 +524,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var outputMode =
-                (IsNovelizerEnabled && IsPicDescEnabled)
+                (IsNovelizerEnabled || IsPicDescEnabled)
                     ? OutputMode.PromptOptimized
                     : OutputMode.Readable;
             var rawMd = await ExportPlots(

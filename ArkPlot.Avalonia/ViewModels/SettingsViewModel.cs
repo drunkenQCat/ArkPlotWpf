@@ -45,7 +45,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _enableMultiTurn;
     [ObservableProperty] private int _chunkSize = 5_000;
     [ObservableProperty] private int _compressInterval = 2;
-    [ObservableProperty] private bool _enableSectionSplitter = true;
+    [ObservableProperty] private bool _enableSectionSplitter = false;
 
     // 小说化自定义 Provider
     [ObservableProperty] private ObservableCollection<ProviderConfig> _customProviderList = new();

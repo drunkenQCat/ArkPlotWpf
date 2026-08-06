@@ -141,7 +141,7 @@ public record NovelizerSettings(
     bool EnableMultiTurn = false,
     int ChunkSize = 5_000,
     int CompressInterval = 2,
-    bool EnableSectionSplitter = true,
+    bool EnableSectionSplitter = false,
     bool UseMock = false
 )
 {
@@ -267,7 +267,7 @@ public record NovelizerSettings(
             EnableMultiTurn: false,
             ChunkSize: 5_000,
             CompressInterval: 2,
-            EnableSectionSplitter: true
+            EnableSectionSplitter: false
         );
     }
 }
